@@ -1,0 +1,34 @@
+{
+    "name": "STM32 Development",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "runArgs": [
+        "--privileged",
+        "--device=/dev/ttyUSB0"
+    ],
+    "mounts": [
+        "source=extensionCache,target=/root/.vscode-server/extensions,type=volume"
+    ],
+    "privileged": true,
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "STM32VSCodeExtension.projectCreator.executablePath": "/usr/local/bin/STM32CubeMX",
+                "STM32VSCodeExtension.productFinder.executablePath": "/usr/local/bin/STM32CubeFinder",
+                "STM32VSCodeExtension.cubeClt.Path": "/usr/local/bin/STM32_Programmer_CLI"
+            },
+            "extensions": [
+                "stmicroelectronics.STM32VSCodeExtension",
+                "ms-vscode.cmake-tools",
+                "ms-vscode.cpptools-extension-pack",
+                "twxs.cmake",
+                "ms-vscode.makefile-tools",
+                "mhutchie.git-graph",
+                "xaver.clang-format"
+            ]
+        }
+    },
+    "remoteUser": "root",
+    "postCreateCommand": "make setup"
+}
