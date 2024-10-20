@@ -54,7 +54,6 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Inc/arithmetic.hpp"
     "Core/Inc/quaternion3d.hpp"
     "Core/Inc/vector3d.hpp"
-    "Core/Src/main.cpp"
     "Core/Src/mpu6050.cpp"
 )
 

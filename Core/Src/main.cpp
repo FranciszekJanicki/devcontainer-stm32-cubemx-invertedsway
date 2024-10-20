@@ -20,19 +20,14 @@
 #include "main.h"
 #include "gpio.h"
 #include "i2c.h"
-#include "stm32l4xx_hal.h"
 #include "usart.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "mpu6050.hpp"
-#include "mpu6050_config.hpp"
-#include <cmsis_gcc.h>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <stm32_hal_legacy.h>
-#include <stm32l4xx_hal_pwr_ex.h>
-#include <stm32l4xx_hal_rcc.h>
 
 /* USER CODE END Includes */
 
@@ -54,17 +49,20 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-std::uint8_t buffer[128];
+char buffer[128];
+
+static MPU6050 mpu6050{&hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::ACCEL_FS_2};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
-void UART2_SendString(char* s)
+
+static void UART2_SendString(const char* string)
 {
-    HAL_UART_Transmit(&huart2, (uint8_t*)s, strlen(s), 1000);
+    HAL_UART_Transmit(&huart2, (const uint8_t*)string, strlen(string), 1000);
 }
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -102,33 +100,31 @@ int main(void)
     MX_GPIO_Init();
     MX_I2C1_Init();
     MX_USART2_UART_Init();
-    /* Initialize interrupts */
-    MX_NVIC_Init();
+
     /* USER CODE BEGIN 2 */
-    // MPU6050::Init(hi2c1, GYRO_FS_250, ACCEL_FS_2);
 
-    // MPU6050::SetInterruptMode(hi2c1, INTMODE_ACTIVEHIGH);
-    // MPU6050::SetInterruptDrive(hi2c1, INTDRV_PUSHPULL);
-    // MPU6050::SetInterruptLatch(hi2c1, INTLATCH_WAITCLEAR);
-    // MPU6050::SetInterruptLatchClear(hi2c1, INTCLEAR_STATUSREAD);
+    mpu6050.set_interrupt_mode(MPU6050::INTMODE_ACTIVEHIGH);
+    mpu6050.set_interrupt_drive(MPU6050::INTDRV_PUSHPULL);
+    mpu6050.set_interrupt_latch(MPU6050::INTLATCH_WAITCLEAR);
+    mpu6050.set_interrupt_latch_clear(MPU6050::INTCLEAR_STATUSREAD);
 
-    // MPU6050::SetIntEnableRegister(hi2c1, 0); // Disable all interrupts
+    mpu6050.set_int_enable_register(0); // Disable all interrupts
 
-    // // Enable Motion interrputs
-    // MPU6050::SetDHPFMode(hi2c1, DHPF_5);
+    // Enable Motion interrputs
+    mpu6050.set_dhpf_mode(MPU6050::DHPF_5);
 
-    // MPU6050::SetIntMotionEnabled(hi2c1, 1);
-    // MPU6050::SetIntZeroMotionEnabled(hi2c1, 1);
-    // MPU6050::SetIntFreeFallEnabled(hi2c1, 1);
+    mpu6050.set_int_motion_enabled(1);
+    mpu6050.set_int_zero_motion_enabled(1);
+    mpu6050.set_int_free_fall_enabled(1);
 
-    // MPU6050::SetFreeFallDetectionDuration(hi2c1, 2);
-    // MPU6050::SetFreeFallDetectionThreshold(hi2c1, 5);
+    mpu6050.set_free_fall_detection_duration(2);
+    mpu6050.set_free_fall_detection_threshold(5);
 
-    // MPU6050::SetMotionDetectionDuration(hi2c1, 5);
-    // MPU6050::SetMotionDetectionThreshold(hi2c1, 2);
+    mpu6050.set_motion_detection_duration(5);
+    mpu6050.set_motion_detection_threshold(2);
 
-    // MPU6050::SetZeroMotionDetectionDuration(hi2c1, 2);
-    // MPU6050::SetZeroMotionDetectionThreshold(hi2c1, 4);
+    mpu6050.set_zero_motion_detection_duration(2);
+    mpu6050.set_zero_motion_detection_threshold(4);
 
     /* USER CODE END 2 */
 
@@ -137,30 +133,30 @@ int main(void)
     while (true) {
         /* USER CODE END WHILE */
 
-        // /* USER CODE BEGIN 3 */
-        // const auto& [ax, ay, az]{MPU6050::GetAccelerometerScaled(hi2c1, ACCEL_FS_2)};
-        // const auto& [gx, gy, gz]{MPU6050::GetGyroscopeScaled(hi2c1, GYRO_FS_250)};
-        // const auto temperature{MPU6050::GetTemperatureCelsius(hi2c1)};
-        // memset(buffer, 0, 128);
-        // sprintf((char*)buffer,
-        //         "ACC: X: %.2f Y:%.2f Z:%.2f \n\rGYR: X: %.2f Y:%.2f "
-        //         "Z:%.2f\n\rTEMP: %.2f\n\r",
-        //         ax,
-        //         ay,
-        //         az,
-        //         gx,
-        //         gy,
-        //         gz,
-        //         temperature);
-        // UART2_SendString((char*)buffer);
+        /* USER CODE BEGIN 3 */
 
-        // const auto& [roll, pitch, yaw]{MPU6050::GetRollPitchYaw(hi2c1, ACCEL_FS_2)};
-        // memset(buffer, 0, 128);
-        // sprintf((char*)buffer, "RPY: Roll: %.2f Pitch: %.2f\n\r\n\r", roll, pitch);
-        // UART2_SendString((char*)buffer);
+        const auto& [ax, ay, az]{mpu6050.get_accelerometer_scaled()};
+        const auto& [gx, gy, gz]{mpu6050.get_gyroscope_scaled()};
+        const auto temperature{mpu6050.get_temperature_celsius()};
+        memset(buffer, 0, 128);
+        sprintf((char*)buffer,
+                "ACC: X: %.2f Y:%.2f Z:%.2f \n\rGYR: X: %.2f Y:%.2f "
+                "Z:%.2f\n\rTEMP: %.2f\n\r",
+                ax,
+                ay,
+                az,
+                gx,
+                gy,
+                gz,
+                temperature);
+        UART2_SendString((char*)buffer);
+
+        const auto& [roll, pitch, yaw]{mpu6050.get_roll_pitch_yaw()};
+        memset(buffer, 0, 128);
+        sprintf((char*)buffer, "RPY: Roll: %.2f Pitch: %.2f\n\r\n\r", roll, pitch);
+        UART2_SendString((char*)buffer);
+
         HAL_Delay(1000);
-
-        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     }
     /* USER CODE END 3 */
 }
@@ -171,8 +167,8 @@ int main(void)
  */
 void SystemClock_Config(void)
 {
-    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    RCC_OscInitTypeDef RCC_OscInitStruct = {};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {};
 
     /** Configure the main internal regulator output voltage
      */
@@ -211,40 +207,33 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-static void MX_NVIC_Init(void)
-{
-    /* EXTI9_5_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
-}
-
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == INTR_Pin) {
-        uint8_t interrupts = MPU6050::GetIntStatusRegister(hi2c1);
-        MPU6050::GetMotionStatusRegister(hi2c1);
-        sprintf((char*)buffer, "Int status triggered: %X\n\n\r", interrupts);
+        const auto interrupts{mpu6050.get_int_status_register()};
+        mpu6050.get_motion_status_register();
+        sprintf((char*)buffer, "int_ status triggered: %X\n\n\r", interrupts);
         UART2_SendString((char*)buffer);
 
-        if (interrupts & (0x01 << INTERRUPT_FIFO_OFLOW_BIT)) // Bit 4 (0x10)
+        if (interrupts & (0x01 << MPU6050::INTERRUPT_FIFO_OFLOW_BIT)) // Bit 4 (0x10)
         {
             sprintf((char*)buffer, "FIFO Overflow detected\n\r");
             UART2_SendString((char*)buffer);
         }
 
-        if (interrupts & (0x01 << INTERRUPT_MOT_BIT)) // Bit 6 (0x40)
+        if (interrupts & (0x01 << MPU6050::INTERRUPT_MOT_BIT)) // Bit 6 (0x40)
         {
             sprintf((char*)buffer, "Motion detected\n\r");
             UART2_SendString((char*)buffer);
         }
 
-        if (interrupts & (0x01 << INTERRUPT_ZMOT_BIT)) // Bit 5 (0x20)
+        if (interrupts & (0x01 << MPU6050::INTERRUPT_ZMOT_BIT)) // Bit 5 (0x20)
         {
             sprintf((char*)buffer, "Zero Motion detected\n\r");
             UART2_SendString((char*)buffer);
         }
 
-        if (interrupts & (0x01 << INTERRUPT_FF_BIT)) // Bit 7 (0x80)
+        if (interrupts & (0x01 << MPU6050::INTERRUPT_FF_BIT)) // Bit 7 (0x80)
         {
             sprintf((char*)buffer, "Freefall detected\n\r");
             UART2_SendString((char*)buffer);

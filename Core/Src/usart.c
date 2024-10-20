@@ -19,7 +19,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "usart.h"
-#include <stm32l476xx.h>
 
 /* USER CODE BEGIN 0 */
 
