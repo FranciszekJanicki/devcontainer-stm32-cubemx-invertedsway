@@ -5,10 +5,13 @@ DRIVERS_DIR := ${PROJECT_DIR}/Drivers
 REQUIREMENTS_DIR := ${PROJECT_DIR}/requirements
 STM32CUBEMX_DIR := ${PROJECT_DIR}/cmake/stm32cubemx
 
-
 .PHONY: build
 build: 
 	cd ${BUILD_DIR} && make
+
+.PHONY: clean
+clean: 
+	rm -rf ${BUILD_DIR}
 
 
 .PHONY: flash

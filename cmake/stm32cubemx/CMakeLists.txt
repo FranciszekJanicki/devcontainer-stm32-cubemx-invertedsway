@@ -58,6 +58,10 @@ target_link_directories(stm32cubemx INTERFACE
 target_link_libraries(stm32cubemx INTERFACE
 )
 
+target_compile_options(stm32cubemx INTERFACE
+    -w
+)
+
 # Validate that STM32CubeMX code is compatible with C standard
 if(CMAKE_C_STANDARD LESS 11)
     message(ERROR "Generated code requires C11 or higher")

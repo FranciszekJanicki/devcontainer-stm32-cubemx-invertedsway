@@ -64,36 +64,36 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
 )
 
-# Add project symbols (macros)
-target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
-
-    # -std=c++23
-    # -fconcepts
-    # -Wall
-    # -Wextra
-    # -Wconversion
-    # -Wshadow
-    # -Wpedantic
-    # -Wnarrowing
-    # -Waddress
-    # -Wnon-virtual-dtor
-
-    # # -pedantic
-    # -Wpessimizing-move
-    # -Wsign-conversion
-    # -Wmisleading-indentation
-    # -Wduplicated-cond
-    # -Wduplicated-branches
-    # -Wlogical-op
-    # -Wnull-dereference
-    # -Wuseless-cast
-    # -Wdouble-promotion
-    # -Wformat=2
-    # -Wimplicit-fallthrough
-    # -Wcast-align
-)
-
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
+)
+
+# Add project symbols (macros)
+target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC
+    -std=c++23
+    -fconcepts
+    -Wall
+    -Wextra
+    -Wconversion
+    -Wshadow
+    -Wpedantic
+    -Wnarrowing
+    -Wimplicit
+    -Waddress
+    -Wnon-virtual-dtor
+    -pedantic
+    -Wpessimizing-move
+    -Wsign-conversion
+    -Wmisleading-indentation
+    -Wduplicated-cond
+    -Wduplicated-branches
+    -Wlogical-op
+    -Wregister
+    -Wnull-dereference
+    -Wuseless-cast
+    -Wdouble-promotion
+    -Wformat=2
+    -Wimplicit-fallthrough
+    -Wcast-align
 )

@@ -59,7 +59,7 @@ const MPU6050 mpu6050{&hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::A
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
-static void uart_send_string(UART_HandleTypeDef* huart, const char* string)
+static void uart_send_string(UART_HandleTypeDef* huart, const char* string) noexcept
 {
     HAL_UART_Transmit(huart, std::bit_cast<const std::uint8_t*>(string), strlen(string), 1000);
 }

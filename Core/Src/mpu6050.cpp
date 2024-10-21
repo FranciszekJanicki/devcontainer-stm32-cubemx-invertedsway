@@ -20,7 +20,7 @@ void MPU6050::set_dlpf(const std::uint8_t value) const noexcept
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_CONFIG, sizeof(RA_CONFIG), &buffer, sizeof(buffer), i2c_TIMEOUT);
     buffer &= 0xF8;
-    buffer |= (value & 0x7);
+    buffer |= std::uint8_t(value & 0x7);
     HAL_I2C_Mem_Write(i2c, addres, RA_CONFIG, sizeof(RA_CONFIG), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -31,8 +31,8 @@ void MPU6050::device_reset(const std::uint8_t reset) const noexcept
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_PWR_MGMT_1, sizeof(RA_PWR_MGMT_1), &buffer, sizeof(buffer), i2c_TIMEOUT);
-    buffer &= ~(0x01 << PWR1_DEVICE_RESET_BIT);
-    buffer |= ((reset & 0x1) << PWR1_DEVICE_RESET_BIT);
+    buffer &= ~std::uint8_t(0x01 << PWR1_DEVICE_RESET_BIT);
+    buffer |= std::uint8_t((reset & 0x1) << PWR1_DEVICE_RESET_BIT);
     HAL_I2C_Mem_Write(i2c, addres, RA_PWR_MGMT_1, sizeof(RA_PWR_MGMT_1), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -40,8 +40,8 @@ void MPU6050::set_sleep_enabled(const std::uint8_t enable) const noexcept
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_PWR_MGMT_1, sizeof(RA_PWR_MGMT_1), &buffer, sizeof(buffer), i2c_TIMEOUT);
-    buffer &= ~(0x01 << PWR1_SLEEP_BIT);
-    buffer |= ((enable & 0x1) << PWR1_SLEEP_BIT);
+    buffer &= ~std::uint8_t(0x01 << PWR1_SLEEP_BIT);
+    buffer |= std::uint8_t((enable & 0x1) << PWR1_SLEEP_BIT);
     HAL_I2C_Mem_Write(i2c, addres, RA_PWR_MGMT_1, sizeof(RA_PWR_MGMT_1), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -49,8 +49,8 @@ void MPU6050::set_cycle_enabled(const std::uint8_t enable) const noexcept
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_PWR_MGMT_1, sizeof(RA_PWR_MGMT_1), &buffer, sizeof(buffer), i2c_TIMEOUT);
-    buffer &= ~(0x01 << PWR1_CYCLE_BIT);
-    buffer |= ((enable & 0x1) << PWR1_CYCLE_BIT);
+    buffer &= ~std::uint8_t(0x01 << PWR1_CYCLE_BIT);
+    buffer |= std::uint8_t((enable & 0x1) << PWR1_CYCLE_BIT);
     HAL_I2C_Mem_Write(i2c, addres, RA_PWR_MGMT_1, sizeof(RA_PWR_MGMT_1), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -58,8 +58,8 @@ void MPU6050::set_temperature_sensor_disabled(const std::uint8_t disable) const 
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_PWR_MGMT_1, sizeof(RA_PWR_MGMT_1), &buffer, sizeof(buffer), i2c_TIMEOUT);
-    buffer &= ~(0x01 << PWR1_TEMP_DIS_BIT);
-    buffer |= ((disable & 0x1) << PWR1_TEMP_DIS_BIT);
+    buffer &= ~std::uint8_t(0x01 << PWR1_TEMP_DIS_BIT);
+    buffer |= std::uint8_t((disable & 0x1) << PWR1_TEMP_DIS_BIT);
     HAL_I2C_Mem_Write(i2c, addres, RA_PWR_MGMT_1, sizeof(RA_PWR_MGMT_1), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -68,7 +68,7 @@ void MPU6050::set_clock_source(const std::uint8_t source) const noexcept
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_PWR_MGMT_1, sizeof(RA_PWR_MGMT_1), &buffer, sizeof(buffer), i2c_TIMEOUT);
     buffer &= 0xF8;
-    buffer |= (source & 0x7);
+    buffer |= std::uint8_t(source & 0x7);
     HAL_I2C_Mem_Write(i2c, addres, RA_PWR_MGMT_1, sizeof(RA_PWR_MGMT_1), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -80,7 +80,7 @@ void MPU6050::set_low_power_wake_up_frequency(const std::uint8_t frequency) cons
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_PWR_MGMT_2, sizeof(RA_PWR_MGMT_2), &buffer, sizeof(buffer), i2c_TIMEOUT);
     buffer &= 0x3F;
-    buffer |= (frequency & 0x3) << PWR2_LP_WAKE_CTRL_BIT;
+    buffer |= std::uint8_t(frequency & 0x3) << PWR2_LP_WAKE_CTRL_BIT;
     HAL_I2C_Mem_Write(i2c, addres, RA_PWR_MGMT_2, sizeof(RA_PWR_MGMT_2), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -91,8 +91,8 @@ void MPU6050::accelerometer_axis_standby(const std::uint8_t x_accel_standby,
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_PWR_MGMT_2, sizeof(RA_PWR_MGMT_2), &buffer, sizeof(buffer), i2c_TIMEOUT);
     buffer &= 0xC7;
-    buffer |= ((x_accel_standby & 0x1) << PWR2_STBY_XA_BIT) | ((y_accel_standby & 0x1) << PWR2_STBY_YA_BIT) |
-              ((z_accel_standby & 0x1) << PWR2_STBY_ZA_BIT);
+    buffer |= std::uint8_t((x_accel_standby & 0x1) << PWR2_STBY_XA_BIT) |
+              ((y_accel_standby & 0x1) << PWR2_STBY_YA_BIT) | ((z_accel_standby & 0x1) << PWR2_STBY_ZA_BIT);
     HAL_I2C_Mem_Write(i2c, addres, RA_PWR_MGMT_2, sizeof(RA_PWR_MGMT_2), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -103,7 +103,7 @@ void MPU6050::gyroscope_axis_standby(const std::uint8_t x_gyro_standby,
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_PWR_MGMT_2, sizeof(RA_PWR_MGMT_2), &buffer, sizeof(buffer), i2c_TIMEOUT);
     buffer &= 0xF8;
-    buffer |= ((x_gyro_standby & 0x1) << PWR2_STBY_XG_BIT) | ((y_gyro_standby & 0x1) << PWR2_STBY_YG_BIT) |
+    buffer |= std::uint8_t((x_gyro_standby & 0x1) << PWR2_STBY_XG_BIT) | ((y_gyro_standby & 0x1) << PWR2_STBY_YG_BIT) |
               ((z_gyro_standby & 0x1) << PWR2_STBY_ZG_BIT);
     HAL_I2C_Mem_Write(i2c, addres, RA_PWR_MGMT_2, sizeof(RA_PWR_MGMT_2), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
@@ -116,7 +116,7 @@ void MPU6050::set_full_scale_gyro_range(const std::uint8_t range) const noexcept
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_GYRO_CONFIG, sizeof(RA_GYRO_CONFIG), &buffer, sizeof(buffer), i2c_TIMEOUT);
     buffer &= 0xE7;
-    buffer |= ((range & 0x7) << 3);
+    buffer |= std::uint8_t((range & 0x7) << 3);
     HAL_I2C_Mem_Write(i2c, addres, RA_GYRO_CONFIG, sizeof(RA_GYRO_CONFIG), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -125,7 +125,7 @@ void MPU6050::set_full_scale_accel_range(const std::uint8_t range) const noexcep
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_ACCEL_CONFIG, sizeof(RA_ACCEL_CONFIG), &buffer, sizeof(buffer), i2c_TIMEOUT);
     buffer &= 0xE7;
-    buffer |= ((range & 0x7) << 3);
+    buffer |= std::uint8_t((range & 0x7) << 3);
     HAL_I2C_Mem_Write(i2c, addres, RA_ACCEL_CONFIG, sizeof(RA_ACCEL_CONFIG), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -270,8 +270,8 @@ void MPU6050::set_interrupt_mode(const std::uint8_t mode) const noexcept
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_INT_PIN_CFG, sizeof(RA_INT_PIN_CFG), &buffer, sizeof(buffer), i2c_TIMEOUT);
-    buffer &= ~(0x01 << INTCFG_INT_LEVEL_BIT);
-    buffer |= ((mode & 0x1) << INTCFG_INT_LEVEL_BIT);
+    buffer &= ~std::uint8_t(0x01 << INTCFG_INT_LEVEL_BIT);
+    buffer |= std::uint8_t((mode & 0x1) << INTCFG_INT_LEVEL_BIT);
     HAL_I2C_Mem_Write(i2c, addres, RA_INT_PIN_CFG, sizeof(RA_INT_PIN_CFG), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -279,8 +279,8 @@ void MPU6050::set_interrupt_drive(const std::uint8_t drive) const noexcept
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_INT_PIN_CFG, sizeof(RA_INT_PIN_CFG), &buffer, sizeof(buffer), i2c_TIMEOUT);
-    buffer &= ~(0x01 << INTCFG_INT_OPEN_BIT);
-    buffer |= ((drive & 0x1) << INTCFG_INT_OPEN_BIT);
+    buffer &= ~std::uint8_t(0x01 << INTCFG_INT_OPEN_BIT);
+    buffer |= std::uint8_t((drive & 0x1) << INTCFG_INT_OPEN_BIT);
     HAL_I2C_Mem_Write(i2c, addres, RA_INT_PIN_CFG, sizeof(RA_INT_PIN_CFG), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -288,8 +288,8 @@ void MPU6050::set_interrupt_latch(const std::uint8_t latch) const noexcept
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_INT_PIN_CFG, sizeof(RA_INT_PIN_CFG), &buffer, sizeof(buffer), i2c_TIMEOUT);
-    buffer &= ~(0x01 << INTCFG_INT_RD_CLEAR_BIT);
-    buffer |= ((latch & 0x1) << INTCFG_INT_RD_CLEAR_BIT);
+    buffer &= ~std::uint8_t(0x01 << INTCFG_INT_RD_CLEAR_BIT);
+    buffer |= std::uint8_t((latch & 0x1) << INTCFG_INT_RD_CLEAR_BIT);
     HAL_I2C_Mem_Write(i2c, addres, RA_INT_PIN_CFG, sizeof(RA_INT_PIN_CFG), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -297,8 +297,8 @@ void MPU6050::set_interrupt_latch_clear(const std::uint8_t clear) const noexcept
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_INT_PIN_CFG, sizeof(RA_INT_PIN_CFG), &buffer, sizeof(buffer), i2c_TIMEOUT);
-    buffer &= ~(0x01 << INTCFG_LATCH_INT_EN_BIT);
-    buffer |= ((clear & 0x1) << INTCFG_LATCH_INT_EN_BIT);
+    buffer &= ~std::uint8_t(0x01 << INTCFG_LATCH_INT_EN_BIT);
+    buffer |= std::uint8_t((clear & 0x1) << INTCFG_LATCH_INT_EN_BIT);
     HAL_I2C_Mem_Write(i2c, addres, RA_INT_PIN_CFG, sizeof(RA_INT_PIN_CFG), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -311,8 +311,8 @@ void MPU6050::set_int_data_ready_enabled(const std::uint8_t enable) const noexce
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_INT_ENABLE, sizeof(RA_INT_ENABLE), &buffer, sizeof(buffer), i2c_TIMEOUT);
-    buffer &= ~(0x01 << INTERRUPT_DATA_RDY_BIT);
-    buffer |= ((enable & 0x1) << INTERRUPT_DATA_RDY_BIT);
+    buffer &= ~std::uint8_t(0x01 << INTERRUPT_DATA_RDY_BIT);
+    buffer |= std::uint8_t((enable & 0x1) << INTERRUPT_DATA_RDY_BIT);
     HAL_I2C_Mem_Write(i2c, addres, RA_INT_ENABLE, sizeof(RA_INT_ENABLE), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -337,8 +337,8 @@ void MPU6050::set_dhpf_mode(const std::uint8_t dhpf) const noexcept
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_ACCEL_CONFIG, sizeof(RA_ACCEL_CONFIG), &buffer, sizeof(buffer), i2c_TIMEOUT);
-    buffer &= ~(0x07);
-    buffer |= dhpf & 0x7;
+    buffer &= ~std::uint8_t(0x07);
+    buffer |= std::uint8_t(dhpf & 0x7);
     HAL_I2C_Mem_Write(i2c, addres, RA_ACCEL_CONFIG, sizeof(RA_ACCEL_CONFIG), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -359,8 +359,8 @@ void MPU6050::set_int_zero_motion_enabled(const std::uint8_t enable) const noexc
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_INT_ENABLE, sizeof(RA_INT_ENABLE), &buffer, sizeof(buffer), i2c_TIMEOUT);
-    buffer &= ~(0x01 << INTERRUPT_ZMOT_BIT);
-    buffer |= ((enable & 0x1) << INTERRUPT_ZMOT_BIT);
+    buffer &= ~std::uint8_t(0x01 << INTERRUPT_ZMOT_BIT);
+    buffer |= std::uint8_t((enable & 0x1) << INTERRUPT_ZMOT_BIT);
     HAL_I2C_Mem_Write(i2c, addres, RA_INT_ENABLE, sizeof(RA_INT_ENABLE), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -368,8 +368,8 @@ void MPU6050::set_int_motion_enabled(const std::uint8_t enable) const noexcept
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_INT_ENABLE, sizeof(RA_INT_ENABLE), &buffer, sizeof(buffer), i2c_TIMEOUT);
-    buffer &= ~(0x01 << INTERRUPT_MOT_BIT);
-    buffer |= ((enable & 0x1) << INTERRUPT_MOT_BIT);
+    buffer &= ~std::uint8_t(0x01 << INTERRUPT_MOT_BIT);
+    buffer |= std::uint8_t((enable & 0x1) << INTERRUPT_MOT_BIT);
     HAL_I2C_Mem_Write(i2c, addres, RA_INT_ENABLE, sizeof(RA_INT_ENABLE), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
@@ -377,8 +377,8 @@ void MPU6050::set_int_free_fall_enabled(const std::uint8_t enable) const noexcep
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c, addres, RA_INT_ENABLE, sizeof(RA_INT_ENABLE), &buffer, sizeof(buffer), i2c_TIMEOUT);
-    buffer &= ~(0x01 << INTERRUPT_FF_BIT);
-    buffer |= ((enable & 0x1) << INTERRUPT_FF_BIT);
+    buffer &= ~std::uint8_t(0x01 << INTERRUPT_FF_BIT);
+    buffer |= std::uint8_t((enable & 0x1) << INTERRUPT_FF_BIT);
     HAL_I2C_Mem_Write(i2c, addres, RA_INT_ENABLE, sizeof(RA_INT_ENABLE), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 

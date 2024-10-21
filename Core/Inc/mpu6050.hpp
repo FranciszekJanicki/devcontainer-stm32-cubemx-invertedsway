@@ -123,6 +123,7 @@ struct MPU6050 {
         }
     }
 
+    static constexpr MPU6050::Scaled M_PI{3.14};
     static constexpr std::uint32_t i2c_TIMEOUT{10};
     static constexpr std::uint8_t ADDRESS{0xD0};  // AD0 low
     static constexpr std::uint8_t ADDRESS2{0xD1}; // AD0 high
