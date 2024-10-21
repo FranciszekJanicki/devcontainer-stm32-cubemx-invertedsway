@@ -54,6 +54,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Inc/arithmetic.hpp"
     "Core/Inc/quaternion3d.hpp"
     "Core/Inc/vector3d.hpp"
+    "Core/Inc/rotation3d.hpp"
     "Core/Src/mpu6050.cpp"
 )
 
@@ -95,6 +96,4 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
-
-    # Add user defined libraries
 )

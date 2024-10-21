@@ -25,6 +25,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "mpu6050.hpp"
+#include <bit>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -50,17 +51,26 @@
 
 /* USER CODE BEGIN PV */
 char buffer[128];
+const MPU6050 mpu6050{&hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::ACCEL_FS_2};
 
-static MPU6050 mpu6050{&hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::ACCEL_FS_2};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
-static void UART2_SendString(const char* string)
+static void uart_send_string(UART_HandleTypeDef* huart, const char* string)
 {
-    HAL_UART_Transmit(&huart2, (const uint8_t*)string, strlen(string), 1000);
+    HAL_UART_Transmit(huart, std::bit_cast<const std::uint8_t*>(string), strlen(string), 1000);
+}
+
+template <typename Value>
+static auto make_filter() noexcept
+{
+    return [sum = Value{}, N = double{0.0}](const Value& input) mutable {
+        sum += input;
+        return sum / N++;
+    };
 }
 
 /* USER CODE END PFP */
@@ -103,28 +113,11 @@ int main(void)
 
     /* USER CODE BEGIN 2 */
 
-    mpu6050.set_interrupt_mode(MPU6050::INTMODE_ACTIVEHIGH);
-    mpu6050.set_interrupt_drive(MPU6050::INTDRV_PUSHPULL);
-    mpu6050.set_interrupt_latch(MPU6050::INTLATCH_WAITCLEAR);
-    mpu6050.set_interrupt_latch_clear(MPU6050::INTCLEAR_STATUSREAD);
+    mpu6050.initialize();
 
-    mpu6050.set_int_enable_register(0); // Disable all interrupts
-
-    // Enable Motion interrputs
-    mpu6050.set_dhpf_mode(MPU6050::DHPF_5);
-
-    mpu6050.set_int_motion_enabled(1);
-    mpu6050.set_int_zero_motion_enabled(1);
-    mpu6050.set_int_free_fall_enabled(1);
-
-    mpu6050.set_free_fall_detection_duration(2);
-    mpu6050.set_free_fall_detection_threshold(5);
-
-    mpu6050.set_motion_detection_duration(5);
-    mpu6050.set_motion_detection_threshold(2);
-
-    mpu6050.set_zero_motion_detection_duration(2);
-    mpu6050.set_zero_motion_detection_threshold(4);
+    auto temp_filter{make_filter<MPU6050::TempScaled>()};
+    auto accel_filter{make_filter<MPU6050::AccelScaled>()};
+    auto gyro_filter{make_filter<MPU6050::GyroScaled>()};
 
     /* USER CODE END 2 */
 
@@ -134,12 +127,11 @@ int main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-
-        const auto& [ax, ay, az]{mpu6050.get_accelerometer_scaled()};
-        const auto& [gx, gy, gz]{mpu6050.get_gyroscope_scaled()};
-        const auto temperature{mpu6050.get_temperature_celsius()};
+        const auto& [ax, ay, az]{accel_filter(mpu6050.get_accelerometer_scaled())};
+        const auto& [gx, gy, gz]{gyro_filter(mpu6050.get_gyroscope_scaled())};
+        const auto temperature{temp_filter(mpu6050.get_temperature_celsius())};
         memset(buffer, 0, 128);
-        sprintf((char*)buffer,
+        sprintf(buffer,
                 "ACC: X: %.2f Y:%.2f Z:%.2f \n\rGYR: X: %.2f Y:%.2f "
                 "Z:%.2f\n\rTEMP: %.2f\n\r",
                 ax,
@@ -149,12 +141,12 @@ int main(void)
                 gy,
                 gz,
                 temperature);
-        UART2_SendString((char*)buffer);
+        uart_send_string(&huart2, buffer);
 
         const auto& [roll, pitch, yaw]{mpu6050.get_roll_pitch_yaw()};
         memset(buffer, 0, 128);
-        sprintf((char*)buffer, "RPY: Roll: %.2f Pitch: %.2f\n\r\n\r", roll, pitch);
-        UART2_SendString((char*)buffer);
+        sprintf(buffer, "RPY: Roll: %.2f Pitch: %.2f\n\r\n\r", roll, pitch);
+        uart_send_string(&huart2, buffer);
 
         HAL_Delay(1000);
     }
@@ -212,31 +204,31 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (GPIO_Pin == INTR_Pin) {
         const auto interrupts{mpu6050.get_int_status_register()};
         mpu6050.get_motion_status_register();
-        sprintf((char*)buffer, "int_ status triggered: %X\n\n\r", interrupts);
-        UART2_SendString((char*)buffer);
+        sprintf(buffer, "int_ status triggered: %X\n\n\r", interrupts);
+        uart_send_string(&huart2, buffer);
 
         if (interrupts & (0x01 << MPU6050::INTERRUPT_FIFO_OFLOW_BIT)) // Bit 4 (0x10)
         {
-            sprintf((char*)buffer, "FIFO Overflow detected\n\r");
-            UART2_SendString((char*)buffer);
+            sprintf(buffer, "FIFO Overflow detected\n\r");
+            uart_send_string(&huart2, buffer);
         }
 
         if (interrupts & (0x01 << MPU6050::INTERRUPT_MOT_BIT)) // Bit 6 (0x40)
         {
-            sprintf((char*)buffer, "Motion detected\n\r");
-            UART2_SendString((char*)buffer);
+            sprintf(buffer, "Motion detected\n\r");
+            uart_send_string(&huart2, buffer);
         }
 
         if (interrupts & (0x01 << MPU6050::INTERRUPT_ZMOT_BIT)) // Bit 5 (0x20)
         {
-            sprintf((char*)buffer, "Zero Motion detected\n\r");
-            UART2_SendString((char*)buffer);
+            sprintf(buffer, "Zero Motion detected\n\r");
+            uart_send_string(&huart2, buffer);
         }
 
         if (interrupts & (0x01 << MPU6050::INTERRUPT_FF_BIT)) // Bit 7 (0x80)
         {
-            sprintf((char*)buffer, "Freefall detected\n\r");
-            UART2_SendString((char*)buffer);
+            sprintf(buffer, "Freefall detected\n\r");
+            uart_send_string(&huart2, buffer);
         }
     }
 }

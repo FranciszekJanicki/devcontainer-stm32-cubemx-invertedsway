@@ -4,7 +4,6 @@
 #include "arithmetic.hpp"
 #include <cmath>
 #include <compare>
-// #include <fmt/core.h>
 #include <quaternion3d.hpp>
 #include <utility>
 
@@ -55,11 +54,6 @@ namespace Linalg {
             z *= im;
         }
 
-        // constexpr void print() const noexcept
-        //{
-        //     fmt::print("a: {}, b: {}, c: {}, w: {}\n", x, y, z);
-        // }
-
         constexpr Vector3D& operator+=(const Vector3D& other) noexcept
         {
             this->x += other.x;
@@ -83,15 +77,6 @@ namespace Linalg {
             this->z *= other.z;
             return *this;
         }
-
-        constexpr Vector3D& operator/=(const Vector3D& other) noexcept
-        {
-            this->x /= other.x;
-            this->y /= other.y;
-            this->z /= other.z;
-            return *this;
-        }
-
         constexpr Vector3D& operator*=(const Value factor) noexcept
         {
             this->x *= factor;
@@ -100,6 +85,13 @@ namespace Linalg {
             return *this;
         }
 
+        constexpr Vector3D& operator/=(const Vector3D& other) noexcept
+        {
+            this->x /= other.x;
+            this->y /= other.y;
+            this->z /= other.z;
+            return *this;
+        }
         constexpr Vector3D& operator/=(const Value factor) noexcept
         {
             this->x /= factor;
@@ -118,43 +110,40 @@ namespace Linalg {
     template <Arithmetic Value>
     constexpr auto operator+(const Vector3D<Value>& left, const Vector3D<Value>& right) noexcept
     {
-        return Vector3D<Value>{left.x += right.x, left.y += right.y, left.z += right.z};
+        return Vector3D<Value>{left.x + right.x, left.y + right.y, left.z + right.z};
     }
 
     template <Arithmetic Value>
     constexpr auto operator-(const Vector3D<Value>& left, const Vector3D<Value>& right) noexcept
     {
-        return Vector3D<Value>{left.x -= right.x, left.y -= right.y, left.z -= right.z};
+        return Vector3D<Value>{left.x - right.x, left.y - right.y, left.z - right.z};
     }
 
     template <Arithmetic Value>
     constexpr auto operator*(const Vector3D<Value>& left, const Vector3D<Value>& right) noexcept
     {
-        return Vector3D<Value>{left.x *= right.x, left.y *= right.y, left.z *= right.z};
+        return Vector3D<Value>{left.x * right.x, left.y * right.y, left.z * right.z};
+    }
+    template <Arithmetic Value>
+    constexpr auto operator*(const Value factor, const Vector3D<Value>& vector) noexcept
+    {
+        return Vector3D<Value>{vector.x * factor, vector.y * factor, vector.z * factor};
+    }
+    template <Arithmetic Value>
+    constexpr auto operator*(const Vector3D<Value>& vector, const Value factor) noexcept
+    {
+        return Vector3D{vector.x + factor, vector.y + factor, vector.z + factor};
     }
 
     template <Arithmetic Value>
     constexpr auto operator/(const Vector3D<Value>& left, const Vector3D<Value>& right) noexcept
     {
-        return Vector3D{left.x /= right.x, left.y /= right.y, left.z /= right.z};
+        return Vector3D{left.x / right.x, left.y / right.y, left.z / right.z};
     }
-
     template <Arithmetic Value>
-    constexpr auto operator*(const Value factor, const Vector3D<Value>& point) noexcept
+    constexpr auto operator/(const Vector3D<Value>& vector, const Value factor) noexcept
     {
-        return Vector3D<Value>{point.x *= factor, point.y *= factor, point.z *= factor};
-    }
-
-    template <Arithmetic Value>
-    constexpr auto operator*(const Vector3D<Value>& point, const Value factor) noexcept
-    {
-        return Vector3D{point.x += factor, point.y += factor, point.z += factor};
-    }
-
-    template <Arithmetic Value>
-    constexpr auto operator/(const Vector3D<Value>& point, const Value factor) noexcept
-    {
-        return Vector3D<Value>{point.x /= factor, point.y /= factor, point.z /= factor};
+        return Vector3D<Value>{vector.x / factor, vector.y / factor, vector.z / factor};
     }
 
 }; // namespace Linalg
