@@ -87,9 +87,12 @@ struct MPU6050 {
     void set_free_fall_detection_duration(std::uint8_t duration) const noexcept;
 
     I2C_Handle i2c{nullptr};
+
     std::uint8_t addres{};
     std::uint8_t gyro_range{};
     std::uint8_t accel_range{};
+
+    bool initialized{false};
 
     static Scaled gyro_range_to_scale(const std::uint8_t gyro_range) noexcept
     {

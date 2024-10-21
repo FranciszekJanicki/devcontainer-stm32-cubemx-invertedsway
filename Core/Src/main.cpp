@@ -24,11 +24,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "l298n.hpp"
 #include "mpu6050.hpp"
 #include <bit>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+
 
 /* USER CODE END Includes */
 

@@ -61,7 +61,8 @@
         "text_encoding": "c",
         "cinttypes": "c",
         "typeinfo": "c",
-        "variant": "c"
+        "variant": "c",
+        "stdfloat": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
