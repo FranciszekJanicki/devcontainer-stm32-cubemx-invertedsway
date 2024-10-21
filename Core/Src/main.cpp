@@ -24,13 +24,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "l298n.hpp"
 #include "mpu6050.hpp"
 #include <bit>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-
 
 /* USER CODE END Includes */
 
@@ -53,7 +51,7 @@
 
 /* USER CODE BEGIN PV */
 char buffer[128];
-const MPU6050 mpu6050{&hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::ACCEL_FS_2};
+MPU6050* mpu6050_handle{nullptr};
 
 /* USER CODE END PV */
 
@@ -115,10 +113,12 @@ int main(void)
 
     /* USER CODE BEGIN 2 */
 
-    mpu6050.initialize();
+    MPU6050 mpu6050{&hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::ACCEL_FS_2};
+    mpu6050_handle = &mpu6050;
 
     auto temp_filter{make_filter<MPU6050::TempScaled>()};
     auto accel_filter{make_filter<MPU6050::AccelScaled>()};
+    auto rpy_filter{make_filter<MPU6050::RollPitchYaw>()};
     auto gyro_filter{make_filter<MPU6050::GyroScaled>()};
 
     /* USER CODE END 2 */
@@ -129,26 +129,34 @@ int main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-        const auto& [ax, ay, az]{accel_filter(mpu6050.get_accelerometer_scaled())};
-        const auto& [gx, gy, gz]{gyro_filter(mpu6050.get_gyroscope_scaled())};
-        const auto temperature{temp_filter(mpu6050.get_temperature_celsius())};
-        memset(buffer, 0, 128);
-        sprintf(buffer,
-                "ACC: X: %.2f Y:%.2f Z:%.2f \n\rGYR: X: %.2f Y:%.2f "
-                "Z:%.2f\n\rTEMP: %.2f\n\r",
-                ax,
-                ay,
-                az,
-                gx,
-                gy,
-                gz,
-                temperature);
-        uart_send_string(&huart2, buffer);
 
-        const auto& [roll, pitch, yaw]{mpu6050.get_roll_pitch_yaw()};
-        memset(buffer, 0, 128);
-        sprintf(buffer, "RPY: Roll: %.2f Pitch: %.2f\n\r\n\r", roll, pitch);
-        uart_send_string(&huart2, buffer);
+        if (auto accel_scaled{mpu6050.get_accelerometer_scaled()}; accel_scaled.has_value()) {
+            const auto& [ax, ay, az]{accel_filter(accel_scaled.value())};
+            memset(buffer, 0, 128);
+            sprintf(buffer, "ACC: X: %.2f Y:%.2f Z:%.2f", ax, ay, az);
+            uart_send_string(&huart2, buffer);
+        }
+
+        if (auto gyro_scaled{mpu6050.get_gyroscope_scaled()}; gyro_scaled.has_value()) {
+            const auto& [gx, gy, gz]{gyro_filter(gyro_scaled.value())};
+            memset(buffer, 0, 128);
+            sprintf(buffer, "GYRO: A: %.2f B:%.2f C:%.2f", gx, gy, gz);
+            uart_send_string(&huart2, buffer);
+        }
+
+        if (auto roll_pitch_yaw{mpu6050.get_roll_pitch_yaw()}; roll_pitch_yaw.has_value()) {
+            const auto& [r, p, y]{rpy_filter(roll_pitch_yaw.value())};
+            memset(buffer, 0, 128);
+            sprintf(buffer, "RPY: R: %.2f P:%.2f Y:%.2f", r, p, y);
+            uart_send_string(&huart2, buffer);
+        }
+
+        if (auto temperature{mpu6050.get_temperature_celsius()}; temperature.has_value()) {
+            const auto temp{temp_filter(temperature.value())};
+            memset(buffer, 0, 128);
+            sprintf(buffer, "TEMP: %.2f", temp);
+            uart_send_string(&huart2, buffer);
+        }
 
         HAL_Delay(1000);
     }
@@ -204,34 +212,36 @@ void SystemClock_Config(void)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == INTR_Pin) {
-        const auto interrupts{mpu6050.get_int_status_register()};
-        mpu6050.get_motion_status_register();
-        sprintf(buffer, "int_ status triggered: %X\n\n\r", interrupts);
-        uart_send_string(&huart2, buffer);
-
-        if (interrupts & (0x01 << MPU6050::INTERRUPT_FIFO_OFLOW_BIT)) // Bit 4 (0x10)
-        {
-            sprintf(buffer, "FIFO Overflow detected\n\r");
+        if (auto interrupts{mpu6050_handle->get_int_status_register()}; interrupts.has_value()) {
+            sprintf(buffer, "int_ status triggered: %X\n\n\r", interrupts.value());
             uart_send_string(&huart2, buffer);
-        }
 
-        if (interrupts & (0x01 << MPU6050::INTERRUPT_MOT_BIT)) // Bit 6 (0x40)
-        {
-            sprintf(buffer, "Motion detected\n\r");
-            uart_send_string(&huart2, buffer);
-        }
+            if (interrupts.value() & (0x01 << MPU6050::INTERRUPT_FIFO_OFLOW_BIT)) // Bit 4 (0x10)
+            {
+                sprintf(buffer, "FIFO Overflow detected\n\r");
+                uart_send_string(&huart2, buffer);
+            }
 
-        if (interrupts & (0x01 << MPU6050::INTERRUPT_ZMOT_BIT)) // Bit 5 (0x20)
-        {
-            sprintf(buffer, "Zero Motion detected\n\r");
-            uart_send_string(&huart2, buffer);
-        }
+            if (interrupts.value() & (0x01 << MPU6050::INTERRUPT_MOT_BIT)) // Bit 6 (0x40)
+            {
+                sprintf(buffer, "Motion detected\n\r");
+                uart_send_string(&huart2, buffer);
+            }
 
-        if (interrupts & (0x01 << MPU6050::INTERRUPT_FF_BIT)) // Bit 7 (0x80)
-        {
-            sprintf(buffer, "Freefall detected\n\r");
-            uart_send_string(&huart2, buffer);
+            if (interrupts.value() & (0x01 << MPU6050::INTERRUPT_ZMOT_BIT)) // Bit 5 (0x20)
+            {
+                sprintf(buffer, "Zero Motion detected\n\r");
+                uart_send_string(&huart2, buffer);
+            }
+
+            if (interrupts.value() & (0x01 << MPU6050::INTERRUPT_FF_BIT)) // Bit 7 (0x80)
+            {
+                sprintf(buffer, "Freefall detected\n\r");
+                uart_send_string(&huart2, buffer);
+            }
+        } else {
         }
+        // mpu6050.get_motion_status_register();
     }
 }
 /* USER CODE END 4 */

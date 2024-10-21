@@ -3,130 +3,140 @@
 
 #include "stm32l4xx_hal.h"
 #include "vector3d.hpp"
-#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <expected>
 
-struct MPU6050 {
+class MPU6050 {
+public:
+    enum struct Error {
+        OK,
+        INIT,
+        GYRO,
+        ACCEL,
+        TEMP,
+        DEINIT,
+    };
+
     using Scaled = std::double_t;
     using GyroScaled = Linalg::Vector3D<Scaled>;
     using AccelScaled = Linalg::Vector3D<Scaled>;
     using RollPitchYaw = Linalg::Vector3D<Scaled>;
+    using TempScaled = std::double_t;
 
     using Raw = std::int32_t;
     using GyroRaw = Linalg::Vector3D<Raw>;
     using AccelRaw = Linalg::Vector3D<Raw>;
-
-    using TempScaled = std::double_t;
     using TempRaw = std::int32_t;
+
+    using ExpectedRaw = std::expected<Raw, Error>;
+    using ExpectedTempRaw = std::expected<TempRaw, Error>;
+    using ExpectedTempScaled = std::expected<TempScaled, Error>;
+    using ExpectedGyroRaw = std::expected<GyroRaw, Error>;
+    using ExpectedGyroScaled = std::expected<GyroScaled, Error>;
+    using ExpectedAccelRaw = std::expected<AccelRaw, Error>;
+    using ExpectedAccelScaled = std::expected<AccelScaled, Error>;
+    using ExpectedAddres = std::expected<std::uint8_t, Error>;
+    using ExpectedRPY = std::expected<RollPitchYaw, Error>;
+
+    using Unexpected = std::unexpected<Error>;
 
     using I2C_Handle = I2C_HandleTypeDef*;
 
-    void initialize() const noexcept;
+    static const char* error_to_string(const Error error) noexcept;
 
-    std::uint8_t get_device_id() const noexcept;
-    void set_dlpf(const std::uint8_t value) const noexcept;
-    void device_reset(const std::uint8_t reset) const noexcept;
-    void set_clock_source(const std::uint8_t source) const noexcept;
-    void set_sleep_enabled(const std::uint8_t enable) const noexcept;
-    void set_cycle_enabled(const std::uint8_t enable) const noexcept;
-    void set_temperature_sensor_disabled(const std::uint8_t disable) const noexcept;
-    void set_low_power_wake_up_frequency(const std::uint8_t frequency) const noexcept;
+    MPU6050(I2C_Handle i2c,
+            const std::uint8_t addres,
+            const std::uint8_t gyro_range,
+            const std::uint8_t accel_range) noexcept;
 
-    void accelerometer_axis_standby(const std::uint8_t x_accel_standby,
-                                    const std::uint8_t y_accel_standby,
-                                    const std::uint8_t z_accel_standby) const noexcept;
-    void gyroscope_axis_standby(const std::uint8_t x_gyro_standby,
-                                const std::uint8_t y_gyro_standby,
-                                const std::uint8_t z_gyro_standby) const noexcept;
+    MPU6050(const MPU6050& other) noexcept = default;
+    MPU6050(MPU6050&& other) noexcept = default;
 
-    void set_full_scale_gyro_range(const std::uint8_t range) const noexcept;
-    void set_full_scale_accel_range(const std::uint8_t range) const noexcept;
+    MPU6050& operator=(const MPU6050& other) noexcept = default;
+    MPU6050& operator=(MPU6050& other) noexcept = default;
 
-    Raw get_temperature_raw() const noexcept;
-    TempScaled get_temperature_celsius() const noexcept;
+    ~MPU6050() noexcept;
 
-    Raw get_acceleration_x_raw() const noexcept;
-    Raw get_acceleration_y_raw() const noexcept;
-    Raw get_acceleration_z_raw() const noexcept;
-    AccelRaw get_accelerometer_raw() const noexcept;
-    AccelScaled get_accelerometer_scaled() const noexcept;
+    ExpectedTempScaled get_temperature_celsius() const noexcept;
+    ExpectedAccelScaled get_accelerometer_scaled() const noexcept;
+    ExpectedGyroScaled get_gyroscope_scaled() const noexcept;
+    ExpectedRPY get_roll_pitch_yaw() const noexcept;
 
-    Raw get_rotation_x_raw() const noexcept;
-    Raw get_rotation_y_raw() const noexcept;
-    Raw get_rotation_z_raw() const noexcept;
-    GyroRaw get_gyroscope_raw() const noexcept;
-    GyroScaled get_gyroscope_scaled() const noexcept;
+    ExpectedAddres get_int_status_register() const noexcept;
+    ExpectedAddres get_motion_status_register() const noexcept;
 
-    RollPitchYaw get_roll_pitch_yaw() const noexcept;
+private:
+    static Scaled gyro_range_to_scale(const std::uint8_t gyro_range) noexcept;
+    static Scaled accel_range_to_scale(const std::uint8_t accel_range) noexcept;
 
-    void set_interrupt() const noexcept;
-    void set_interrupt_mode(const std::uint8_t mode) const noexcept;
-    void set_interrupt_drive(const std::uint8_t drive) const noexcept;
-    void set_interrupt_latch(const std::uint8_t latch) const noexcept;
-    void set_interrupt_latch_clear(const std::uint8_t clear) const noexcept;
-    void set_int_enable_register(std::uint8_t value) const noexcept;
-    void set_int_data_ready_enabled(const std::uint8_t enable) const noexcept;
+    Error initialize() noexcept;
+    Error deinitialize() noexcept;
 
-    std::uint8_t get_int_status_register() const noexcept;
-    std::uint8_t get_motion_status_register() const noexcept;
+    ExpectedAddres get_device_id() const noexcept;
 
-    void set_dhpf_mode(const std::uint8_t dhpf) const noexcept;
-    void set_int_zero_motion_enabled(const std::uint8_t enable) const noexcept;
-    void set_int_motion_enabled(const std::uint8_t enable) const noexcept;
-    void set_int_free_fall_enabled(const std::uint8_t enable) const noexcept;
+    Error set_dlpf(const std::uint8_t value) const noexcept;
+    Error device_reset(const std::uint8_t reset) const noexcept;
+    Error set_clock_source(const std::uint8_t source) const noexcept;
+    Error set_sleep_enabled(const std::uint8_t enable) const noexcept;
+    Error set_cycle_enabled(const std::uint8_t enable) const noexcept;
+    Error set_temperature_sensor_disabled(const std::uint8_t disable) const noexcept;
+    Error set_low_power_wake_up_frequency(const std::uint8_t frequency) const noexcept;
 
-    void set_motion_detection_threshold(std::uint8_t threshold) const noexcept;
-    void set_motion_detection_duration(std::uint8_t duration) const noexcept;
+    Error accelerometer_axis_standby(const std::uint8_t x_accel_standby,
+                                     const std::uint8_t y_accel_standby,
+                                     const std::uint8_t z_accel_standby) const noexcept;
+    Error gyroscope_axis_standby(const std::uint8_t x_gyro_standby,
+                                 const std::uint8_t y_gyro_standby,
+                                 const std::uint8_t z_gyro_standby) const noexcept;
 
-    void set_zero_motion_detection_threshold(std::uint8_t threshold) const noexcept;
-    void set_zero_motion_detection_duration(std::uint8_t duration) const noexcept;
+    Error set_full_scale_gyro_range(const std::uint8_t range) const noexcept;
+    Error set_full_scale_accel_range(const std::uint8_t range) const noexcept;
 
-    void set_free_fall_detection_threshold(std::uint8_t threshold) const noexcept;
-    void set_free_fall_detection_duration(std::uint8_t duration) const noexcept;
+    ExpectedRaw get_temperature_raw() const noexcept;
 
-    I2C_Handle i2c{nullptr};
+    ExpectedRaw get_acceleration_x_raw() const noexcept;
+    ExpectedRaw get_acceleration_y_raw() const noexcept;
+    ExpectedRaw get_acceleration_z_raw() const noexcept;
+    ExpectedAccelRaw get_accelerometer_raw() const noexcept;
 
-    std::uint8_t addres{};
-    std::uint8_t gyro_range{};
-    std::uint8_t accel_range{};
+    ExpectedRaw get_rotation_x_raw() const noexcept;
+    ExpectedRaw get_rotation_y_raw() const noexcept;
+    ExpectedRaw get_rotation_z_raw() const noexcept;
+    ExpectedGyroRaw get_gyroscope_raw() const noexcept;
 
-    bool initialized{false};
+    Error set_interrupt() const noexcept;
+    Error set_interrupt_mode(const std::uint8_t mode) const noexcept;
+    Error set_interrupt_drive(const std::uint8_t drive) const noexcept;
+    Error set_interrupt_latch(const std::uint8_t latch) const noexcept;
+    Error set_interrupt_latch_clear(const std::uint8_t clear) const noexcept;
+    Error set_int_enable_register(std::uint8_t value) const noexcept;
+    Error set_int_data_ready_enabled(const std::uint8_t enable) const noexcept;
 
-    static Scaled gyro_range_to_scale(const std::uint8_t gyro_range) noexcept
-    {
-        switch (gyro_range) {
-            case GYRO_FS_250:
-                return 0.007633;
-            case GYRO_FS_500:
-                return 0.015267;
-            case GYRO_FS_1000:
-                return 0.030487;
-            case GYRO_FS_2000:
-                return 0.060975;
-            default:
-                return 0.0;
-        }
-    }
+    Error set_dhpf_mode(const std::uint8_t dhpf) const noexcept;
+    Error set_int_zero_motion_enabled(const std::uint8_t enable) const noexcept;
+    Error set_int_motion_enabled(const std::uint8_t enable) const noexcept;
+    Error set_int_free_fall_enabled(const std::uint8_t enable) const noexcept;
 
-    static Scaled accel_range_to_scale(const std::uint8_t accel_range) noexcept
-    {
-        switch (accel_range) {
-            case ACCEL_FS_2:
-                return 0.000061;
-            case ACCEL_FS_4:
-                return 0.000122;
-            case ACCEL_FS_8:
-                return 0.000244;
-            case ACCEL_FS_16:
-                return 0.0004882;
-            default:
-                return 0.0;
-        }
-    }
+    Error set_motion_detection_threshold(std::uint8_t threshold) const noexcept;
+    Error set_motion_detection_duration(std::uint8_t duration) const noexcept;
 
-    static constexpr MPU6050::Scaled M_PI{3.14};
+    Error set_zero_motion_detection_threshold(std::uint8_t threshold) const noexcept;
+    Error set_zero_motion_detection_duration(std::uint8_t duration) const noexcept;
+
+    Error set_free_fall_detection_threshold(std::uint8_t threshold) const noexcept;
+    Error set_free_fall_detection_duration(std::uint8_t duration) const noexcept;
+
+    I2C_Handle i2c_{nullptr};
+
+    std::uint8_t addres_{};
+    std::uint8_t gyro_range_{};
+    std::uint8_t accel_range_{};
+
+    bool initialized_{false};
+
+public:
+    static constexpr Scaled M_PI{3.14};
     static constexpr std::uint32_t i2c_TIMEOUT{10};
     static constexpr std::uint8_t ADDRESS{0xD0};  // AD0 low
     static constexpr std::uint8_t ADDRESS2{0xD1}; // AD0 high

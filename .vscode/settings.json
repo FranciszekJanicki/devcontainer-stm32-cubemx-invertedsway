@@ -62,7 +62,9 @@
         "cinttypes": "c",
         "typeinfo": "c",
         "variant": "c",
-        "stdfloat": "cpp"
+        "stdfloat": "cpp",
+        "stm32l4xx_hal.h": "c",
+        "vector3d.hpp": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
