@@ -86,14 +86,12 @@ MPU6050::MPU6050(UartHandle uart,
                  const std::uint8_t accel_range) noexcept :
     uart_{uart}, i2c_{i2c}, addres_{addres}, gyro_range_{gyro_range}, accel_range_{accel_range}
 {
-    if (initialize() != Error::OK) {
-    }
+    print_and_return(initialize());
 }
 
 MPU6050::~MPU6050() noexcept
 {
-    if (deinitialize() != Error::OK) {
-    }
+    print_and_return(initialize());
 }
 
 Error MPU6050::initialize() noexcept
@@ -102,25 +100,25 @@ Error MPU6050::initialize() noexcept
         return Error::INIT;
     }
     if (auto err{device_reset(1)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     if (auto err{set_sleep_enabled(0)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     if (auto err{set_clock_source(CLOCK_INTERNAL)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     if (auto err{set_dlpf(DLPF_BW_20)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     if (auto err{set_full_scale_gyro_range(gyro_range_)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     if (auto err{set_full_scale_accel_range(accel_range_)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     if (auto err{set_interrupt()}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     initialized_ = true;
     return Error::OK;
@@ -648,57 +646,57 @@ ExpectedRPY MPU6050::get_roll_pitch_yaw() const noexcept
 Error MPU6050::set_interrupt() const noexcept
 {
     if (auto err{set_interrupt_mode(INTMODE_ACTIVEHIGH)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     if (auto err{set_interrupt_drive(INTDRV_PUSHPULL)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     if (auto err{set_interrupt_latch(INTLATCH_WAITCLEAR)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     if (auto err{set_interrupt_latch_clear(INTCLEAR_STATUSREAD)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
 
     // Disable all interrupts
     if (auto err{set_int_enable_register(0)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
 
     // Enable Motion interrputs
     if (auto err{set_dhpf_mode(DHPF_5)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
 
     if (auto err{set_int_motion_enabled(1)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     if (auto err{set_int_zero_motion_enabled(1)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     if (auto err{set_int_free_fall_enabled(1)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
 
     if (auto err{set_free_fall_detection_duration(2)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     if (auto err{set_free_fall_detection_threshold(5)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
 
     if (auto err{set_motion_detection_duration(5)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     if (auto err{set_motion_detection_threshold(2)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
 
     if (auto err{set_zero_motion_detection_duration(2)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     if (auto err{set_zero_motion_detection_threshold(4)}; err != Error::OK) {
-        return err;
+        return print_and_return(err);
     }
     return Error::OK;
 }

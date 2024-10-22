@@ -26,10 +26,12 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "common.hpp"
+#include "filters.hpp"
 #include "l298n.hpp"
 #include "mpu6050.hpp"
 #include <cstdint>
 #include <cstring>
+#include <utility>
 
 /* USER CODE END Includes */
 
@@ -60,15 +62,6 @@ L298N* l298n_handle{nullptr};
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
-template <typename Value>
-static auto make_filter() noexcept
-{
-    return [sum = Value{}, N = double{0.0}](const Value& input) mutable {
-        sum += input;
-        return sum / N++;
-    };
-}
 
 /* USER CODE END PFP */
 
@@ -128,10 +121,10 @@ int main(void)
                     L298N::Motor{},
                 }};
 
-    auto temp_filter{make_filter<MPU6050::TempScaled>()};
-    auto accel_filter{make_filter<MPU6050::AccelScaled>()};
-    auto rpy_filter{make_filter<MPU6050::RollPitchYaw>()};
-    auto gyro_filter{make_filter<MPU6050::GyroScaled>()};
+    auto temp_filter{make_recursive_average<MPU6050::TempScaled>()};
+    auto accel_filter{make_recursive_average<MPU6050::AccelScaled, MPU6050::Scaled>()};
+    auto rpy_filter{make_recursive_average<MPU6050::RollPitchYaw, MPU6050::Scaled>()};
+    auto gyro_filter{make_recursive_average<MPU6050::GyroScaled, MPU6050::Scaled>()};
 
     /* USER CODE END 2 */
 
@@ -143,28 +136,28 @@ int main(void)
         /* USER CODE BEGIN 3 */
 
         if (auto accel_scaled{mpu6050.get_accelerometer_scaled()}; accel_scaled.has_value()) {
-            const auto& [ax, ay, az]{accel_filter(accel_scaled.value())};
+            const auto& [ax, ay, az]{accel_filter(std::move(accel_scaled).value())};
             memset(buffer, 0, 128);
             sprintf(buffer, "ACC: X: %.2f Y:%.2f Z:%.2f", ax, ay, az);
             uart_send_string(&huart2, buffer);
         }
 
         if (auto gyro_scaled{mpu6050.get_gyroscope_scaled()}; gyro_scaled.has_value()) {
-            const auto& [gx, gy, gz]{gyro_filter(gyro_scaled.value())};
+            const auto& [gx, gy, gz]{gyro_filter(std::move(gyro_scaled).value())};
             memset(buffer, 0, 128);
             sprintf(buffer, "GYRO: A: %.2f B:%.2f C:%.2f", gx, gy, gz);
             uart_send_string(&huart2, buffer);
         }
 
         if (auto roll_pitch_yaw{mpu6050.get_roll_pitch_yaw()}; roll_pitch_yaw.has_value()) {
-            const auto& [r, p, y]{rpy_filter(roll_pitch_yaw.value())};
+            const auto& [r, p, y]{rpy_filter(std::move(roll_pitch_yaw).value())};
             memset(buffer, 0, 128);
             sprintf(buffer, "RPY: R: %.2f P:%.2f Y:%.2f", r, p, y);
             uart_send_string(&huart2, buffer);
         }
 
         if (auto temperature{mpu6050.get_temperature_celsius()}; temperature.has_value()) {
-            const auto temp{temp_filter(temperature.value())};
+            const auto temp{temp_filter(std::move(temperature).value())};
             memset(buffer, 0, 128);
             sprintf(buffer, "TEMP: %.2f", temp);
             uart_send_string(&huart2, buffer);

@@ -88,38 +88,38 @@ void L298N::motors(Motors&& motors) noexcept
 Error L298N::initialize(Motor& motor) noexcept
 {
     if (motor.initialized) {
-        return print_and_return(Error::INIT);
+        return Error::INIT;
     }
     if (motor.timer == nullptr) {
-        return print_and_return(Error::INIT);
+        return Error::INIT;
     }
     if (HAL_TIM_PWM_Start(motor.timer, motor.timer_channel) != HAL_OK) {
-        return print_and_return(motor_channel_to_error(motor.motor_channel));
+        return motor_channel_to_error(motor.motor_channel);
     }
     motor.initialized = true;
-    return print_and_return(Error::OK);
+    return Error::OK;
 }
 
 Error L298N::deinitialize(Motor& motor) noexcept
 {
     if (!motor.initialized) {
-        return print_and_return(Error::DEINIT);
+        return Error::DEINIT;
     }
     if (motor.timer == nullptr) {
-        return print_and_return(Error::DEINIT);
+        return Error::DEINIT;
     }
     if (HAL_TIM_PWM_Stop(motor.timer, motor.timer_channel) != HAL_OK) {
-        return print_and_return(motor_channel_to_error(motor.motor_channel));
+        return motor_channel_to_error(motor.motor_channel);
     }
     motor.initialized = false;
-    return print_and_return(Error::OK);
+    return Error::OK;
 }
 
 ExpectedRaw L298N::get_compare_raw(const MotorChannel motor_channel) const noexcept
 {
     const auto& motor{get_motor(motor_channel)};
     if (!motor.initialized) {
-        return Unexpected{print_and_return(motor_channel_to_error(motor_channel))};
+        return Unexpected{motor_channel_to_error(motor_channel)};
     }
     return ExpectedRaw{__HAL_TIM_GetCompare(motor.timer, motor.timer_channel)};
 }
@@ -129,7 +129,7 @@ Error L298N::set_compare_raw(const MotorChannel motor_channel, const Raw raw) co
     assert(raw <= MAX_RAW && raw >= MIN_RAW);
     const auto& motor{get_motor(motor_channel)};
     if (!motor.initialized) {
-        return print_and_return(motor_channel_to_error(motor_channel));
+        return motor_channel_to_error(motor_channel);
     }
     __HAL_TIM_SetCompare(motor.timer, motor.timer_channel, raw);
     return Error::OK;
@@ -139,7 +139,7 @@ ExpectedVoltage L298N::get_compare_voltage(const MotorChannel motor_channel) con
 {
     const auto& motor{get_motor(motor_channel)};
     if (!motor.initialized) {
-        return Unexpected{print_and_return(motor_channel_to_error(motor_channel))};
+        return Unexpected{motor_channel_to_error(motor_channel)};
     }
     return ExpectedVoltage{raw_to_voltage(__HAL_TIM_GetCompare(motor.timer, motor.timer_channel))};
 }
@@ -149,7 +149,7 @@ Error L298N::set_compare_voltage(const MotorChannel motor_channel, const Voltage
     assert(voltage <= MAX_VOLTAGE_V && voltage >= MIN_VOLTAGE_V);
     const auto& motor{get_motor(motor_channel)};
     if (!motor.initialized) {
-        return print_and_return(motor_channel_to_error(motor_channel));
+        return motor_channel_to_error(motor_channel);
     }
     __HAL_TIM_SetCompare(motor.timer, motor.timer_channel, voltage_to_raw(voltage));
     return Error::OK;
@@ -159,7 +159,7 @@ ExpectedSpeed L298N::get_compare_speed(const MotorChannel motor_channel) const n
 {
     const auto& motor{get_motor(motor_channel)};
     if (!motor.initialized) {
-        return Unexpected{print_and_return(motor_channel_to_error(motor_channel))};
+        return Unexpected{motor_channel_to_error(motor_channel)};
     }
     return ExpectedSpeed{raw_to_speed(__HAL_TIM_GetCompare(motor.timer, motor.timer_channel))};
 }
@@ -169,7 +169,7 @@ Error L298N::set_compare_speed(const MotorChannel motor_channel, const Speed spe
     assert(speed <= MAX_SPEED_RPM && speed >= MIN_SPEED_RPM);
     const auto& motor{get_motor(motor_channel)};
     if (!motor.initialized) {
-        return print_and_return(motor_channel_to_error(motor_channel));
+        return motor_channel_to_error(motor_channel);
     }
     __HAL_TIM_SetCompare(motor.timer, motor.timer_channel, speed_to_raw(speed));
     return Error::OK;
@@ -179,73 +179,73 @@ Error L298N::set_direction(const MotorChannel motor_channel, const Direction dir
 {
     const auto& motor{get_motor(motor_channel)};
     if (!motor.initialized) {
-        return print_and_return(motor_channel_to_error(motor_channel));
+        return motor_channel_to_error(motor_channel);
     }
     switch (direction) {
         case Direction::SOFT_STOP:
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_IN1, GPIO_PinState::GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_IN2, GPIO_PinState::GPIO_PIN_RESET);
-            return print_and_return(set_compare_raw(motor_channel, MAX_RAW));
+            HAL_GPIO_WritePin(motor.gpio, motor.pin_in1, GPIO_PinState::GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(motor.gpio, motor.pin_in2, GPIO_PinState::GPIO_PIN_RESET);
+            return set_compare_raw(motor_channel, MAX_RAW);
         case Direction::FAST_STOP:
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_IN1, GPIO_PinState::GPIO_PIN_SET);
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_IN2, GPIO_PinState::GPIO_PIN_SET);
-            return print_and_return(set_compare_raw(motor_channel, MIN_RAW));
+            HAL_GPIO_WritePin(motor.gpio, motor.pin_in1, GPIO_PinState::GPIO_PIN_SET);
+            HAL_GPIO_WritePin(motor.gpio, motor.pin_in2, GPIO_PinState::GPIO_PIN_SET);
+            return set_compare_raw(motor_channel, MIN_RAW);
         case Direction::FORWARD:
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_IN1, GPIO_PinState::GPIO_PIN_SET);
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_IN2, GPIO_PinState::GPIO_PIN_RESET);
-            return print_and_return(Error::OK);
+            HAL_GPIO_WritePin(motor.gpio, motor.pin_in1, GPIO_PinState::GPIO_PIN_SET);
+            HAL_GPIO_WritePin(motor.gpio, motor.pin_in2, GPIO_PinState::GPIO_PIN_RESET);
+            return Error::OK;
         case Direction::BACKWARD:
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_IN1, GPIO_PinState::GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_IN2, GPIO_PinState::GPIO_PIN_SET);
-            return print_and_return(Error::OK);
+            HAL_GPIO_WritePin(motor.gpio, motor.pin_in1, GPIO_PinState::GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(motor.gpio, motor.pin_in2, GPIO_PinState::GPIO_PIN_SET);
+            return Error::OK;
         default:
-            return print_and_return(motor_channel_to_error(motor_channel));
+            return motor_channel_to_error(motor_channel);
     }
-    return print_and_return(Error::OK);
+    return Error::OK;
 }
 
 ExpectedDirection L298N::get_direction(const MotorChannel motor_channel) const noexcept
 {
     const auto& motor{get_motor(motor_channel)};
     if (!motor.initialized) {
-        return Unexpected{print_and_return(motor_channel_to_error(motor_channel))};
+        return Unexpected{motor_channel_to_error(motor_channel)};
     }
-    const auto pin_OUT1{HAL_GPIO_ReadPin(motor.gpio, motor.pin_OUT1)};
-    const auto pin_OUT2{HAL_GPIO_ReadPin(motor.gpio, motor.pin_OUT2)};
-    if (pin_OUT1 == GPIO_PinState::GPIO_PIN_SET && pin_OUT2 == GPIO_PinState::GPIO_PIN_RESET) {
+    const auto pin_out1{HAL_GPIO_ReadPin(motor.gpio, motor.pin_out1)};
+    const auto pin_out2{HAL_GPIO_ReadPin(motor.gpio, motor.pin_out2)};
+    if (pin_out1 == GPIO_PinState::GPIO_PIN_SET && pin_out2 == GPIO_PinState::GPIO_PIN_RESET) {
         return ExpectedDirection{Direction::FORWARD};
     }
-    if (pin_OUT1 == GPIO_PinState::GPIO_PIN_RESET && pin_OUT2 == GPIO_PinState::GPIO_PIN_SET) {
+    if (pin_out1 == GPIO_PinState::GPIO_PIN_RESET && pin_out2 == GPIO_PinState::GPIO_PIN_SET) {
         return ExpectedDirection{Direction::BACKWARD};
     }
     const auto raw{__HAL_TIM_GetCompare(motor.timer, motor.timer_channel)};
-    if (pin_OUT1 == pin_OUT2 == GPIO_PinState::GPIO_PIN_RESET && raw >= MAX_RAW) {
+    if (pin_out1 == pin_out2 == GPIO_PinState::GPIO_PIN_RESET && raw >= MAX_RAW) {
         return ExpectedDirection{Direction::SOFT_STOP};
     }
-    if (pin_OUT1 == pin_OUT2 == GPIO_PinState::GPIO_PIN_SET && raw <= MIN_RAW) {
+    if (pin_out1 == pin_out2 == GPIO_PinState::GPIO_PIN_SET && raw <= MIN_RAW) {
         return ExpectedDirection{Direction::FAST_STOP};
     }
-    return Unexpected{print_and_return(Error::OK)};
+    return Unexpected{Error::OK};
 }
 
 Error L298N::set_forward(const MotorChannel motor_channel) const noexcept
 {
-    return print_and_return(set_direction(motor_channel, Direction::FORWARD));
+    return set_direction(motor_channel, Direction::FORWARD);
 }
 
 Error L298N::set_backward(const MotorChannel motor_channel) const noexcept
 {
-    return print_and_return(set_direction(motor_channel, Direction::BACKWARD));
+    return set_direction(motor_channel, Direction::BACKWARD);
 }
 
 Error L298N::set_soft_stop(const MotorChannel motor_channel) const noexcept
 {
-    return print_and_return(set_direction(motor_channel, Direction::SOFT_STOP));
+    return set_direction(motor_channel, Direction::SOFT_STOP);
 }
 
 Error L298N::set_fast_stop(const MotorChannel motor_channel) const noexcept
 {
-    return print_and_return(set_direction(motor_channel, Direction::FAST_STOP));
+    return set_direction(motor_channel, Direction::FAST_STOP);
 }
 
 const Motor& L298N::get_motor(const MotorChannel motor_channel) const noexcept

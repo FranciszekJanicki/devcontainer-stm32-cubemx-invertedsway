@@ -40,13 +40,13 @@ public:
         MotorChannel motor_channel{};
 
         TimerHandle timer{nullptr};
-        std::uint16_t timer_channel{};
+        std::uint32_t timer_channel{};
 
         GpioHandle gpio{nullptr};
-        std::uint16_t pin_IN1{};
-        std::uint16_t pin_IN2{};
-        std::uint16_t pin_OUT1{};
-        std::uint16_t pin_OUT2{};
+        std::uint16_t pin_in1{};
+        std::uint16_t pin_in2{};
+        std::uint16_t pin_out1{};
+        std::uint16_t pin_out2{};
 
         bool initialized{false};
     };

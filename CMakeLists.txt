@@ -58,6 +58,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Src/mpu6050.cpp"
     "Core/Src/l298n.cpp"
     "Core/Src/main.cpp"
+    "Core/Inc/filters.hpp"
 )
 
 # Add include paths
