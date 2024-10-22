@@ -68,6 +68,14 @@ void Error_Handler(void);
 #define INTR_Pin GPIO_PIN_6
 #define INTR_GPIO_Port GPIOA
 #define INTR_EXTI_IRQn EXTI9_5_IRQn
+#define IN1_Pin GPIO_PIN_12
+#define IN1_GPIO_Port GPIOB
+#define IN3_Pin GPIO_PIN_13
+#define IN3_GPIO_Port GPIOB
+#define OUT1_Pin GPIO_PIN_14
+#define OUT1_GPIO_Port GPIOB
+#define OUT3_Pin GPIO_PIN_15
+#define OUT3_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

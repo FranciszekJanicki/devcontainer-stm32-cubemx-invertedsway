@@ -1,6 +1,7 @@
 #ifndef MPU6050_HPP
 #define MPU6050_HPP
 
+#include "common.hpp"
 #include "stm32l4xx_hal.h"
 #include "vector3d.hpp"
 #include <cstddef>
@@ -23,12 +24,10 @@ public:
     using AccelScaled = Linalg::Vector3D<Scaled>;
     using RollPitchYaw = Linalg::Vector3D<Scaled>;
     using TempScaled = std::double_t;
-
     using Raw = std::int32_t;
     using GyroRaw = Linalg::Vector3D<Raw>;
     using AccelRaw = Linalg::Vector3D<Raw>;
     using TempRaw = std::int32_t;
-
     using ExpectedRaw = std::expected<Raw, Error>;
     using ExpectedTempRaw = std::expected<TempRaw, Error>;
     using ExpectedTempScaled = std::expected<TempScaled, Error>;
@@ -38,14 +37,12 @@ public:
     using ExpectedAccelScaled = std::expected<AccelScaled, Error>;
     using ExpectedAddres = std::expected<std::uint8_t, Error>;
     using ExpectedRPY = std::expected<RollPitchYaw, Error>;
-
     using Unexpected = std::unexpected<Error>;
-
-    using I2C_Handle = I2C_HandleTypeDef*;
 
     static const char* error_to_string(const Error error) noexcept;
 
-    MPU6050(I2C_Handle i2c,
+    MPU6050(UartHandle uart,
+            I2cHandle i2c,
             const std::uint8_t addres,
             const std::uint8_t gyro_range,
             const std::uint8_t accel_range) noexcept;
@@ -127,11 +124,16 @@ private:
     Error set_free_fall_detection_threshold(std::uint8_t threshold) const noexcept;
     Error set_free_fall_detection_duration(std::uint8_t duration) const noexcept;
 
-    I2C_Handle i2c_{nullptr};
+    Error print_and_return(const Error error) const noexcept;
+
+    I2cHandle i2c_{nullptr};
+    UartHandle uart_{nullptr};
 
     std::uint8_t addres_{};
     std::uint8_t gyro_range_{};
     std::uint8_t accel_range_{};
+
+    mutable char uart_buffer_[100];
 
     bool initialized_{false};
 

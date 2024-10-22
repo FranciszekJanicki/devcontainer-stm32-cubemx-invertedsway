@@ -64,7 +64,8 @@
         "variant": "c",
         "stdfloat": "cpp",
         "stm32l4xx_hal.h": "c",
-        "vector3d.hpp": "c"
+        "vector3d.hpp": "c",
+        "ranges": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

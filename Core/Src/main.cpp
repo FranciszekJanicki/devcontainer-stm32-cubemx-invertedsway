@@ -20,14 +20,15 @@
 #include "main.h"
 #include "gpio.h"
 #include "i2c.h"
+#include "tim.h"
 #include "usart.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "common.hpp"
+#include "l298n.hpp"
 #include "mpu6050.hpp"
-#include <bit>
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
 
 /* USER CODE END Includes */
@@ -52,17 +53,13 @@
 /* USER CODE BEGIN PV */
 char buffer[128];
 MPU6050* mpu6050_handle{nullptr};
+L298N* l298n_handle{nullptr};
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
-static void uart_send_string(UART_HandleTypeDef* huart, const char* string) noexcept
-{
-    HAL_UART_Transmit(huart, std::bit_cast<const std::uint8_t*>(string), strlen(string), 1000);
-}
 
 template <typename Value>
 static auto make_filter() noexcept
@@ -110,11 +107,26 @@ int main(void)
     MX_GPIO_Init();
     MX_I2C1_Init();
     MX_USART2_UART_Init();
-
+    MX_TIM2_Init();
     /* USER CODE BEGIN 2 */
 
-    MPU6050 mpu6050{&hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::ACCEL_FS_2};
+    MPU6050 mpu6050{&huart2, &hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::ACCEL_FS_2};
     mpu6050_handle = &mpu6050;
+
+    L298N l298n{&huart2,
+                L298N::Motors{
+                    L298N::Motor{
+                        L298N::MotorChannel::CHANNEL1,
+                        &htim2,
+                        TIM_CHANNEL_1,
+                        GPIOA,
+                        IN1_Pin,
+                        IN3_Pin,
+                        OUT1_Pin,
+                        OUT3_Pin,
+                    },
+                    L298N::Motor{},
+                }};
 
     auto temp_filter{make_filter<MPU6050::TempScaled>()};
     auto accel_filter{make_filter<MPU6050::AccelScaled>()};

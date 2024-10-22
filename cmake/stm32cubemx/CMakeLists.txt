@@ -21,9 +21,9 @@ target_include_directories(stm32cubemx INTERFACE
 )
 
 target_sources(stm32cubemx INTERFACE
-    ../../Core/Src/main.cpp
     ../../Core/Src/gpio.c
     ../../Core/Src/i2c.c
+    ../../Core/Src/tim.c
     ../../Core/Src/usart.c
     ../../Core/Src/stm32l4xx_it.c
     ../../Core/Src/stm32l4xx_hal_msp.c
@@ -56,10 +56,6 @@ target_link_directories(stm32cubemx INTERFACE
 )
 
 target_link_libraries(stm32cubemx INTERFACE
-)
-
-target_compile_options(stm32cubemx INTERFACE
-    -w
 )
 
 # Validate that STM32CubeMX code is compatible with C standard

@@ -1,10 +1,31 @@
 #include "mpu6050.hpp"
+#include "common.hpp"
 #include "stm32l4xx_hal.h"
-#include "vector3d.hpp"
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <expected>
+
+using Error = MPU6050::Error;
+using Scaled = MPU6050::Scaled;
+using GyroScaled = MPU6050::GyroScaled;
+using AccelScaled = MPU6050::AccelScaled;
+using RollPitchYaw = MPU6050::RollPitchYaw;
+using TempScaled = MPU6050::TempScaled;
+using Raw = MPU6050::Raw;
+using GyroRaw = MPU6050::GyroRaw;
+using AccelRaw = MPU6050::AccelRaw;
+using TempRaw = MPU6050::TempRaw;
+using ExpectedRaw = MPU6050::ExpectedRaw;
+using ExpectedTempRaw = MPU6050::ExpectedTempRaw;
+using ExpectedTempScaled = MPU6050::ExpectedTempScaled;
+using ExpectedGyroRaw = MPU6050::ExpectedGyroRaw;
+using ExpectedGyroScaled = MPU6050::ExpectedGyroScaled;
+using ExpectedAccelRaw = MPU6050::ExpectedAccelRaw;
+using ExpectedAccelScaled = MPU6050::ExpectedAccelScaled;
+using ExpectedAddres = MPU6050::ExpectedAddres;
+using ExpectedRPY = MPU6050::ExpectedRPY;
+using Unexpected = MPU6050::Unexpected;
 
 const char* MPU6050::error_to_string(const Error error) noexcept
 {
@@ -58,11 +79,12 @@ Scaled MPU6050::accel_range_to_scale(const std::uint8_t accel_range) noexcept
     }
 }
 
-MPU6050::MPU6050(I2C_Handle i2c,
+MPU6050::MPU6050(UartHandle uart,
+                 I2cHandle i2c,
                  const std::uint8_t addres,
                  const std::uint8_t gyro_range,
                  const std::uint8_t accel_range) noexcept :
-    i2c_{i2c}, addres_{addres}, gyro_range_{gyro_range}, accel_range_{accel_range}
+    uart_{uart}, i2c_{i2c}, addres_{addres}, gyro_range_{gyro_range}, accel_range_{accel_range}
 {
     if (initialize() != Error::OK) {
     }
@@ -619,8 +641,7 @@ ExpectedRPY MPU6050::get_roll_pitch_yaw() const noexcept
                                         std::sqrt(accel_scaled.value().y * accel_scaled.value().y +
                                                   accel_scaled.value().z * accel_scaled.value().z)) *
                              180.0) /
-                               M_PI,
-                           {}};
+                               M_PI};
     }
 }
 
@@ -1065,4 +1086,11 @@ Error MPU6050::set_free_fall_detection_duration(std::uint8_t duration) const noe
         return Error::INIT;
     }
     return Error::OK;
+}
+
+Error MPU6050::print_and_return(const Error error) const noexcept
+{
+    sprintf(uart_buffer_, error_to_string(error));
+    uart_send_string(uart_, uart_buffer_);
+    return error;
 }
