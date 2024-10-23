@@ -78,7 +78,8 @@
         "semaphore": "cpp",
         "stop_token": "cpp",
         "thread": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "common.hpp": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

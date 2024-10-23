@@ -16,9 +16,10 @@ using GpioHandle = GPIO_TypeDef*;
 using UartHandle = UART_HandleTypeDef*;
 using I2cHandle = I2C_HandleTypeDef*;
 
-static void uart_send_string(UartHandle huart, const char* string) noexcept
+static void uart_send_string(UartHandle huart, char* string) noexcept
 {
-    HAL_UART_Transmit(huart, reinterpret_cast<const std::uint8_t*>(string), strlen(string), 1000);
+    HAL_UART_Transmit(huart, std::bit_cast<const std::uint8_t*>(string), strlen(string), 1000);
+    memset(string, 0, strlen(string));
 }
 
 #endif // COMMON_HPP

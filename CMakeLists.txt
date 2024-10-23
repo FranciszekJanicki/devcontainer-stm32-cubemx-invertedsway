@@ -56,9 +56,12 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Inc/vector3d.hpp"
     "Core/Inc/rotation3d.hpp"
     "Core/Src/mpu6050.cpp"
-    "Core/Src/l298n.cpp"
+
+    # "Core/Src/l298n.cpp"
     "Core/Src/main.cpp"
-    "Core/Inc/filters.hpp"
+
+    # "Core/Inc/filters.hpp"
+    # "Core/Inc/common.hpp"
 )
 
 # Add include paths
