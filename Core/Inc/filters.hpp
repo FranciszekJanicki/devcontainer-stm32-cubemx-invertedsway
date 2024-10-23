@@ -9,9 +9,9 @@ template <typename Filtered, typename Sample = Filtered>
 {
     return [estimate = Filtered{}, prev_estimate = start_condition, samples = Sample{1}](
                const Filtered measurement) mutable {
-        estimate = prev_estimate * (samples - Sample{1}) / samples + measurement / samples;
+        estimate = prev_estimate * Sample{samples - 1} / samples + measurement / samples;
         prev_estimate = estimate;
-        samples++;
+        samples += Sample{1};
         return estimate;
     };
 }
@@ -37,7 +37,7 @@ template <typename Filtered, typename Sample = Filtered, typename Alpha = Filter
 {
     assert(alpha >= 0 && alpha <= 1);
     return [estimate = Filtered{}, prev_estimate = start_condition, alpha](const Filtered measurement) {
-        estimate = prev_estimate * alpha + measurement * (Filtered{1} - alpha);
+        estimate = prev_estimate * alpha + measurement * Alpha{1 - alpha};
         prev_estimate = estimate;
         return estimate;
     };

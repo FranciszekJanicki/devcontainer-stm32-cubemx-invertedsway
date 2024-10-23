@@ -132,13 +132,13 @@ namespace Linalg {
     template <Arithmetic Value>
     constexpr auto operator*(const Vector3D<Value>& vector, const Value factor) noexcept
     {
-        return Vector3D{vector.x + factor, vector.y + factor, vector.z + factor};
+        return Vector3D<Value>{vector.x * factor, vector.y * factor, vector.z * factor};
     }
 
     template <Arithmetic Value>
     constexpr auto operator/(const Vector3D<Value>& left, const Vector3D<Value>& right) noexcept
     {
-        return Vector3D{left.x / right.x, left.y / right.y, left.z / right.z};
+        return Vector3D<Value>{left.x / right.x, left.y / right.y, left.z / right.z};
     }
     template <Arithmetic Value>
     constexpr auto operator/(const Vector3D<Value>& vector, const Value factor) noexcept

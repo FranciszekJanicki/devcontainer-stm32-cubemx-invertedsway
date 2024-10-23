@@ -1,5 +1,6 @@
 #include "mpu6050.hpp"
 #include "common.hpp"
+#include "main.h"
 #include "stm32l4xx_hal.h"
 #include <cmath>
 #include <cstddef>
@@ -19,7 +20,6 @@ using AccelRaw = MPU6050::AccelRaw;
 using TempRaw = MPU6050::TempRaw;
 using GyroFilter = MPU6050::GyroFilter;
 using AccelFilter = MPU6050::AccelFilter;
-using Address = MPU6050::Address;
 
 const char* MPU6050::error_to_string(const Error error) noexcept
 {
@@ -95,16 +95,9 @@ MPU6050::MPU6050(UartHandle uart,
                  I2cHandle i2c,
                  const std::uint8_t addres,
                  const std::uint8_t gyro_range,
-                 const std::uint8_t accel_range,
-                 const GyroFilter& gyro_filter,
-                 const AccelFilter& accel_filter) noexcept :
-    uart_{uart},
-    i2c_{i2c},
-    addres_{addres},
-    gyro_range_{gyro_range},
-    accel_range_{accel_range},
-    gyro_filter_{gyro_filter},
-    accel_filter_{accel_filter}
+                 const std::uint8_t accel_range) noexcept :
+    uart_{uart}, i2c_{i2c}, addres_{addres}, gyro_range_{gyro_range}, accel_range_{accel_range}
+
 {
     initialize();
 }
@@ -116,18 +109,31 @@ MPU6050::~MPU6050() noexcept
 
 void MPU6050::initialize() noexcept
 {
-    device_reset(1);
-    set_sleep_enabled(0);
+    if (HAL_I2C_IsDeviceReady(i2c_, addres_, 10, i2c_TIMEOUT) != HAL_OK) {
+        sprintf(uart_buffer_, "device is not ready\r\n");
+        uart_send_string(uart_, uart_buffer_);
+        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+        return;
+    }
+    if (get_device_id() != addres_) {
+        sprintf(uart_buffer_, "device id isnt correct\r\n");
+        uart_send_string(uart_, uart_buffer_);
+        return;
+    }
+    // device_reset(0);
+    // set_sleep_enabled(0);
     set_clock_source(CLOCK_INTERNAL);
-    set_dlpf(DLPF_BW_20);
+    set_dlpf(DLPF_BW_5);
     set_full_scale_gyro_range(gyro_range_);
     set_full_scale_accel_range(accel_range_);
-    set_interrupt();
+    // set_interrupt();
 }
 
 void MPU6050::deinitialize() noexcept
 {
-    device_reset(PWR1_DEVICE_RESET_BIT);
+    if (get_device_id()) {
+        device_reset(PWR1_DEVICE_RESET_BIT);
+    }
 }
 
 void MPU6050::set_dlpf(const std::uint8_t value) const noexcept
@@ -285,18 +291,18 @@ AccelRaw MPU6050::get_accelerometer_raw() const noexcept
     std::uint8_t buffer[6];
     HAL_I2C_Mem_Read(i2c_, addres_, RA_ACCEL_XOUT_H, sizeof(RA_ACCEL_XOUT_H), buffer, sizeof(buffer), i2c_TIMEOUT);
 
-    return AccelRaw{((static_cast<Raw>(buffer[0])) << 8) | buffer[1],
-                    ((static_cast<Raw>(buffer[2])) << 8) | buffer[3],
-                    ((static_cast<Raw>(buffer[4])) << 8) | buffer[5]};
+    return accel_filter_(AccelRaw{((static_cast<Raw>(buffer[0])) << 8) | buffer[1],
+                                  ((static_cast<Raw>(buffer[2])) << 8) | buffer[3],
+                                  ((static_cast<Raw>(buffer[4])) << 8) | buffer[5]});
 }
 
 AccelScaled MPU6050::get_accelerometer_scaled() const noexcept
 {
     const auto accel_scale{accel_range_to_scale(accel_range_)};
     const auto accel_raw_result{get_accelerometer_raw()};
-    return accel_filter_(AccelScaled{static_cast<Scaled>(accel_raw_result.x) * accel_scale,
-                                     static_cast<Scaled>(accel_raw_result.y) * accel_scale,
-                                     static_cast<Scaled>(accel_raw_result.z) * accel_scale});
+    return AccelScaled{static_cast<Scaled>(accel_raw_result.x) * accel_scale,
+                       static_cast<Scaled>(accel_raw_result.y) * accel_scale,
+                       static_cast<Scaled>(accel_raw_result.z) * accel_scale};
 }
 
 Raw MPU6050::get_rotation_x_raw() const noexcept
@@ -324,25 +330,23 @@ GyroRaw MPU6050::get_gyroscope_raw() const noexcept
 {
     std::uint8_t buffer[6];
     HAL_I2C_Mem_Read(i2c_, addres_, RA_GYRO_XOUT_H, sizeof(RA_GYRO_XOUT_H), buffer, sizeof(buffer), i2c_TIMEOUT);
-
-    return GyroRaw{((static_cast<Raw>(buffer[0])) << 8) | buffer[1],
-                   ((static_cast<Raw>(buffer[2])) << 8) | buffer[3],
-                   ((static_cast<Raw>(buffer[4])) << 8) | buffer[5]};
+    return gyro_filter_(GyroRaw{((static_cast<Raw>(buffer[0])) << 8) | buffer[1],
+                                ((static_cast<Raw>(buffer[2])) << 8) | buffer[3],
+                                ((static_cast<Raw>(buffer[4])) << 8) | buffer[5]});
 }
 
 GyroScaled MPU6050::get_gyroscope_scaled() const noexcept
 {
     const auto gyro_scale{gyro_range_to_scale(gyro_range_)};
     const auto gyro_raw{get_gyroscope_raw()};
-    return gyro_filter_(GyroScaled{static_cast<Scaled>(gyro_raw.x) * gyro_scale,
-                                   static_cast<Scaled>(gyro_raw.y) * gyro_scale,
-                                   static_cast<Scaled>(gyro_raw.z) * gyro_scale});
+    return GyroScaled{static_cast<Scaled>(gyro_raw.x) * gyro_scale,
+                      static_cast<Scaled>(gyro_raw.y) * gyro_scale,
+                      static_cast<Scaled>(gyro_raw.z) * gyro_scale};
 }
 
 RollPitchYaw MPU6050::get_roll_pitch_yaw() const noexcept
 {
     const auto accel_scaled{get_accelerometer_scaled()};
-
     return RollPitchYaw{
         std::atan2(accel_scaled.y, accel_scaled.z) * 180.0 / M_PI,
         -(std::atan2(accel_scaled.x, std::sqrt(accel_scaled.y * accel_scaled.y + accel_scaled.z * accel_scaled.z)) *
@@ -431,14 +435,14 @@ void MPU6050::set_int_data_ready_enabled(const std::uint8_t enable) const noexce
     HAL_I2C_Mem_Write(i2c_, addres_, RA_INT_ENABLE, sizeof(RA_INT_ENABLE), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
-Address MPU6050::get_int_status_register() const noexcept
+std::uint8_t MPU6050::get_int_status_register() const noexcept
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c_, addres_, RA_INT_STATUS, sizeof(RA_INT_STATUS), &buffer, sizeof(buffer), i2c_TIMEOUT);
     return buffer;
 }
 
-Address MPU6050::get_device_id() const noexcept
+std::uint8_t MPU6050::get_device_id() const noexcept
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c_, addres_, RA_WHO_AM_I, sizeof(RA_WHO_AM_I), &buffer, sizeof(buffer), i2c_TIMEOUT);
@@ -457,7 +461,7 @@ void MPU6050::set_dhpf_mode(const std::uint8_t dhpf) const noexcept
     HAL_I2C_Mem_Write(i2c_, addres_, RA_ACCEL_CONFIG, sizeof(RA_ACCEL_CONFIG), &buffer, sizeof(buffer), i2c_TIMEOUT);
 }
 
-Address MPU6050::get_motion_status_register() const noexcept
+std::uint8_t MPU6050::get_motion_status_register() const noexcept
 {
     std::uint8_t buffer;
     HAL_I2C_Mem_Read(i2c_,

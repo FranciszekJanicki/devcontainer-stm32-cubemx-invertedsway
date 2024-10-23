@@ -25,16 +25,20 @@ public:
     using AccelScaled = Linalg::Vector3D<Scaled>;
     using RollPitchYaw = Linalg::Vector3D<Scaled>;
     using TempScaled = std::double_t;
-    using Raw = std::int32_t;
+    using Raw = std::int16_t;
     using GyroRaw = Linalg::Vector3D<Raw>;
     using AccelRaw = Linalg::Vector3D<Raw>;
-    using TempRaw = std::int32_t;
-    using Address = std::uint8_t;
-    using GyroFilter = std::function<GyroScaled(GyroScaled)>;
-    using AccelFilter = std::function<AccelScaled(AccelScaled)>;
-    using TempFilter = std::function<TempScaled(TempScaled)>;
+    using TempRaw = std::int16_t;
+    using GyroFilter = std::function<GyroRaw(GyroRaw)>;
+    using AccelFilter = std::function<AccelRaw(AccelRaw)>;
 
     static const char* error_to_string(const Error error) noexcept;
+
+    MPU6050(UartHandle uart,
+            I2cHandle i2c,
+            const std::uint8_t addres,
+            const std::uint8_t gyro_range,
+            const std::uint8_t accel_range) noexcept;
 
     MPU6050(UartHandle uart,
             I2cHandle i2c,
@@ -44,19 +48,11 @@ public:
             GyroFilter&& gyro_filter,
             AccelFilter&& accel_filter) noexcept;
 
-    MPU6050(UartHandle uart,
-            I2cHandle i2c,
-            const std::uint8_t addres,
-            const std::uint8_t gyro_range,
-            const std::uint8_t accel_range,
-            const GyroFilter& gyro_filter,
-            const AccelFilter& accel_filter) noexcept;
+    MPU6050(const MPU6050& other) noexcept = delete;
+    MPU6050(MPU6050&& other) noexcept = delete;
 
-    MPU6050(const MPU6050& other) noexcept = default;
-    MPU6050(MPU6050&& other) noexcept = default;
-
-    MPU6050& operator=(const MPU6050& other) noexcept = default;
-    MPU6050& operator=(MPU6050& other) noexcept = default;
+    MPU6050& operator=(const MPU6050& other) noexcept = delete;
+    MPU6050& operator=(MPU6050& other) noexcept = delete;
 
     ~MPU6050() noexcept;
 
@@ -65,8 +61,8 @@ public:
     GyroScaled get_gyroscope_scaled() const noexcept;
     RollPitchYaw get_roll_pitch_yaw() const noexcept;
 
-    Address get_int_status_register() const noexcept;
-    Address get_motion_status_register() const noexcept;
+    std::uint8_t get_int_status_register() const noexcept;
+    std::uint8_t get_motion_status_register() const noexcept;
 
 private:
     static Scaled gyro_range_to_scale(const std::uint8_t gyro_range) noexcept;
@@ -75,7 +71,7 @@ private:
     void initialize() noexcept;
     void deinitialize() noexcept;
 
-    Address get_device_id() const noexcept;
+    std::uint8_t get_device_id() const noexcept;
 
     void set_dlpf(const std::uint8_t value) const noexcept;
     void device_reset(const std::uint8_t reset) const noexcept;
@@ -136,17 +132,17 @@ private:
     std::uint8_t gyro_range_{};
     std::uint8_t accel_range_{};
 
-    GyroFilter gyro_filter_{};
-    AccelFilter accel_filter_{};
+    GyroFilter gyro_filter_{[](GyroRaw gyro_raw) { return gyro_raw; }};
+    AccelFilter accel_filter_{[](AccelRaw accel_raw) { return accel_raw; }};
 
     mutable char uart_buffer_[100];
 
     bool initialized_{false};
 
 public:
-    static constexpr Scaled M_PI{3.14};
+    static constexpr Scaled M_PI{3.14159265358979323846};
     static constexpr std::uint32_t i2c_TIMEOUT{10};
-    static constexpr std::uint8_t ADDRESS{0xD0};  // AD0 low
+    static constexpr std::uint8_t ADDRESS{0x68};  // AD0 low
     static constexpr std::uint8_t ADDRESS2{0xD1}; // AD0 high
 
     //	Registers addresses

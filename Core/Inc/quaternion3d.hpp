@@ -83,37 +83,6 @@ namespace Linalg {
     };
 
     template <Arithmetic Value>
-    [[nodiscard]] constexpr bool operator==(const Quaternion3D<Value>& left, const Quaternion3D<Value>& right) noexcept
-    {
-        return left == right;
-    }
-    template <Arithmetic Value>
-    [[nodiscard]] constexpr bool operator>(const Quaternion3D<Value>& left, const Quaternion3D<Value>& right) noexcept
-    {
-        return left > right;
-    }
-    template <Arithmetic Value>
-    [[nodiscard]] constexpr bool operator<(const Quaternion3D<Value>& left, const Quaternion3D<Value>& right) noexcept
-    {
-        return left < right;
-    }
-    template <Arithmetic Value>
-    [[nodiscard]] constexpr bool operator>=(const Quaternion3D<Value>& left, const Quaternion3D<Value>& right) noexcept
-    {
-        return left >= right;
-    }
-    template <Arithmetic Value>
-    [[nodiscard]] constexpr bool operator<=(const Quaternion3D<Value>& left, const Quaternion3D<Value>& right) noexcept
-    {
-        return left <= right;
-    }
-    template <Arithmetic Value>
-    [[nodiscard]] constexpr bool operator!=(const Quaternion3D<Value>& left, const Quaternion3D<Value>& right) noexcept
-    {
-        return left != right;
-    }
-
-    template <Arithmetic Value>
     constexpr auto operator+(const Quaternion3D<Value>& left, const Quaternion3D<Value>& right) noexcept
     {
         return Quaternion3D<Value>{left.w + right.w, left.x + right.x, left.y + right.y, left.z + right.z};
@@ -122,7 +91,7 @@ namespace Linalg {
     template <Arithmetic Value>
     constexpr auto operator-(const Quaternion3D<Value>& left, const Quaternion3D<Value>& right) noexcept
     {
-        return Quaternion3D{left.w - right.w, left.x - right.x, left.y - right.y, left.z + right.z};
+        return Quaternion3D<Value>{left.w - right.w, left.x - right.x, left.y - right.y, left.z + right.z};
     }
 
     template <Arithmetic Value>

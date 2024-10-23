@@ -20,6 +20,7 @@
 #include "main.h"
 #include "gpio.h"
 #include "i2c.h"
+#include "tim.h"
 #include "usart.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -95,18 +96,19 @@ int main(void)
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
-    MX_I2C1_Init();
     MX_USART2_UART_Init();
+    MX_TIM2_Init();
+    MX_I2C3_Init();
 
     /* USER CODE BEGIN 2 */
 
     MPU6050 mpu6050{&huart2,
-                    &hi2c1,
+                    &hi2c3,
                     MPU6050::ADDRESS,
                     MPU6050::GYRO_FS_250,
                     MPU6050::ACCEL_FS_2,
-                    MPU6050::GyroFilter{make_recursive_average<MPU6050::GyroScaled, MPU6050::Scaled>()},
-                    MPU6050::AccelFilter{make_recursive_average<MPU6050::AccelScaled, MPU6050::Scaled>()}};
+                    MPU6050::GyroFilter{make_recursive_average<MPU6050::GyroRaw, MPU6050::Raw>()},
+                    MPU6050::AccelFilter{make_recursive_average<MPU6050::AccelRaw, MPU6050::Raw>()}};
     mpu6050_handle = &mpu6050;
 
     /* USER CODE END 2 */
@@ -135,7 +137,7 @@ int main(void)
 
         const auto& [roll, pitch, yaw]{mpu6050.get_roll_pitch_yaw()};
         memset(buffer, 0, 128);
-        sprintf(buffer, "RPY: Roll: %.2f Pitch: %.2f\n\r\n\r", roll, pitch);
+        sprintf(buffer, "RPY: Roll: %.2f Pitch: %.2f Yaw: %.2f\n\r", roll, pitch, yaw);
         uart_send_string(&huart2, buffer);
 
         HAL_Delay(1000);
@@ -149,8 +151,8 @@ int main(void)
  */
 void SystemClock_Config(void)
 {
-    RCC_OscInitTypeDef RCC_OscInitStruct = {};
-    RCC_ClkInitTypeDef RCC_ClkInitStruct = {};
+    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
     /** Configure the main internal regulator output voltage
      */
@@ -189,39 +191,39 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-    if (GPIO_Pin == INTR_Pin) {
-        const auto interrupts{mpu6050_handle->get_int_status_register()};
-        mpu6050_handle->get_motion_status_register();
-        sprintf(buffer, "int_ status triggered: %X\n\n\r", interrupts);
-        uart_send_string(&huart2, buffer);
+// void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+// {
+//     if (GPIO_Pin == INTR_Pin) {
+//         const auto interrupts{mpu6050_handle->get_int_status_register()};
+//         mpu6050_handle->get_motion_status_register();
+//         sprintf(buffer, "int_ status triggered: %X\n\n\r", interrupts);
+//         uart_send_string(&huart2, buffer);
 
-        if (interrupts & (0x01 << MPU6050::INTERRUPT_FIFO_OFLOW_BIT)) // Bit 4 (0x10)
-        {
-            sprintf(buffer, "FIFO Overflow detected\n\r");
-            uart_send_string(&huart2, buffer);
-        }
+//         if (interrupts & (0x01 << MPU6050::INTERRUPT_FIFO_OFLOW_BIT)) // Bit 4 (0x10)
+//         {
+//             sprintf(buffer, "FIFO Overflow detected\n\r");
+//             uart_send_string(&huart2, buffer);
+//         }
 
-        if (interrupts & (0x01 << MPU6050::INTERRUPT_MOT_BIT)) // Bit 6 (0x40)
-        {
-            sprintf(buffer, "Motion detected\n\r");
-            uart_send_string(&huart2, buffer);
-        }
+//         if (interrupts & (0x01 << MPU6050::INTERRUPT_MOT_BIT)) // Bit 6 (0x40)
+//         {
+//             sprintf(buffer, "Motion detected\n\r");
+//             uart_send_string(&huart2, buffer);
+//         }
 
-        if (interrupts & (0x01 << MPU6050::INTERRUPT_ZMOT_BIT)) // Bit 5 (0x20)
-        {
-            sprintf(buffer, "Zero Motion detected\n\r");
-            uart_send_string(&huart2, buffer);
-        }
+//         if (interrupts & (0x01 << MPU6050::INTERRUPT_ZMOT_BIT)) // Bit 5 (0x20)
+//         {
+//             sprintf(buffer, "Zero Motion detected\n\r");
+//             uart_send_string(&huart2, buffer);
+//         }
 
-        if (interrupts & (0x01 << MPU6050::INTERRUPT_FF_BIT)) // Bit 7 (0x80)
-        {
-            sprintf(buffer, "Freefall detected\n\r");
-            uart_send_string(&huart2, buffer);
-        }
-    }
-}
+//         if (interrupts & (0x01 << MPU6050::INTERRUPT_FF_BIT)) // Bit 7 (0x80)
+//         {
+//             sprintf(buffer, "Freefall detected\n\r");
+//             uart_send_string(&huart2, buffer);
+//         }
+//     }
+// }
 /* USER CODE END 4 */
 
 /**

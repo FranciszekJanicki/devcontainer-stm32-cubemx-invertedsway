@@ -282,13 +282,6 @@ Error L298N::motor_channel_to_error(const MotorChannel motor_channel) noexcept
     }
 }
 
-Error L298N::print_and_return(const Error error) const noexcept
-{
-    sprintf(uart_buffer_, error_to_string(error));
-    uart_send_string(uart_, uart_buffer_);
-    return error;
-}
-
 Speed L298N::raw_to_speed(const Raw raw) noexcept
 {
     return raw * (MAX_SPEED_RPM - MIN_SPEED_RPM) / (MAX_RAW - MIN_RAW);

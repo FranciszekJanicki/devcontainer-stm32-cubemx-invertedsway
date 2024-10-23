@@ -66,11 +66,11 @@ public:
     L298N(UartHandle uart, const Motors& motors) noexcept;
     L298N(UartHandle uart, Motors&& motors) noexcept;
 
-    L298N(const L298N& other) noexcept = default;
-    L298N(L298N&& other) noexcept = default;
+    L298N(const L298N& other) noexcept = delete;
+    L298N(L298N&& other) noexcept = delete;
 
-    L298N& operator=(const L298N& other) noexcept = default;
-    L298N& operator=(L298N&& other) noexcept = default;
+    L298N& operator=(const L298N& other) noexcept = delete;
+    L298N& operator=(L298N&& other) noexcept = delete;
 
     ~L298N() noexcept;
 
@@ -96,9 +96,6 @@ public:
     Error set_backward(const MotorChannel motor_channel) const noexcept;
     Error set_soft_stop(const MotorChannel motor_channel) const noexcept;
     Error set_fast_stop(const MotorChannel motor_channel) const noexcept;
-
-    const Motor& get_motor(const MotorChannel channel) const noexcept;
-    Motor& get_motor(const MotorChannel motor_channel) noexcept;
 
 private:
     static Error motor_channel_to_error(const MotorChannel motor_channel) noexcept;
@@ -126,7 +123,8 @@ private:
     Error initialize(Motor& motor) noexcept;
     Error deinitialize(Motor& motor) noexcept;
 
-    Error print_and_return(const Error error) const noexcept;
+    const Motor& get_motor(const MotorChannel channel) const noexcept;
+    Motor& get_motor(const MotorChannel motor_channel) noexcept;
 
     UartHandle uart_{nullptr};
 
