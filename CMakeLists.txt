@@ -51,17 +51,16 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
+    "Core/Src/main.cpp"
     "Core/Inc/arithmetic.hpp"
     "Core/Inc/quaternion3d.hpp"
     "Core/Inc/vector3d.hpp"
     "Core/Inc/rotation3d.hpp"
     "Core/Src/mpu6050.cpp"
     "Core/Src/l298n.cpp"
-    "Core/Src/main.cpp"
     "Core/Inc/filters.hpp"
     "Core/Inc/common.hpp"
-    "Core/Inc/regulator_ptr.hpp"
-    "Core/Inc/regulator_variant.hpp"
+    "Core/Inc/regulator.hpp"
 )
 
 # Add include paths

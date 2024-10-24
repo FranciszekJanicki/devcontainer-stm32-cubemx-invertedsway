@@ -28,9 +28,11 @@
 #include "filters.hpp"
 #include "l298n.hpp"
 #include "mpu6050.hpp"
+#include "regulator.hpp"
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+
 
 /* USER CODE END Includes */
 
