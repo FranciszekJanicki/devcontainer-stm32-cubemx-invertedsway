@@ -142,7 +142,7 @@ private:
 public:
     static constexpr Scaled M_PI{3.14159265358979323846};
     static constexpr std::uint32_t i2c_TIMEOUT{10};
-    static constexpr std::uint8_t ADDRESS{0x68};  // AD0 low
+    static constexpr std::uint8_t ADDRESS{0xD0};  // AD0 low
     static constexpr std::uint8_t ADDRESS2{0xD1}; // AD0 high
 
     //	Registers addresses

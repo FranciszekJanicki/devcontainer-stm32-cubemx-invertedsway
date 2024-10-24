@@ -112,18 +112,18 @@ void MPU6050::initialize() noexcept
     if (HAL_I2C_IsDeviceReady(i2c_, addres_, 10, i2c_TIMEOUT) != HAL_OK) {
         sprintf(uart_buffer_, "device is not ready\r\n");
         uart_send_string(uart_, uart_buffer_);
-        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
         return;
     }
+
     if (get_device_id() != addres_) {
         sprintf(uart_buffer_, "device id isnt correct\r\n");
         uart_send_string(uart_, uart_buffer_);
         return;
     }
-    // device_reset(0);
-    // set_sleep_enabled(0);
+    device_reset(1);
+    set_sleep_enabled(0);
     set_clock_source(CLOCK_INTERNAL);
-    set_dlpf(DLPF_BW_5);
+    set_dlpf(DLPF_BW_20);
     set_full_scale_gyro_range(gyro_range_);
     set_full_scale_accel_range(accel_range_);
     // set_interrupt();

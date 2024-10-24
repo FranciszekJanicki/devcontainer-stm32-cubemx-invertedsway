@@ -98,12 +98,12 @@ int main(void)
     MX_GPIO_Init();
     MX_USART2_UART_Init();
     MX_TIM2_Init();
-    MX_I2C3_Init();
+    MX_I2C1_Init();
 
     /* USER CODE BEGIN 2 */
 
     MPU6050 mpu6050{&huart2,
-                    &hi2c3,
+                    &hi2c1,
                     MPU6050::ADDRESS,
                     MPU6050::GYRO_FS_250,
                     MPU6050::ACCEL_FS_2,

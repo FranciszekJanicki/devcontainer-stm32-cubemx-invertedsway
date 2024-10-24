@@ -60,6 +60,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Src/main.cpp"
     "Core/Inc/filters.hpp"
     "Core/Inc/common.hpp"
+    "Core/Inc/regulator_ptr.hpp"
+    "Core/Inc/regulator_variant.hpp"
 )
 
 # Add include paths
