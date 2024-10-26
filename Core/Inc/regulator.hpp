@@ -5,13 +5,11 @@
 #include <utility>
 #include <variant>
 
-template <typename Unit>
+/* REGULATOR BASE */
+template <typename Unit, typename Time = Unit>
 struct Regulator {
     virtual ~Regulator() noexcept = 0;
-    virtual Unit operator()(const Unit) noexcept = 0;
-
-    Unit sampling_time_{1};
-    Unit previous_input_{};
+    virtual Unit operator()(const Unit, const Time) noexcept = 0;
 };
 
 enum struct RegulatorAlgo {
@@ -19,59 +17,64 @@ enum struct RegulatorAlgo {
     LQR,
     ADRC,
     BINARY,
+    TERNARY,
 };
 
-template <typename Unit>
-struct RegulatorPID : public Regulator<Unit> {
-    Unit operator()(const Unit input) noexcept override
+/* PID */
+template <typename Unit, typename Time = Unit>
+struct RegulatorPID : public Regulator<Unit, Time> {
+    Unit operator()(const Unit input, const Time dt) noexcept override
     {
-        return P * input + (input - this->previous_input) / this->sampling_time * D +
-               I * (integral += input * this->sampling_time);
+        return P * input + D * ((input - previous_input) / dt) + I * (integral += (input * dt));
     }
 
-    Unit integral{};
     Unit P{};
     Unit I{};
     Unit D{};
+    Unit integral{};
+    Unit previous_input{};
 };
 
-template <typename Unit>
-struct RegulatorLQR : public Regulator<Unit> {
-    Unit operator()(const Unit input) noexcept override
+/* LQR */
+template <typename Unit, typename Time = Unit>
+struct RegulatorLQR : public Regulator<Unit, Time> {
+    Unit operator()(const Unit input, const Time dt) noexcept override
     {
         // implement lqr algorithm here
         return input;
     }
-
-    // cache results/ system matrixes as members
 };
 
-template <typename Unit>
-struct RegulatorADRC : public Regulator<Unit> {
-    Unit operator()(const Unit input) noexcept override
+template <typename Unit, typename Time = Unit>
+struct RegulatorADRC : public Regulator<Unit, Time> {
+    Unit operator()(const Unit input, const Time dt) noexcept override
     {
         // implement adrc algorithm here
         return input;
     }
-
-    // cache results/ system matrixes as members
 };
 
-template <typename Unit>
-struct RegulatorBinary : public Regulator<Unit> {
-    bool operator()(const Unit input) noexcept override
+/* BINARY */
+template <typename Unit, typename Time = Unit>
+struct RegulatorBinary : public Regulator<Unit, Time> {
+    enum struct State {
+        POSITIVE,
+        ZERO,
+    };
+
+    State operator()(const Unit input, const Time) noexcept override
     {
-        if (state) {
+        if (state == State::POSITIVE) {
             if (input < hysteresis_down) {
-                state = false;
+                state = State::ZERO;
             } else {
-                state = true;
+                state = State::POSITIVE;
             }
         } else {
             if (input > hysteresis_up) {
-                state = true;
+                state = State::POSITIVE;
             } else {
-                state = false;
+                state = State::ZERO;
             }
         }
         return state;
@@ -79,10 +82,50 @@ struct RegulatorBinary : public Regulator<Unit> {
 
     Unit hysteresis_up{};
     Unit hysteresis_down{};
-    bool state{false};
+    State state{State::ZERO};
 };
 
-/* UNIQUE_PTR SOLUTION */
+/* TERNARY */
+template <typename Unit, typename Time = Unit>
+struct RegulatorTernary : public Regulator<Unit, Time> {
+    enum struct State {
+        POSITIVE,
+        NEGATIVE,
+        ZERO,
+    };
+
+    State operator()(const Unit input, const Time) noexcept override
+    {
+        switch (state) {
+            case State::POSITIVE:
+                if (input < hysteresis_down_right) {
+                    state = State::ZERO;
+                }
+                break;
+            case State::NEGATIVE:
+                if (input > hysteresis_up_left) {
+                    state = State::ZERO;
+                }
+                break;
+            case State::ZERO:
+                if (input > hysteresis_up_right) {
+                    state = State::POSITIVE;
+                } else if (input < hysteresis_down_left) {
+                    state = State::NEGATIVE;
+                }
+                break;
+        }
+        return state;
+    }
+
+    Unit hysteresis_up_left{};
+    Unit hysteresis_down_left{};
+    Unit hysteresis_up_right{};
+    Unit hysteresis_down_right{};
+    State state{State::ZERO};
+};
+
+/* UNIQUE_PTR SOLUTION (RUNTIME POLYMORPHISM)*/
 template <typename Unit>
 using RegulatorPtr = std::unique_ptr<Regulator<Unit>>;
 
@@ -99,12 +142,14 @@ template <typename Unit, typename... RegulatorArgs>
             return std::make_unique<RegulatorADRC>(std::forward<RegulatorArgs>(regulator_args)...);
         case RegulatorAlgo::BINARY:
             return std::make_unique<RegulatorBinary>(std::forward<RegulatorArgs>(regulator_args)...);
+        case RegulatorAlgo::TERNARY:
+            return std::make_unique<RegulatorTernary>(std::forward<RegulatorArgs>(regulator_args)...);
         default:
             return RegulatorPtr<Unit>{nullptr};
     }
 }
 
-/* VARIANT SOLUTION */
+/* VARIANT SOLUTION (COMPILE TIME POLYMORPHISM) */
 template <typename Unit>
 using RegulatorVariant =
     std::variant<RegulatorLQR<Unit>, RegulatorPID<Unit>, RegulatorADRC<Unit>, RegulatorBinary<Unit>>;
@@ -126,12 +171,15 @@ template <typename Unit, typename... RegulatorArgs>
         case RegulatorAlgo::BINARY:
             return RegulatorVariant<Unit>{std::in_place_type<RegulatorBinary<Unit>>,
                                           std::forward<RegulatorArgs>(regulator_args)...};
+        case RegulatorAlgo::TERNARY:
+            return RegulatorVariant<Unit>{std::in_place_type < RegulatorTernary<Unit>,
+                                          std::forward<RegulatorArgs>(regulator_args)...};
         default:
             return RegulatorVariant<Unit>{};
     }
 }
 
-/* LAMBDA SOLUTION */
+/* LAMBDA SOLUTION (TYPE ERASURE, although you will need std::function to containerize state-full lambda) */
 template <typename Unit>
 using RegulatorLambda = decltype([](Unit) { return Unit{}; });
 
@@ -141,24 +189,30 @@ template <typename Unit, typename... RegulatorArgs>
 {
     switch (regulator_algo) {
         case RegulatorAlgo::PID:
-            return [pid = RegulatorPID{std::forward<RegulatorArgs>(regulator_args)...}](const Unit input) mutable {
-                return pid(input);
+            return [pid = RegulatorPID{std::forward<RegulatorArgs>(regulator_args)...}](const Unit input,
+                                                                                        const Time dt) mutable -> Unit {
+                return pid(input, dt);
             };
         case RegulatorAlgo::LQR:
-            return [lqr = RegulatorLQR{std::forward<RegulatorArgs>(regulator_args)...}](const Unit input) mutable {
-                return lqr(input);
+            return [lqr = RegulatorLQR{std::forward<RegulatorArgs>(regulator_args)...}](const Unit input,
+                                                                                        const Time dt) mutable -> Unit {
+                return lqr(input, dt);
             };
         case RegulatorAlgo::ADRC:
-            return [adrc = RegulatorADRC{std::forward<RegulatorArgs>(regulator_args)...}](const Unit input) mutable {
-                return adrc(input);
-            };
+            return [adrc = RegulatorADRC{std::forward<RegulatorArgs>(regulator_args)...}](
+                       const Unit input,
+                       const Time dt) mutable -> Unit { return adrc(input, dt); };
         case RegulatorAlgo::BINARY:
-            return [binary = RegulatorLQR{std::forward<RegulatorArgs>(regulator_args)...}](const Unit input) mutable {
-                return binary(input);
-            };
-        default:
-            return [](const Unit) { return Unit{}; };
+            return [binary = RegulatorBinary{std::forward<RegulatorArgs>(regulator_args)...}](
+                       const Unit input,
+                       const Time dt) mutable -> RegulatorBinary<Unit>::State { return binary(input, dt); };
+        case RegulatorAlgo::TERNARY:
+            return [ternary = RegulatorTernary{std::forward<RegulatorArgs>(
+                        regulator_args)...}](const Unit input, const Time dt) mutable -> RegulatorTernary<Unit>::State {
+                return ternary(input, dt);
+                default:
+                    return [](const Unit) { return Unit{}; };
+            }
     }
-}
 
 #endif // REGULATOR_HPP

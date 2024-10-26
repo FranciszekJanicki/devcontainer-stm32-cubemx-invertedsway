@@ -61,6 +61,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Inc/filters.hpp"
     "Core/Inc/common.hpp"
     "Core/Inc/regulator.hpp"
+    "Core/Inc/kalman_mpu.hpp"
 )
 
 # Add include paths

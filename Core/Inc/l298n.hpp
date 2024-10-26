@@ -54,10 +54,12 @@ public:
     using Raw = std::uint16_t;
     using Speed = std::double_t;
     using Voltage = std::double_t;
+    using Torque = std::double_t;
     using ExpectedDirection = std::expected<Direction, Error>;
     using ExpectedRaw = std::expected<Raw, Error>;
     using ExpectedVoltage = std::expected<Voltage, Error>;
     using ExpectedSpeed = std::expected<Speed, Error>;
+    using ExpectedTorque = std::expected<Torque, Error>;
     using Unexpected = std::unexpected<Error>;
     using Motors = std::array<Motor, 2>;
 
@@ -80,22 +82,25 @@ public:
     void motors(const Motors& motors) noexcept;
     void motors(Motors&& motors) noexcept;
 
-    ExpectedRaw get_compare_raw(const MotorChannel motor_channel) const noexcept;
-    Error set_compare_raw(const MotorChannel motor_channel, const Raw raw) const noexcept;
+    [[nodiscard]] ExpectedRaw get_compare_raw(const MotorChannel motor_channel) const noexcept;
+    [[nodiscard]] Error set_compare_raw(const MotorChannel motor_channel, const Raw raw) const noexcept;
 
-    ExpectedVoltage get_compare_voltage(const MotorChannel motor_channel) const noexcept;
-    Error set_compare_voltage(const MotorChannel motor_channel, const Voltage voltage) const noexcept;
+    [[nodiscard]] ExpectedVoltage get_compare_voltage(const MotorChannel motor_channel) const noexcept;
+    [[nodiscard]] Error set_compare_voltage(const MotorChannel motor_channel, const Voltage voltage) const noexcept;
 
-    ExpectedSpeed get_compare_speed(const MotorChannel motor_channel) const noexcept;
-    Error set_compare_speed(const MotorChannel motor_channel, const Speed speed) const noexcept;
+    [[nodiscard]] ExpectedSpeed get_compare_speed(const MotorChannel motor_channel) const noexcept;
+    [[nodiscard]] Error set_compare_speed(const MotorChannel motor_channel, const Speed speed) const noexcept;
 
-    Error set_direction(const MotorChannel motor_channel, const Direction direction) const noexcept;
-    ExpectedDirection get_direction(const MotorChannel motor_channel) const noexcept;
+    [[nodiscard]] ExpectedTorque get_compare_torque(const MotorChannel motor_channel) const noexcept;
+    [[nodiscard]] Error set_compare_torque(const MotorChannel motor_channel, const Torque torque) const noexcept;
 
-    Error set_forward(const MotorChannel motor_channel) const noexcept;
-    Error set_backward(const MotorChannel motor_channel) const noexcept;
-    Error set_soft_stop(const MotorChannel motor_channel) const noexcept;
-    Error set_fast_stop(const MotorChannel motor_channel) const noexcept;
+    [[nodiscard]] Error set_direction(const MotorChannel motor_channel, const Direction direction) const noexcept;
+    [[nodiscard]] ExpectedDirection get_direction(const MotorChannel motor_channel) const noexcept;
+
+    [[nodiscard]] Error set_forward(const MotorChannel motor_channel) const noexcept;
+    [[nodiscard]] Error set_backward(const MotorChannel motor_channel) const noexcept;
+    [[nodiscard]] Error set_soft_stop(const MotorChannel motor_channel) const noexcept;
+    [[nodiscard]] Error set_fast_stop(const MotorChannel motor_channel) const noexcept;
 
 private:
     static Error motor_channel_to_error(const MotorChannel motor_channel) noexcept;
@@ -106,19 +111,28 @@ private:
     static Voltage raw_to_voltage(const Raw raw) noexcept;
     static Raw voltage_to_raw(const Voltage voltage) noexcept;
 
-    static constexpr std::uint8_t PWM_RESOLUTION_BITS{16};
-    static constexpr std::uint64_t CLOCK_RESOLUTION_HZ{16000000};
-    static constexpr std::uint64_t TIMER_PRESCALER{40};
-    static constexpr std::uint64_t TIMER_RESOLUTION_HZ{CLOCK_RESOLUTION_HZ / TIMER_PRESCALER};
+    static Torque raw_to_torque(const Raw raw) noexcept;
+    static Raw torque_to_raw(const Torque torque) noexcept;
+
+    static constexpr auto BIT_RESOLUTION{16};
+    static constexpr auto PRESCALER{0};
+    static constexpr auto CLK_DIVISION{1};
+    static constexpr auto CLK_FREQ_HZ{80000000 / CLK_DIVISION};
+    static constexpr auto TICKS_PER_PERIOD{std::pow(2, BIT_RESOLUTION) - 1};
+    static constexpr auto TICK_FREQ_HZ{CLK_FREQ_HZ / (PRESCALER + 1)};
+    static constexpr auto TIMER_FREQ_HZ{TICK_FREQ_HZ / (TICKS_PER_PERIOD + 1)};
 
     static constexpr Voltage MAX_VOLTAGE_V{12};
     static constexpr Voltage MIN_VOLTAGE_V{0};
 
-    static constexpr Raw MAX_RAW{static_cast<Raw>(std::pow(2, PWM_RESOLUTION_BITS) - 1)};
+    static constexpr Raw MAX_RAW{static_cast<Raw>(std::pow(2, BIT_RESOLUTION) - 1)};
     static constexpr Raw MIN_RAW{0};
 
     static constexpr Speed MIN_SPEED_RPM{0};
-    static constexpr Speed MAX_SPEED_RPM{100000};
+    static constexpr Speed MAX_SPEED_RPM{1000};
+
+    static constexpr Speed MIN_TORQUE_NM{0};
+    static constexpr Speed MAX_TORQUE_NM{1000};
 
     Error initialize(Motor& motor) noexcept;
     Error deinitialize(Motor& motor) noexcept;

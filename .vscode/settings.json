@@ -79,7 +79,8 @@
         "stop_token": "cpp",
         "thread": "cpp",
         "queue": "cpp",
-        "common.hpp": "c"
+        "common.hpp": "c",
+        "cassert": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

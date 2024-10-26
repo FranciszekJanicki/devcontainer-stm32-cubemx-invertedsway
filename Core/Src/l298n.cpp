@@ -4,9 +4,7 @@
 #include "stm32l4xx_hal_gpio.h"
 #include "stm32l4xx_hal_tim.h"
 #include <algorithm>
-#include <bit>
 #include <cassert>
-#include <cstring>
 #include <expected>
 #include <ranges>
 
@@ -18,10 +16,12 @@ using Motors = L298N::Motors;
 using Raw = L298N::Raw;
 using Speed = L298N::Speed;
 using Voltage = L298N::Voltage;
+using Torque = L298N::Torque;
 using ExpectedDirection = L298N::ExpectedDirection;
 using ExpectedRaw = L298N::ExpectedRaw;
 using ExpectedVoltage = L298N::ExpectedVoltage;
 using ExpectedSpeed = L298N::ExpectedSpeed;
+using ExpectedTorque = L298N::ExpectedTorque;
 using Unexpected = L298N::Unexpected;
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
@@ -90,7 +90,7 @@ Error L298N::initialize(Motor& motor) noexcept
     if (motor.initialized) {
         return Error::INIT;
     }
-    if (motor.timer == nullptr) {
+    if (motor.timer == nullptr || motor.gpio == nullptr) {
         return Error::INIT;
     }
     if (HAL_TIM_PWM_Start(motor.timer, motor.timer_channel) != HAL_OK) {
@@ -105,7 +105,7 @@ Error L298N::deinitialize(Motor& motor) noexcept
     if (!motor.initialized) {
         return Error::DEINIT;
     }
-    if (motor.timer == nullptr) {
+    if (motor.timer == nullptr || motor.gpio == nullptr) {
         return Error::DEINIT;
     }
     if (HAL_TIM_PWM_Stop(motor.timer, motor.timer_channel) != HAL_OK) {
@@ -172,6 +172,28 @@ Error L298N::set_compare_speed(const MotorChannel motor_channel, const Speed spe
         return motor_channel_to_error(motor_channel);
     }
     __HAL_TIM_SetCompare(motor.timer, motor.timer_channel, speed_to_raw(speed));
+    return Error::OK;
+}
+
+ExpectedTorque L298N::get_compare_torque(const MotorChannel motor_channel) const noexcept
+{
+    const auto& motor{get_motor(motor_channel)};
+    if (!motor.initialized) {
+        return Unexpected{motor_channel_to_error(motor_channel)};
+    }
+    return ExpectedTorque{raw_to_torque(__HAL_TIM_GetCompare(motor.timer, motor.timer_channel))};
+}
+
+Error L298N::set_compare_torque(const MotorChannel motor_channel, const Torque torque) const noexcept
+{
+    assert(torque >= MIN_TORQUE_NM && torque <= MAX_TORQUE_NM);
+    const auto& motor{get_motor(motor_channel)};
+    if (!motor.initialized) {
+        return motor_channel_to_error(motor_channel);
+    }
+    if (__HAL_TIM_SetCompare(motor.timer, motor.timer_channel, torque_to_raw(torque)) != HAL_OK) {
+        return motor_channel_to_error(motor_channel);
+    }
     return Error::OK;
 }
 
@@ -250,8 +272,8 @@ Error L298N::set_fast_stop(const MotorChannel motor_channel) const noexcept
 
 const Motor& L298N::get_motor(const MotorChannel motor_channel) const noexcept
 {
-    if (auto motor{
-            std::ranges::find_if(motors_,
+    if (const auto motor{
+            std::ranges::find_if(std::as_const(motors_),
                                  [motor_channel](const Motor& motor) { return motor.motor_channel == motor_channel; })};
         motor != motors_.cend()) {
         return *motor;
@@ -284,20 +306,36 @@ Error L298N::motor_channel_to_error(const MotorChannel motor_channel) noexcept
 
 Speed L298N::raw_to_speed(const Raw raw) noexcept
 {
-    return raw * (MAX_SPEED_RPM - MIN_SPEED_RPM) / (MAX_RAW - MIN_RAW);
+    assert(raw <= MAX_RAW && raw >= MIN_RAW);
+    return (raw - MIN_RAW) * (MAX_SPEED_RPM - MIN_SPEED_RPM) / (MAX_RAW - MIN_RAW) + MAX_SPEED_RPM;
 }
 
 Raw L298N::speed_to_raw(const Speed speed) noexcept
 {
-    return speed * (MAX_RAW - MIN_RAW) / (MAX_SPEED_RPM - MIN_SPEED_RPM);
+    assert(speed <= MAX_SPEED_RPM && speed >= MIN_SPEED_RPM);
+    return (speed - MIN_SPEED_RPM) * (MAX_RAW - MIN_RAW) / (MAX_SPEED_RPM - MIN_SPEED_RPM) + MIN_RAW;
 }
 
 Voltage L298N::raw_to_voltage(const Raw raw) noexcept
 {
-    return raw * (MAX_VOLTAGE_V - MIN_VOLTAGE_V) / (MAX_RAW - MIN_RAW);
+    assert(raw <= MAX_RAW && raw >= MIN_RAW);
+    return (raw - MIN_RAW) * (MAX_VOLTAGE_V - MIN_VOLTAGE_V) / (MAX_RAW - MIN_RAW) + MIN_VOLTAGE_V;
 }
 
 Raw L298N::voltage_to_raw(const Voltage voltage) noexcept
 {
-    return voltage * (MAX_RAW - MIN_RAW) / (MAX_VOLTAGE_V - MIN_VOLTAGE_V);
+    assert(voltage <= MAX_VOLTAGE_V && voltage >= MIN_VOLTAGE_V);
+    return (voltage - MIN_VOLTAGE_V) * (MAX_RAW - MIN_RAW) / (MAX_VOLTAGE_V - MIN_VOLTAGE_V) + MIN_RAW;
+}
+
+Torque L298N::raw_to_torque(const Raw raw) noexcept
+{
+    assert(raw <= MAX_RAW && raw >= MIN_RAW);
+    return (raw - MIN_RAW) * (MAX_TORQUE_NM - MIN_TORQUE_NM) / (MAX_RAW - MIN_RAW) + MIN_TORQUE_NM;
+}
+
+Raw L298N::torque_to_raw(const Torque torque) noexcept
+{
+    assert(torque <= MAX_TORQUE_NM && torque >= MIN_TORQUE_NM);
+    return (torque - MIN_TORQUE_NM) * (MAX_RAW - MIN_RAW) / (MAX_TORQUE_NM - MIN_TORQUE_NM) + MIN_RAW;
 }

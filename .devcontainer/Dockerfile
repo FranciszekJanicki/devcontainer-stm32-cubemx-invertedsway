@@ -1,56 +1,43 @@
 FROM archlinux:base-devel
 
+# Set environment variables for tool paths
 ARG TOOLS_PATH=/opt/stm32-tools
 
-# Install essential system packages and clean cache in the same step to reduce image size
-RUN pacman -Syyu --noconfirm && \
-    pacman -Sy --noconfirm \
-    base-devel \
-    wget \
-    unzip \
-    jre-openjdk \
-    libusb \
-    usbutils \
-    arm-none-eabi-gcc \
-    arm-none-eabi-gdb \
-    cmake \
-    ninja \
-    git \
-    stlink && \
+# Install essential system packages and clean cache
+RUN pacman -Sy --noconfirm base-devel curl unzip jre-openjdk libusb usbutils arm-none-eabi-gcc arm-none-eabi-gdb cmake ninja git minicom stlink && \
     pacman -Scc --noconfirm && rm -rf /var/cache/pacman/pkg/*
 
 # Create directory for STM32 tools
 RUN mkdir -p ${TOOLS_PATH}
 
+# Copy the manually downloaded files into the image
+COPY STM32CubeMX-latest-linux.zip /tmp/
+COPY STM32CubeProgrammer-latest-linux.zip /tmp/
+COPY STM32CubeFinder-latest-linux.zip /tmp/
+COPY stlink-server_v2-0-1-0_linux_x86_64.zip /tmp/
+
 # Install STM32CubeMX
-RUN echo "Downloading STM32CubeMX..." && \
-    wget -q --timeout=30 --tries=3 https://www.st.com/content/ccc/resource/technical/software/sw_development_suite/group0/82/0b/c5/29/2d/f4/47/4d/stm32cubemx/files/STM32CubeMX-latest-linux.zip \
-    -O /tmp/STM32CubeMX.zip && \
-    echo "Unzipping..." && \
-    unzip /tmp/STM32CubeMX.zip -d ${TOOLS_PATH} && \
-    rm /tmp/STM32CubeMX.zip && \
+RUN echo "Unzipping STM32CubeMX..." && \
+    unzip /tmp/STM32CubeMX-latest-linux.zip -d ${TOOLS_PATH} && \
+    rm /tmp/STM32CubeMX-latest-linux.zip && \
     chmod +x ${TOOLS_PATH}/STM32CubeMX/STM32CubeMX
 
-
 # Install STM32CubeProgrammer
-RUN wget -q --timeout=30 --tries=3 https://www.st.com/content/ccc/resource/technical/software/sw_development_suite/group0/00/79/75/57/6c/ba/43/58/stm32cubeprg/files/STM32CubeProgrammer-latest-linux.zip \
-    -O /tmp/STM32CubeProgrammer.zip && \
-    unzip /tmp/STM32CubeProgrammer.zip -d ${TOOLS_PATH} && \
-    rm /tmp/STM32CubeProgrammer.zip && \
+RUN echo "Unzipping STM32CubeProgrammer..." && \
+    unzip /tmp/STM32CubeProgrammer-latest-linux.zip -d ${TOOLS_PATH} && \
+    rm /tmp/STM32CubeProgrammer-latest-linux.zip && \
     chmod +x ${TOOLS_PATH}/STM32CubeProgrammer/bin/STM32_Programmer_CLI
 
 # Install STM32CubeFinder
-RUN wget -q --timeout=30 --tries=3 https://www.st.com/content/ccc/resource/technical/software/sw_development_suite/group0/67/fb/9f/7a/2b/8d/44/36/STM32CubeFinder/files/STM32CubeFinder-latest-linux.zip \
-    -O /tmp/STM32CubeFinder.zip && \
-    unzip /tmp/STM32CubeFinder.zip -d ${TOOLS_PATH} && \
-    rm /tmp/STM32CubeFinder.zip && \
+RUN echo "Unzipping STM32CubeFinder..." && \
+    unzip /tmp/STM32CubeFinder-latest-linux.zip -d ${TOOLS_PATH} && \
+    rm /tmp/STM32CubeFinder-latest-linux.zip && \
     chmod +x ${TOOLS_PATH}/STM32CubeFinder/STM32CubeFinder
 
 # Install ST-LINK server
-RUN wget -q --timeout=30 --tries=3 https://www.st.com/content/ccc/resource/technical/software/sw_development_suite/group0/55/b6/c7/cc/83/00/4c/6d/st-link-server_v2-0-1-0_linux_x86_64.zip \
-    -O /tmp/ST-LINK-server.zip && \
-    unzip /tmp/ST-LINK-server.zip -d ${TOOLS_PATH} && \
-    rm /tmp/ST-LINK-server.zip && \
+RUN echo "Unzipping ST-LINK server..." && \
+    unzip /tmp/stlink-server_v2-0-1-0_linux_x86_64.zip -d ${TOOLS_PATH} && \
+    rm /tmp/stlink-server_v2-0-1-0_linux_x86_64.zip && \
     chmod +x ${TOOLS_PATH}/stlink-server/stlink-server
 
 # Create symbolic links for easy access

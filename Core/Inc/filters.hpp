@@ -4,26 +4,26 @@
 #include "arithmetic.hpp"
 #include <queue>
 
-template <typename Filtered, typename Sample = Filtered>
+template <typename Filtered, typename Samples = Filtered>
 [[nodiscard]] constexpr auto make_recursive_average(const Filtered start_condition = {}) noexcept
 {
-    return [estimate = Filtered{}, prev_estimate = start_condition, samples = Sample{1}](
+    return [estimate = Filtered{}, prev_estimate = start_condition, samples = Samples{1}](
                const Filtered measurement) mutable {
-        estimate = prev_estimate * Sample{samples - 1} / samples + measurement / samples;
+        estimate = prev_estimate * Samples{samples - 1} / samples + measurement / samples;
         prev_estimate = estimate;
-        samples += Sample{1};
+        samples += Samples{1};
         return estimate;
     };
 }
 
-template <typename Filtered, typename Sample = Filtered>
-[[nodiscard]] constexpr auto make_moving_average(const Filtered start_condition = {}, const Sample last_samples = 10)
+template <typename Filtered, typename Samples = Filtered>
+[[nodiscard]] constexpr auto make_moving_average(const Filtered start_condition = {}, const Samples last_samples = 10)
 {
     assert(last_samples > 0);
-    std::queue<Filtered> queue{};
-    queue.push(start_condition);
-    return [estimate = Filtered{}, prev_estimate = start_condition, measurements = std::move(queue), last_samples](
-               const Filtered measurement) mutable {
+    return [estimate = Filtered{},
+            prev_estimate = start_condition,
+            measurements = std::queue<Filtered>{start_condition},
+            last_samples](const Filtered measurement) mutable {
         estimate = prev_estimate + (measurement - measurements.front()) / last_samples;
         measurements.pop();
         measurements.push(measurement);
@@ -32,7 +32,7 @@ template <typename Filtered, typename Sample = Filtered>
     };
 }
 
-template <typename Filtered, typename Sample = Filtered, typename Alpha = Filtered>
+template <typename Filtered, typename Samples = Filtered, typename Alpha = Filtered>
 [[nodiscard]] constexpr auto make_low_pass(const Filtered start_condition = {}, const Alpha alpha = 1) noexcept
 {
     assert(alpha >= 0 && alpha <= 1);
