@@ -42,7 +42,7 @@ struct KalmanFilter {
         P[1, 1] -= K[1] * P[0, 1];
     }
 
-    Time step_time{};
+    Time step_time{1};
 
     Angle k_angle{};
     Angle k_bias{};

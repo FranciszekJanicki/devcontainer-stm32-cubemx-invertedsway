@@ -42,13 +42,13 @@ namespace Linalg {
 
         [[nodiscard]] constexpr Vector3D normalized() const noexcept
         {
-            const auto im{static_cast<Value>(1) / magnitude()};
+            const auto im{Value{1} / magnitude()};
             return Vector3D{x * im, y * im, z * im};
         }
 
         constexpr void normalize() noexcept
         {
-            const auto im{static_cast<Value>(1) / magnitude()};
+            const auto im{Value{1} / magnitude()};
             x *= im;
             y *= im;
             z *= im;

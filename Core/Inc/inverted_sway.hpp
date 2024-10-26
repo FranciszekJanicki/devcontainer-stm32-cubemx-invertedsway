@@ -9,7 +9,7 @@
 #include <memory>
 #include <utility>
 
-class InvertedSway {
+struct InvertedSway {
 public:
     using Time = MPU6050::Scaled;
     using Angle = MPU6050::Scaled;
@@ -17,7 +17,7 @@ public:
     using Regulator = std::function<Angle(Angle, Time)>;
 
     template <typename CallableRegulator>
-    InvertedSway(MPU6050&& mpu6050, L298N&& l298n, Kalman&& kalman, CallableRegulator&& callable_regulator) noexcept :
+    InvertedSway(MPU6050&& mpu6050, L298N&& l298n, Kalman&& kalman, CallableRegulator&& callable_regulator) :
         mpu6050_{std::forward<MPU6050>()},
         l298n_{std::forward<L298N>(l298n)},
         kalman_{std::forward<Kalman>(kalman)},
@@ -26,9 +26,30 @@ public:
         // do setup
     }
 
+    InvertedSway(const InvertedSway&) = default;
+    InvertedSway(InvertedSway&&) noexcept = default;
+
+    InvertedSway& operator=(const InvertedSway&) = default;
+    InvertedSway& operator=(InvertedSway&&) noexcept = default;
+
     ~InvertedSway() noexcept
     {
         // undo setup
+    }
+
+    void operator()() noexcept
+    {
+        update_output_signal();
+        update_error_signal();
+        update_control_signal();
+    }
+
+    void operator()(const Angle angle) noexcept
+    {
+        update_output_signal();
+        update_input_signal(angle);
+        update_error_signal();
+        update_control_signal();
     }
 
     void update_output_signal() noexcept
@@ -55,6 +76,17 @@ public:
         }
     }
 
+private:
+    static angle_to_voltage(const Angle angle) noexcept
+    {
+        return SWAY_MASS * EARTH_ACCELERATION * MOTOR_RESISTANCE * std::sin(angle) / MOTOR_VELOCITY_CONSTANT;
+    }
+
+    static constexpr auto MOTOR_RESISTANCE{0};
+    static constexpr auto EARTH_ACCELERATION{9.81};
+    static constexpr auto SWAY_MASS{0};
+    static constexpr auto MOTOR_VELOCITY_CONSTANT{0};
+
     void update_direction() noexcept
     {
         if (error_signal_ >= 0) {
@@ -69,12 +101,6 @@ public:
     void update_compare() noexcept
     {
         l298n_.set_compare_voltage(angle_to_voltage(control_signal_));
-    }
-
-private:
-    static angle_to_voltage(const Angle angle) noexcept
-    {
-        return angle;
     }
 
     bool initialized_{false};

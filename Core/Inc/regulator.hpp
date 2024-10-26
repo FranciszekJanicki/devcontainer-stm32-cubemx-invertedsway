@@ -1,6 +1,7 @@
 #ifndef REGULATOR_HPP
 #define REGULATOR_HPP
 
+#include <algorithm>
 #include <memory>
 #include <utility>
 #include <variant>
@@ -25,18 +26,15 @@ template <typename Unit, typename Time = Unit>
 struct RegulatorPID : public Regulator<Unit, Time> {
     Unit operator()(const Unit error, const Time dt) noexcept override
     {
-        sum += (previous_error + error) / 2 * dt;
-        if (sum > windup) {
-            sum = windup;
-        } else if (sum < -windup) {
-            sum = -windup;
-        }
-        return P * error + D * ((error - std::exchange(previous_error, error)) / dt) + I * sum;
+        sum += (error + previous_error) / 2 * dt;
+        sum = std::clamp(sum, -windup, windup);
+        return P * error + D * (error - std::exchange(previous_error, error)) / dt + I * sum;
     }
 
     Unit P{};
     Unit I{};
     Unit D{};
+    Unit windup{};
     Unit sum{};
     Unit previous_error{};
     Unit windup{};

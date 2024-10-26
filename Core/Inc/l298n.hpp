@@ -14,7 +14,7 @@
 #include <span>
 #include <utility>
 
-class L298N {
+struct L298N {
 public:
     enum struct Error {
         OK,

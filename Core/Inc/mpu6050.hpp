@@ -9,7 +9,7 @@
 #include <expected>
 #include <functional>
 
-class MPU6050 {
+struct MPU6050 {
 public:
     enum struct Error {
         OK,
