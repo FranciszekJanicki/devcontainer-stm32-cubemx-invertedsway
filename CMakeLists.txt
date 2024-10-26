@@ -61,7 +61,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Inc/filters.hpp"
     "Core/Inc/common.hpp"
     "Core/Inc/regulator.hpp"
-    "Core/Inc/kalman_mpu.hpp"
+    "Core/Inc/kalman_filter.hpp"
     "Core/Inc/inverted_sway.hpp"
 )
 
