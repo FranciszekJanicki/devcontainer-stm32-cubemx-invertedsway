@@ -80,7 +80,13 @@
         "thread": "cpp",
         "queue": "cpp",
         "common.hpp": "c",
-        "cassert": "cpp"
+        "cassert": "cpp",
+        "xhash": "cpp",
+        "xmemory": "cpp",
+        "xstring": "cpp",
+        "xtr1common": "cpp",
+        "xutility": "cpp"
     },
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "disabled",
+    "editor.formatOnSave": true 
 }
