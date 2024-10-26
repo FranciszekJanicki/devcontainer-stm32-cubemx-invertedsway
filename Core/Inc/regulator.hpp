@@ -55,8 +55,8 @@ struct RegulatorADRC : public Regulator<Unit, Time> {
 };
 
 /* BINARY */
-template <typename Unit, typename Time = Unit>
-struct RegulatorBinary : public Regulator<Unit, Time> {
+template <typename Unit>
+struct RegulatorBinary : public Regulator<Unit> {
     enum struct State {
         POSITIVE,
         ZERO,
@@ -86,8 +86,8 @@ struct RegulatorBinary : public Regulator<Unit, Time> {
 };
 
 /* TERNARY */
-template <typename Unit, typename Time = Unit>
-struct RegulatorTernary : public Regulator<Unit, Time> {
+template <typename Unit>
+struct RegulatorTernary : public Regulator<Unit> {
     enum struct State {
         POSITIVE,
         NEGATIVE,
@@ -126,53 +126,56 @@ struct RegulatorTernary : public Regulator<Unit, Time> {
 };
 
 /* UNIQUE_PTR SOLUTION (RUNTIME POLYMORPHISM)*/
-template <typename Unit>
-using RegulatorPtr = std::unique_ptr<Regulator<Unit>>;
+template <typename Unit, typename Time = Unit>
+using RegulatorPtr = std::unique_ptr<Regulator<Unit, Time>>;
 
-template <typename Unit, typename... RegulatorArgs>
-[[nodiscard]] RegulatorPtr<Unit> make_regulator_ptr(const RegulatorAlgo regulator_algo,
-                                                    RegulatorArgs&&... regulator_args)
+template <typename Unit, typename Time = Unit, typename... RegulatorArgs>
+[[nodiscard]] RegulatorPtr<Unit, Time> make_regulator_ptr(const RegulatorAlgo regulator_algo,
+                                                          RegulatorArgs&&... regulator_args)
 {
     switch (regulator_algo) {
         case RegulatorAlgo::PID:
-            return std::make_unique<RegulatorPID>(std::forward<RegulatorArgs>(regulator_args)...);
+            return std::make_unique<RegulatorPID<Unit, Time>>(std::forward<RegulatorArgs>(regulator_args)...);
         case RegulatorAlgo::LQR:
-            return std::make_unique<RegulatorLQR>(std::forward<RegulatorArgs>(regulator_args)...);
+            return std::make_unique<RegulatorLQR<Unit, Time>>(std::forward<RegulatorArgs>(regulator_args)...);
         case RegulatorAlgo::ADRC:
-            return std::make_unique<RegulatorADRC>(std::forward<RegulatorArgs>(regulator_args)...);
+            return std::make_unique<RegulatorADRC<Unit, Time>>(std::forward<RegulatorArgs>(regulator_args)...);
         case RegulatorAlgo::BINARY:
-            return std::make_unique<RegulatorBinary>(std::forward<RegulatorArgs>(regulator_args)...);
+            return std::make_unique<RegulatorBinary<Unit>>(std::forward<RegulatorArgs>(regulator_args)...);
         case RegulatorAlgo::TERNARY:
-            return std::make_unique<RegulatorTernary>(std::forward<RegulatorArgs>(regulator_args)...);
+            return std::make_unique<RegulatorTernary<Unit>>(std::forward<RegulatorArgs>(regulator_args)...);
         default:
             return RegulatorPtr<Unit>{nullptr};
     }
 }
 
 /* VARIANT SOLUTION (COMPILE TIME POLYMORPHISM) */
-template <typename Unit>
-using RegulatorVariant =
-    std::variant<RegulatorLQR<Unit>, RegulatorPID<Unit>, RegulatorADRC<Unit>, RegulatorBinary<Unit>>;
+template <typename Unit, typename Time = Unit>
+using RegulatorVariant = std::variant<RegulatorLQR<Unit, Time>,
+                                      RegulatorPID<Unit, Time>,
+                                      RegulatorADRC<Unit, Time>,
+                                      RegulatorBinary<Unit>,
+                                      RegulatorTernary<Unit>>;
 
-template <typename Unit, typename... RegulatorArgs>
-[[nodiscard]] RegulatorVariant<Unit> make_regulator_variant(const RegulatorAlgo regulator_algo,
-                                                            RegulatorArgs&&... regulator_args) noexcept
+template <typename Unit, typename Time = Unit, typename... RegulatorArgs>
+[[nodiscard]] RegulatorVariant<Unit, Time> make_regulator_variant(const RegulatorAlgo regulator_algo,
+                                                                  RegulatorArgs&&... regulator_args) noexcept
 {
     switch (regulator_algo) {
         case RegulatorAlgo::PID:
-            return RegulatorVariant<Unit>{std::in_place_type<RegulatorPID<Unit>>,
-                                          std::forward<RegulatorArgs>(regulator_args)...};
+            return RegulatorVariant<Unit, Time>{std::in_place_type<RegulatorPID<Unit, Time>>,
+                                                std::forward<RegulatorArgs>(regulator_args)...};
         case RegulatorAlgo::LQR:
-            return RegulatorVariant<Unit>{std::in_place_type<RegulatorLQR<Unit>>,
-                                          std::forward<RegulatorArgs>(regulator_args)...};
+            return RegulatorVariant<Unit, Time>{std::in_place_type<RegulatorLQR<Unit, Time>>,
+                                                std::forward<RegulatorArgs>(regulator_args)...};
         case RegulatorAlgo::ADRC:
-            return RegulatorVariant<Unit>{std::in_place_type<RegulatorADRC<Unit>>,
-                                          std::forward<RegulatorArgs>(regulator_args)...};
+            return RegulatorVariant<Unit, Time>{std::in_place_type<RegulatorADRC<Unit, Time>>,
+                                                std::forward<RegulatorArgs>(regulator_args)...};
         case RegulatorAlgo::BINARY:
-            return RegulatorVariant<Unit>{std::in_place_type<RegulatorBinary<Unit>>,
+            return RegulatorVariant<Unit>{std::in_place_type<RegulatorBinary<Unit, Time>>,
                                           std::forward<RegulatorArgs>(regulator_args)...};
         case RegulatorAlgo::TERNARY:
-            return RegulatorVariant<Unit>{std::in_place_type < RegulatorTernary<Unit>,
+            return RegulatorVariant<Unit>{std::in_place_type < RegulatorTernary<Unit, Time>,
                                           std::forward<RegulatorArgs>(regulator_args)...};
         default:
             return RegulatorVariant<Unit>{};
@@ -180,38 +183,32 @@ template <typename Unit, typename... RegulatorArgs>
 }
 
 /* LAMBDA SOLUTION (TYPE ERASURE, although you will need std::function to containerize state-full lambda) */
-template <typename Unit>
-using RegulatorLambda = decltype([](Unit) { return Unit{}; });
+template <typename Unit, typename Time = Unit>
+using RegulatorLambda = decltype([](Unit, Time) { return Unit{}; });
 
-template <typename Unit, typename... RegulatorArgs>
-[[nodiscard]] RegulatorLambda<Unit> make_regulator_lambda(const RegulatorAlgo regulator_algo,
-                                                          RegulatorArgs&&... regulator_args) noexcept
+template <typename Unit, typename Time = Unit, typename... RegulatorArgs>
+[[nodiscard]] RegulatorLambda<Unit, Time> make_regulator_lambda(const RegulatorAlgo regulator_algo,
+                                                                RegulatorArgs&&... regulator_args) noexcept
 {
     switch (regulator_algo) {
         case RegulatorAlgo::PID:
-            return [pid = RegulatorPID{std::forward<RegulatorArgs>(regulator_args)...}](const Unit input,
-                                                                                        const Time dt) mutable -> Unit {
-                return pid(input, dt);
-            };
+            return [pid = RegulatorPID<Unit, Time>{std::forward<RegulatorArgs>(
+                        regulator_args)...}](const Unit input, const Time dt) mutable { return pid(input, dt); };
         case RegulatorAlgo::LQR:
-            return [lqr = RegulatorLQR{std::forward<RegulatorArgs>(regulator_args)...}](const Unit input,
-                                                                                        const Time dt) mutable -> Unit {
-                return lqr(input, dt);
-            };
+            return [lqr = RegulatorLQR<Unit, Time>{std::forward<RegulatorArgs>(
+                        regulator_args)...}](const Unit input, const Time dt) mutable { return lqr(input, dt); };
         case RegulatorAlgo::ADRC:
-            return [adrc = RegulatorADRC{std::forward<RegulatorArgs>(regulator_args)...}](
-                       const Unit input,
-                       const Time dt) mutable -> Unit { return adrc(input, dt); };
+            return [adrc = RegulatorADRC<Unit, Time>{std::forward<RegulatorArgs>(
+                        regulator_args)...}](const Unit input, const Time dt) mutable { return adrc(input, dt); };
         case RegulatorAlgo::BINARY:
-            return [binary = RegulatorBinary{std::forward<RegulatorArgs>(regulator_args)...}](
-                       const Unit input,
-                       const Time dt) mutable -> RegulatorBinary<Unit>::State { return binary(input, dt); };
+            return [binary = RegulatorBinary<Unit>{std::forward<RegulatorArgs>(
+                        regulator_args)...}](const Unit input, const Time dt) mutable { return binary(input, dt); };
         case RegulatorAlgo::TERNARY:
-            return [ternary = RegulatorTernary{std::forward<RegulatorArgs>(
-                        regulator_args)...}](const Unit input, const Time dt) mutable -> RegulatorTernary<Unit>::State {
+            return [ternary = RegulatorTernary<Unit>{
+                        std::forward<RegulatorArgs>(regulator_args)...}](const Unit input, const Time dt) mutable {
                 return ternary(input, dt);
                 default:
-                    return [](const Unit) { return Unit{}; };
+                    return [](const Unit, const Time) { return Unit{}; };
             }
     }
 
