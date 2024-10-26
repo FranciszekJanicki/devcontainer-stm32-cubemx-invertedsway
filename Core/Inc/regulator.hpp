@@ -25,7 +25,13 @@ template <typename Unit, typename Time = Unit>
 struct RegulatorPID : public Regulator<Unit, Time> {
     Unit operator()(const Unit error, const Time dt) noexcept override
     {
-        return P * error + D * ((error - previous_error) / dt) + I * (sum += (error * dt));
+        sum += (previous_error + error) / 2 * dt;
+        if (sum > windup) {
+            sum = windup;
+        } else if (sum < -windup) {
+            sum = -windup;
+        }
+        return P * error + D * ((error - std::exchange(previous_error, error)) / dt) + I * sum;
     }
 
     Unit P{};
@@ -33,6 +39,7 @@ struct RegulatorPID : public Regulator<Unit, Time> {
     Unit D{};
     Unit sum{};
     Unit previous_error{};
+    Unit windup{};
 };
 
 /* LQR */
