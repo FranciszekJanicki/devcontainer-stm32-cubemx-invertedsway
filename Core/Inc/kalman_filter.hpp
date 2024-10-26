@@ -1,21 +1,24 @@
-#ifndef KALMAN_MPU_HPP
-#define KALMAN_MPU_HPP
+#ifndef KALMAN_FILTER_HPP
+#define KALMAN_FILTER_HPP
 
+#include "vector3d.hpp"
 #include <array>
 
-template <typename Unit, typename Time = Unit>
-struct KalmanMPU {
-    using P = std::array<std::array<Unit, 2>, 2>;
-    using K = std::array<std::array<Unit, 2>, 1>;
+template <typename Angle, typename Time>
+struct KalmanFilter {
+    using Accel = Linalg::Vector3D<Angle>;
+    using Gyro = Linalg::Vector3D<Angle>;
+    using P = std::array<std::array<Angle, 2>, 2>;
+    using K = std::array<std::array<Angle, 2>, 1>;
 
-    Unit operator()(const Unit gyro, const Unit accel, const Time dt) noexcept
+    Angle operator()(const Gyro gyro, const Accel accel, const Time dt) noexcept
     {
         predict(gyro, dt);
         update(accel);
         return k_angle;
     }
 
-    void predict(const Unit gyro, const Time dt) noexcept
+    void predict(const Gyro gyro, const Time dt) noexcept
     {
         k_angle += dt * (gyro - k_bias);
 
@@ -28,7 +31,7 @@ struct KalmanMPU {
         K[1] = P[1, 0] / (P[0, 0] + R);
     }
 
-    void update(const Unit accel) noexcept
+    void update(const Accel accel) noexcept
     {
         k_angle += K[0] * (accel - k_angle);
         k_bias += K[1] * (accel - k_angle);
@@ -41,14 +44,14 @@ struct KalmanMPU {
 
     Time step_time{};
 
-    Unit k_angle{};
-    Unit k_bias{};
-    Unit Q_angle{};
-    Unit Q_bias{};
-    Unit R{};
+    Angle k_angle{};
+    Angle k_bias{};
+    Angle Q_angle{};
+    Angle Q_bias{};
+    Angle R{};
 
     P K{};
     K P{};
 };
 
-#endif // KALMAN_MPU_HPP
+#endif // KALMAN_FILTER_HPP
