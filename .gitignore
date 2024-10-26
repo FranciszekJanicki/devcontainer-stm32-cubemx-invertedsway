@@ -85,3 +85,4 @@ dkms.conf
 *.exe
 *.out
 *.app
+devcontainer-stm32-cubemx-invertedsway.bin
