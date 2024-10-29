@@ -7,6 +7,7 @@
 #include <cassert>
 #include <expected>
 #include <ranges>
+#include <utility>
 
 using Error = L298N::Error;
 using Direction = L298N::Direction;
@@ -241,10 +242,10 @@ ExpectedDirection L298N::get_direction(const MotorChannel motor_channel) const n
         return ExpectedDirection{Direction::BACKWARD};
     }
     const auto raw{__HAL_TIM_GetCompare(motor.timer, motor.timer_channel)};
-    if (pin_out1 == pin_out2 == GPIO_PinState::GPIO_PIN_RESET && raw >= MAX_RAW) {
+    if ((pin_out1 == pin_out2) == GPIO_PinState::GPIO_PIN_RESET && raw >= MAX_RAW) {
         return ExpectedDirection{Direction::SOFT_STOP};
     }
-    if (pin_out1 == pin_out2 == GPIO_PinState::GPIO_PIN_SET && raw <= MIN_RAW) {
+    if ((pin_out1 == pin_out2) == GPIO_PinState::GPIO_PIN_SET && raw <= MIN_RAW) {
         return ExpectedDirection{Direction::FAST_STOP};
     }
     return Unexpected{Error::OK};
@@ -274,7 +275,7 @@ const Motor& L298N::get_motor(const MotorChannel motor_channel) const noexcept
 {
     if (const auto motor{
             std::ranges::find_if(std::as_const(motors_),
-                                 [motor_channel](const Motor& motor) { return motor.motor_channel == motor_channel; })};
+                                 [motor_channel](const Motor& item) { return item.motor_channel == motor_channel; })};
         motor != motors_.cend()) {
         return *motor;
     }
@@ -285,7 +286,7 @@ Motor& L298N::get_motor(const MotorChannel motor_channel) noexcept
 {
     if (auto motor{
             std::ranges::find_if(motors_,
-                                 [motor_channel](const Motor& motor) { return motor.motor_channel == motor_channel; })};
+                                 [motor_channel](const Motor& item) { return item.motor_channel == motor_channel; })};
         motor != motors_.cend()) {
         return *motor;
     }
@@ -307,35 +308,49 @@ Error L298N::motor_channel_to_error(const MotorChannel motor_channel) noexcept
 Speed L298N::raw_to_speed(const Raw raw) noexcept
 {
     assert(raw <= MAX_RAW && raw >= MIN_RAW);
-    return (raw - MIN_RAW) * (MAX_SPEED_RPM - MIN_SPEED_RPM) / (MAX_RAW - MIN_RAW) + MAX_SPEED_RPM;
+    return std::clamp(Speed{(raw - MIN_RAW) * (MAX_SPEED_RPM - MIN_SPEED_RPM) / (MAX_RAW - MIN_RAW) + MAX_SPEED_RPM},
+                      MIN_SPEED_RPM,
+                      MAX_SPEED_RPM);
 }
 
 Raw L298N::speed_to_raw(const Speed speed) noexcept
 {
     assert(speed <= MAX_SPEED_RPM && speed >= MIN_SPEED_RPM);
-    return (speed - MIN_SPEED_RPM) * (MAX_RAW - MIN_RAW) / (MAX_SPEED_RPM - MIN_SPEED_RPM) + MIN_RAW;
+    return std::clamp(Raw{(speed - MIN_SPEED_RPM) * (MAX_RAW - MIN_RAW) / (MAX_SPEED_RPM - MIN_SPEED_RPM) + MIN_RAW},
+                      MIN_RAW,
+                      MAX_RAW);
 }
 
 Voltage L298N::raw_to_voltage(const Raw raw) noexcept
 {
     assert(raw <= MAX_RAW && raw >= MIN_RAW);
-    return (raw - MIN_RAW) * (MAX_VOLTAGE_V - MIN_VOLTAGE_V) / (MAX_RAW - MIN_RAW) + MIN_VOLTAGE_V;
+    return std::clamp(Voltage{(raw - MIN_RAW) * (MAX_VOLTAGE_V - MIN_VOLTAGE_V) / (MAX_RAW - MIN_RAW) + MIN_VOLTAGE_V},
+                      MIN_VOLTAGE_V,
+                      MAX_VOLTAGE_V);
 }
 
 Raw L298N::voltage_to_raw(const Voltage voltage) noexcept
 {
     assert(voltage <= MAX_VOLTAGE_V && voltage >= MIN_VOLTAGE_V);
-    return (voltage - MIN_VOLTAGE_V) * (MAX_RAW - MIN_RAW) / (MAX_VOLTAGE_V - MIN_VOLTAGE_V) + MIN_RAW;
+    return std::clamp(
+        Raw{(voltage - MIN_VOLTAGE_V) * (MAX_RAW - MIN_RAW) / Raw(MAX_VOLTAGE_V - MIN_VOLTAGE_V) + MIN_RAW},
+        MIN_RAW,
+        MAX_RAW);
 }
 
 Torque L298N::raw_to_torque(const Raw raw) noexcept
 {
     assert(raw <= MAX_RAW && raw >= MIN_RAW);
-    return (raw - MIN_RAW) * (MAX_TORQUE_NM - MIN_TORQUE_NM) / (MAX_RAW - MIN_RAW) + MIN_TORQUE_NM;
+    return std::clamp(
+        Torque{(raw - MIN_RAW) * (MAX_TORQUE_NM - MIN_TORQUE_NM) / Torque(MAX_RAW - MIN_RAW) + MIN_TORQUE_NM},
+        MIN_TORQUE_NM,
+        MAX_TORQUE_NM);
 }
 
 Raw L298N::torque_to_raw(const Torque torque) noexcept
 {
     assert(torque <= MAX_TORQUE_NM && torque >= MIN_TORQUE_NM);
-    return (torque - MIN_TORQUE_NM) * (MAX_RAW - MIN_RAW) / (MAX_TORQUE_NM - MIN_TORQUE_NM) + MIN_RAW;
+    return std::clamp(Raw{(torque - MIN_TORQUE_NM) * (MAX_RAW - MIN_RAW) / (MAX_TORQUE_NM - MIN_TORQUE_NM) + MIN_RAW},
+                      MIN_RAW,
+                      MAX_RAW);
 }

@@ -1,16 +1,17 @@
 #ifndef REGULATOR_HPP
 #define REGULATOR_HPP
 
+#include "arithmetic.hpp"
 #include <algorithm>
 #include <memory>
 #include <utility>
 #include <variant>
 
 /* REGULATOR BASE */
-template <typename Unit, typename Time = Unit>
+template <Linalg::Arithmetic Value>
 struct Regulator {
     virtual ~Regulator() noexcept = 0;
-    virtual Unit operator()(const Unit, const Time) noexcept = 0;
+    virtual Value operator()(const Value, const Value) noexcept = 0;
 };
 
 enum struct RegulatorAlgo {
@@ -22,37 +23,37 @@ enum struct RegulatorAlgo {
 };
 
 /* PID */
-template <typename Unit, typename Time = Unit>
-struct RegulatorPID : public Regulator<Unit, Time> {
-    Unit operator()(const Unit error, const Time dt) noexcept override
+template <Linalg::Arithmetic Value>
+struct RegulatorPID : public Regulator<Value> {
+    Value operator()(const Value error, const Value dt) noexcept override
     {
         sum += (error + previous_error) / 2 * dt;
         sum = std::clamp(sum, -windup, windup);
         return P * error + D * (error - std::exchange(previous_error, error)) / dt + I * sum;
     }
 
-    Unit P{};
-    Unit I{};
-    Unit D{};
-    Unit windup{};
-    Unit sum{};
-    Unit previous_error{};
-    Unit windup{};
+    Value P{};
+    Value I{};
+    Value D{};
+
+    Value sum{};
+    Value previous_error{};
+    Value windup{};
 };
 
 /* LQR */
-template <typename Unit, typename Time = Unit>
-struct RegulatorLQR : public Regulator<Unit, Time> {
-    Unit operator()(const Unit error, const Time dt) noexcept override
+template <Linalg::Arithmetic Value>
+struct RegulatorLQR : public Regulator<Value> {
+    Value operator()(const Value error, const Value) noexcept override
     {
         // implement lqr algorithm here
         return error;
     }
 };
 
-template <typename Unit, typename Time = Unit>
-struct RegulatorADRC : public Regulator<Unit, Time> {
-    Unit operator()(const Unit error, const Time dt) noexcept override
+template <Linalg::Arithmetic Value>
+struct RegulatorADRC : public Regulator<Value> {
+    Value operator()(const Value error, const Value) noexcept override
     {
         // implement adrc algorithm here
         return error;
@@ -60,14 +61,14 @@ struct RegulatorADRC : public Regulator<Unit, Time> {
 };
 
 /* BINARY */
-template <typename Unit>
-struct RegulatorBinary : public Regulator<Unit> {
+template <Linalg::Arithmetic Value>
+struct RegulatorBinary : public Regulator<Value> {
     enum struct State {
         POSITIVE,
         ZERO,
     };
 
-    State operator()(const Unit error) noexcept override
+    State operator()(const Value error) noexcept override
     {
         if (state == State::POSITIVE) {
             if (error < hysteresis_down) {
@@ -85,21 +86,21 @@ struct RegulatorBinary : public Regulator<Unit> {
         return state;
     }
 
-    Unit hysteresis_up{};
-    Unit hysteresis_down{};
+    Value hysteresis_up{};
+    Value hysteresis_down{};
     State state{State::ZERO};
 };
 
 /* TERNARY */
-template <typename Unit>
-struct RegulatorTernary : public Regulator<Unit> {
+template <Linalg::Arithmetic Value>
+struct RegulatorTernary : public Regulator<Value> {
     enum struct State {
         POSITIVE,
         NEGATIVE,
         ZERO,
     };
 
-    State operator()(const Unit error) noexcept override
+    State operator()(const Value error) noexcept override
     {
         switch (state) {
             case State::POSITIVE:
@@ -123,96 +124,99 @@ struct RegulatorTernary : public Regulator<Unit> {
         return state;
     }
 
-    Unit hysteresis_up_left{};
-    Unit hysteresis_down_left{};
-    Unit hysteresis_up_right{};
-    Unit hysteresis_down_right{};
+    Value hysteresis_up_left{};
+    Value hysteresis_down_left{};
+    Value hysteresis_up_right{};
+    Value hysteresis_down_right{};
     State state{State::ZERO};
 };
 
 /* UNIQUE_PTR SOLUTION (RUNTIME POLYMORPHISM)*/
-template <typename Unit, typename Time = Unit>
-using RegulatorPtr = std::unique_ptr<Regulator<Unit, Time>>;
+template <Linalg::Arithmetic Value>
+using RegulatorPtr = std::unique_ptr<Regulator<Value>>;
 
-template <typename Unit, typename Time = Unit, typename... RegulatorArgs>
-[[nodiscard]] RegulatorPtr<Unit, Time> make_regulator_ptr(const RegulatorAlgo regulator_algo,
-                                                          RegulatorArgs&&... regulator_args)
+template <Linalg::Arithmetic Value, typename... RegulatorArgs>
+[[nodiscard]] RegulatorPtr<Value> make_regulator_ptr(const RegulatorAlgo regulator_algo,
+                                                     RegulatorArgs&&... regulator_args)
 {
     switch (regulator_algo) {
         case RegulatorAlgo::PID:
-            return std::make_unique<RegulatorPID<Unit, Time>>(std::forward<RegulatorArgs>(regulator_args)...);
+            return std::make_unique<RegulatorPID<Value>>(std::forward<RegulatorArgs>(regulator_args)...);
         case RegulatorAlgo::LQR:
-            return std::make_unique<RegulatorLQR<Unit, Time>>(std::forward<RegulatorArgs>(regulator_args)...);
+            return std::make_unique<RegulatorLQR<Value>>(std::forward<RegulatorArgs>(regulator_args)...);
         case RegulatorAlgo::ADRC:
-            return std::make_unique<RegulatorADRC<Unit, Time>>(std::forward<RegulatorArgs>(regulator_args)...);
+            return std::make_unique<RegulatorADRC<Value>>(std::forward<RegulatorArgs>(regulator_args)...);
         case RegulatorAlgo::BINARY:
-            return std::make_unique<RegulatorBinary<Unit>>(std::forward<RegulatorArgs>(regulator_args)...);
+            return std::make_unique<RegulatorBinary<Value>>(std::forward<RegulatorArgs>(regulator_args)...);
         case RegulatorAlgo::TERNARY:
-            return std::make_unique<RegulatorTernary<Unit>>(std::forward<RegulatorArgs>(regulator_args)...);
+            return std::make_unique<RegulatorTernary<Value>>(std::forward<RegulatorArgs>(regulator_args)...);
         default:
-            return RegulatorPtr<Unit>{nullptr};
+            return RegulatorPtr<Value>{nullptr};
     }
 }
 
 /* VARIANT SOLUTION (COMPILE TIME POLYMORPHISM) */
-template <typename Unit, typename Time = Unit>
-using RegulatorVariant = std::variant<RegulatorLQR<Unit, Time>,
-                                      RegulatorPID<Unit, Time>,
-                                      RegulatorADRC<Unit, Time>,
-                                      RegulatorBinary<Unit>,
-                                      RegulatorTernary<Unit>>;
+template <Linalg::Arithmetic Value>
+using RegulatorVariant = std::variant<RegulatorLQR<Value>,
+                                      RegulatorPID<Value>,
+                                      RegulatorADRC<Value>,
+                                      RegulatorBinary<Value>,
+                                      RegulatorTernary<Value>>;
 
-template <typename Unit, typename Time = Unit, typename... RegulatorArgs>
-[[nodiscard]] RegulatorVariant<Unit, Time> make_regulator_variant(const RegulatorAlgo regulator_algo,
-                                                                  RegulatorArgs&&... regulator_args) noexcept
+template <Linalg::Arithmetic Value, typename... RegulatorArgs>
+[[nodiscard]] RegulatorVariant<Value> make_regulator_variant(const RegulatorAlgo regulator_algo,
+                                                             RegulatorArgs&&... regulator_args) noexcept
 {
     switch (regulator_algo) {
         case RegulatorAlgo::PID:
-            return RegulatorVariant<Unit, Time>{std::in_place_type<RegulatorPID<Unit, Time>>,
-                                                std::forward<RegulatorArgs>(regulator_args)...};
+            return RegulatorVariant<Value>{std::in_place_type<RegulatorPID<Value>>,
+                                           std::forward<RegulatorArgs>(regulator_args)...};
         case RegulatorAlgo::LQR:
-            return RegulatorVariant<Unit, Time>{std::in_place_type<RegulatorLQR<Unit, Time>>,
-                                                std::forward<RegulatorArgs>(regulator_args)...};
+            return RegulatorVariant<Value>{std::in_place_type<RegulatorLQR<Value>>,
+                                           std::forward<RegulatorArgs>(regulator_args)...};
         case RegulatorAlgo::ADRC:
-            return RegulatorVariant<Unit, Time>{std::in_place_type<RegulatorADRC<Unit, Time>>,
-                                                std::forward<RegulatorArgs>(regulator_args)...};
+            return RegulatorVariant<Value>{std::in_place_type<RegulatorADRC<Value>>,
+                                           std::forward<RegulatorArgs>(regulator_args)...};
         case RegulatorAlgo::BINARY:
-            return RegulatorVariant<Unit>{std::in_place_type<RegulatorBinary<Unit>>,
-                                          std::forward<RegulatorArgs>(regulator_args)...};
+            return RegulatorVariant<Value>{std::in_place_type<RegulatorBinary<Value>>,
+                                           std::forward<RegulatorArgs>(regulator_args)...};
         case RegulatorAlgo::TERNARY:
-            return RegulatorVariant<Unit>{std::in_place_type<RegulatorTernary<Unit>>,
-                                          std::forward<RegulatorArgs>(regulator_args)...};
+            return RegulatorVariant<Value>{std::in_place_type<RegulatorTernary<Value>>,
+                                           std::forward<RegulatorArgs>(regulator_args)...};
         default:
-            return RegulatorVariant<Unit>{};
+            return RegulatorVariant<Value>{};
     }
 }
 
 /* LAMBDA SOLUTION (TYPE ERASURE, although you will need std::function to containerize state-full lambda) */
-template <typename Unit, typename Time = Unit>
-using RegulatorLambda = decltype([](Unit, Time) { return Unit{}; });
+template <Linalg::Arithmetic Value>
+using RegulatorFunction = std::function<Value(Value, Value)>;
 
-template <typename Unit, typename Time = Unit, typename... RegulatorArgs>
-[[nodiscard]] RegulatorLambda<Unit, Time> make_regulator_lambda(const RegulatorAlgo regulator_algo,
-                                                                RegulatorArgs&&... regulator_args) noexcept
+template <Linalg::Arithmetic Value, typename... RegulatorArgs>
+[[nodiscard]] auto make_regulator_lambda(const RegulatorAlgo regulator_algo, RegulatorArgs&&... regulator_args) noexcept
 {
     switch (regulator_algo) {
         case RegulatorAlgo::PID:
-            return [pid = RegulatorPID<Unit, Time>{std::forward<RegulatorArgs>(
-                        regulator_args)...}](const Unit error, const Time dt) mutable { return pid(error, dt); };
+            return [pid = RegulatorPID<Value>{std::forward<RegulatorArgs>(regulator_args)...}](const Value error,
+                                                                                               const Value dt) mutable {
+                return pid(error, dt);
+            };
         case RegulatorAlgo::LQR:
-            return [lqr = RegulatorLQR<Unit, Time>{std::forward<RegulatorArgs>(
-                        regulator_args)...}](const Unit error, const Time dt) mutable { return lqr(error, dt); };
+            return [lqr = RegulatorLQR<Value>{std::forward<RegulatorArgs>(regulator_args)...}](const Value error,
+                                                                                               const Value dt) mutable {
+                return lqr(error, dt);
+            };
         case RegulatorAlgo::ADRC:
-            return [adrc = RegulatorADRC<Unit, Time>{std::forward<RegulatorArgs>(
-                        regulator_args)...}](const Unit error, const Time dt) mutable { return adrc(error, dt); };
+            return [adrc = RegulatorADRC<Value>{std::forward<RegulatorArgs>(
+                        regulator_args)...}](const Value error, const Value dt) mutable { return adrc(error, dt); };
         case RegulatorAlgo::BINARY:
-            return [binary = RegulatorBinary<Unit>{std::forward<RegulatorArgs>(regulator_args)...}](
-                       const Unit error) mutable { return binary(error); };
+            return [binary = RegulatorBinary<Value>{std::forward<RegulatorArgs>(regulator_args)...}](
+                       const Value error) mutable { return binary(error); };
         case RegulatorAlgo::TERNARY:
-            return [ternary = RegulatorTernary<Unit>{std::forward<RegulatorArgs>(regulator_args)...}](
-                       const Unit error) mutable { return ternary(error); };
+            return [ternary = RegulatorTernary<Value>{std::forward<RegulatorArgs>(regulator_args)...}](
+                       const Value error) mutable { return ternary(error); };
         default:
-            return [](const Unit error) { return error; };
+            return [](const Value error) mutable { return error; };
     }
 }
 
