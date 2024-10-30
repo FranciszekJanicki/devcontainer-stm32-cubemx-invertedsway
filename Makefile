@@ -16,9 +16,8 @@ clean:
 
 .PHONY: flash
 flash: 
-	arm-none-eabi-objcopy -O binary ${BUILD_DIR}/devcontainer-stm32-cubemx-invertedsway.elf devcontainer-stm32-cubemx-invertedsway.bin
-	st-flash --connect-under-reset write devcontainer-stm32-cubemx-invertedsway.bin 0x8000000
-	rm devcontainer-stm32-cubemx-invertedsway.bin
+	STM32_Programmer_CLI -c port=swd -d ${BUILD_DIR}/devcontainer-stm32-cubemx-invertedsway.elf -rst
+
 .PHONY: serial
 serial:
 	minicom -D /dev/ttyACM0 -b 115200

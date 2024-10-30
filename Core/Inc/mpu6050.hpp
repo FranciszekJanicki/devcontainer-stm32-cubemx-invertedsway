@@ -34,14 +34,12 @@ public:
 
     static const char* error_to_string(const Error error) noexcept;
 
-    MPU6050(UartHandle uart,
-            I2cHandle i2c,
+    MPU6050(I2cHandle i2c,
             const std::uint8_t addres,
             const std::uint8_t gyro_range,
             const std::uint8_t accel_range) noexcept;
 
-    MPU6050(UartHandle uart,
-            I2cHandle i2c,
+    MPU6050(I2cHandle i2c,
             const std::uint8_t addres,
             const std::uint8_t gyro_range,
             const std::uint8_t accel_range,
@@ -126,7 +124,6 @@ private:
     void set_free_fall_detection_duration(std::uint8_t duration) const noexcept;
 
     I2cHandle i2c_{nullptr};
-    UartHandle uart_{nullptr};
 
     std::uint8_t addres_{};
     std::uint8_t gyro_range_{};
@@ -134,8 +131,6 @@ private:
 
     GyroFilter gyro_filter_{[](GyroRaw gyro_raw) { return gyro_raw; }};
     AccelFilter accel_filter_{[](AccelRaw accel_raw) { return accel_raw; }};
-
-    mutable char uart_buffer_[100];
 
     bool initialized_{false};
 

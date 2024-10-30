@@ -65,8 +65,8 @@ public:
 
     static const char* error_to_string(const Error error) noexcept;
 
-    L298N(UartHandle uart, const Motors& motors) noexcept;
-    L298N(UartHandle uart, Motors&& motors) noexcept;
+    L298N(const Motors& motors) noexcept;
+    L298N(Motors&& motors) noexcept;
 
     L298N(const L298N& other) noexcept = delete;
     L298N(L298N&& other) noexcept = delete;
@@ -140,11 +140,7 @@ private:
     const Motor& get_motor(const MotorChannel channel) const noexcept;
     Motor& get_motor(const MotorChannel motor_channel) noexcept;
 
-    UartHandle uart_{nullptr};
-
     Motors motors_{};
-
-    mutable char uart_buffer_[100];
 
     bool initialized_{false};
 };

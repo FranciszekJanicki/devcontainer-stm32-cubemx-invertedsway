@@ -73,14 +73,12 @@ Scaled MPU6050::accel_range_to_scale(const std::uint8_t accel_range) noexcept
     }
 }
 
-MPU6050::MPU6050(UartHandle uart,
-                 I2cHandle i2c,
+MPU6050::MPU6050(I2cHandle i2c,
                  const std::uint8_t addres,
                  const std::uint8_t gyro_range,
                  const std::uint8_t accel_range,
                  GyroFilter&& gyro_filter,
                  AccelFilter&& accel_filter) noexcept :
-    uart_{uart},
     i2c_{i2c},
     addres_{addres},
     gyro_range_{gyro_range},
@@ -91,12 +89,11 @@ MPU6050::MPU6050(UartHandle uart,
     initialize();
 }
 
-MPU6050::MPU6050(UartHandle uart,
-                 I2cHandle i2c,
+MPU6050::MPU6050(I2cHandle i2c,
                  const std::uint8_t addres,
                  const std::uint8_t gyro_range,
                  const std::uint8_t accel_range) noexcept :
-    uart_{uart}, i2c_{i2c}, addres_{addres}, gyro_range_{gyro_range}, accel_range_{accel_range}
+    i2c_{i2c}, addres_{addres}, gyro_range_{gyro_range}, accel_range_{accel_range}
 
 {
     initialize();
@@ -110,16 +107,17 @@ MPU6050::~MPU6050() noexcept
 void MPU6050::initialize() noexcept
 {
     if (HAL_I2C_IsDeviceReady(i2c_, addres_, 10, i2c_TIMEOUT) != HAL_OK) {
-        sprintf(uart_buffer_, "device is not ready\r\n");
-        uart_send_string(uart_, uart_buffer_);
+        printf("device is not ready\r\n");
         return;
     }
+    printf("device is ready\r\n");
 
     if (get_device_id() != addres_) {
-        sprintf(uart_buffer_, "device id isnt correct\r\n");
-        uart_send_string(uart_, uart_buffer_);
+        printf("device id isnt correct\r\n");
         return;
     }
+    printf("device id is correct\r\n");
+
     device_reset(1);
     set_sleep_enabled(0);
     set_clock_source(CLOCK_INTERNAL);

@@ -51,12 +51,12 @@ const char* L298N::error_to_string(const Error error) noexcept
     }
 }
 
-L298N::L298N(UartHandle uart, const Motors& motors) noexcept : uart_{uart}, motors_{motors}
+L298N::L298N(const Motors& motors) noexcept : motors_{motors}
 {
     std::ranges::for_each(motors_, [this](Motor& motor) { this->initialize(motor); });
 }
 
-L298N::L298N(UartHandle uart, Motors&& motors) noexcept : uart_{uart}, motors_{std::forward<Motors>(motors)}
+L298N::L298N(Motors&& motors) noexcept : motors_{std::forward<Motors>(motors)}
 {
     std::ranges::for_each(motors_, [this](Motor& motor) { this->initialize(motor); });
 }
