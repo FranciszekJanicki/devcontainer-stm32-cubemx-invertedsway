@@ -85,8 +85,10 @@
         "xmemory": "cpp",
         "xstring": "cpp",
         "xtr1common": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "stm32l4xx_hal_gpio.h": "c",
+        "stm32l4xx_hal_i2c.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
-    "editor.formatOnSave": true 
+    "editor.formatOnSave": true
 }

@@ -2,6 +2,7 @@
 #include "filters.hpp"
 #include "gpio.h"
 #include "i2c.h"
+#include "l298n.hpp"
 #include "mpu6050.hpp"
 #include "tim.h"
 #include "usart.h"
@@ -21,30 +22,42 @@ int main()
 
     printf("dupa");
 
-    MPU6050 mpu6050{&hi2c1,
-                    MPU6050::ADDRESS,
-                    MPU6050::GYRO_FS_250,
-                    MPU6050::ACCEL_FS_2,
-                    MPU6050::GyroFilter{make_recursive_average<MPU6050::GyroRaw, MPU6050::Raw>()},
-                    MPU6050::AccelFilter{make_recursive_average<MPU6050::AccelRaw, MPU6050::Raw>()}};
+    // MPU6050 mpu6050{&hi2c1,
+    //                 MPU6050::ADDRESS,
+    //                 MPU6050::GYRO_FS_250,
+    //                 MPU6050::ACCEL_FS_2,
+    //                 MPU6050::GyroFilter{make_recursive_average<MPU6050::GyroRaw, MPU6050::Raw>()},
+    //                 MPU6050::AccelFilter{make_recursive_average<MPU6050::AccelRaw, MPU6050::Raw>()}};
+
+    L298N l298n{L298N::MotorChannels{
+        L298N::MotorChannel{std::piecewise_construct,
+                            std::forward_as_tuple(L298N::Channel::CHANNEL1),
+                            std::forward_as_tuple(&htim2, TIM_CHANNEL_1, GPIOB, IN1_Pin, IN3_Pin, OUT1_Pin, OUT3_Pin)},
+        L298N::MotorChannel{std::piecewise_construct,
+                            std::forward_as_tuple(L298N::Channel::CHANNEL2),
+                            std::forward_as_tuple()},
+    }};
+
+    decltype(L298N::MIN_VOLTAGE_V) voltage{0};
+    decltype(voltage) step{1};
+    decltype(voltage) current_step{step};
 
     while (true) {
-        const auto& [ax, ay, az]{mpu6050.get_accelerometer_scaled()};
-        const auto& [gx, gy, gz]{mpu6050.get_gyroscope_scaled()};
-        const auto temperature{mpu6050.get_temperature_celsius()};
-        printf("ACC: X: %.2f Y:%.2f Z:%.2f \n\rGYR: X: %.2f Y:%.2f "
-               "Z:%.2f\n\rTEMP: %.2f\n\r",
-               ax,
-               ay,
-               az,
-               gx,
-               gy,
-               gz,
-               temperature);
+        //     const auto& [ax, ay, az]{mpu6050.get_accelerometer_scaled()};
+        //     const auto& [gx, gy, gz]{mpu6050.get_gyroscope_scaled()};
+        //     const auto temperature{mpu6050.get_temperature_celsius()};
+        //     printf("ACC: X: %.2f Y:%.2f Z:%.2f \n\rGYR: X: %.2f Y:%.2f "
+        //            "Z:%.2f\n\rTEMP: %.2f\n\r",
+        //            ax,
+        //            ay,
+        //            az,
+        //            gx,
+        //            gy,
+        //            gz,
+        //            temperature);
 
-        const auto& [roll, pitch, yaw]{mpu6050.get_roll_pitch_yaw()};
-        printf("RPY: Roll: %.2f Pitch: %.2f Yaw: %.2f\n\r", roll, pitch, yaw);
-        HAL_Delay(1000);
+        //     const auto& [roll, pitch, yaw]{mpu6050.get_roll_pitch_yaw()};
+        //     printf("RPY: Roll: %.2f Pitch: %.2f Yaw: %.2f\n\r", roll, pitch, yaw);
     }
 }
 

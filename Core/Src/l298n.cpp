@@ -11,9 +11,8 @@
 
 using Error = L298N::Error;
 using Direction = L298N::Direction;
-using MotorChannel = L298N::MotorChannel;
-using Motor = L298N::Motor;
-using Motors = L298N::Motors;
+using Channel = L298N::Channel;
+using MotorChannels = L298N::MotorChannels;
 using Raw = L298N::Raw;
 using Speed = L298N::Speed;
 using Voltage = L298N::Voltage;
@@ -33,215 +32,111 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim)
 {
 }
 
-const char* L298N::error_to_string(const Error error) noexcept
+const char* Motor::error_to_string(const Error error) noexcept
 {
     switch (error) {
-        case Error::INIT:
-            return "INIT ERROR";
-        case Error::DEINIT:
-            return "DEINIT ERROR";
-        case Error::CHANNEL1:
-            return "CHANNEL1 ERROR";
-        case Error::CHANNEL2:
-            return "CHANNEL2 ERROR";
         case Error::OK:
-            return "OK ERROR";
+            return "OK";
+        case Error::FAIL:
+            return "FAIL";
+        case Error::INIT:
+            return "INIT";
+        case Error::DEINIT:
+            return "DEINIT";
         default:
-            return "NONE ERROR";
+            return "NONE";
     }
 }
 
-L298N::L298N(const Motors& motors) noexcept : motors_{motors}
+Error Motor::initialize() noexcept
 {
-    std::ranges::for_each(motors_, [this](Motor& motor) { this->initialize(motor); });
-}
-
-L298N::L298N(Motors&& motors) noexcept : motors_{std::forward<Motors>(motors)}
-{
-    std::ranges::for_each(motors_, [this](Motor& motor) { this->initialize(motor); });
-}
-
-L298N::~L298N() noexcept
-{
-    std::ranges::for_each(motors_, [this](Motor& motor) { this->deinitialize(motor); });
-}
-
-const Motors& L298N::motors() const& noexcept
-{
-    return motors_;
-}
-
-Motors&& L298N::motors() && noexcept
-{
-    return std::forward<L298N>(*this).motors_;
-}
-
-void L298N::motors(const Motors& motors) noexcept
-{
-    motors_ = motors;
-}
-
-void L298N::motors(Motors&& motors) noexcept
-{
-    motors_ = std::forward<Motors>(motors);
-}
-
-Error L298N::initialize(Motor& motor) noexcept
-{
-    if (motor.initialized) {
+    if (this->initialized) {
         return Error::INIT;
     }
-    if (motor.timer == nullptr || motor.gpio == nullptr) {
+    if (this->timer == nullptr || this->gpio == nullptr) {
         return Error::INIT;
     }
-    if (HAL_TIM_PWM_Start(motor.timer, motor.timer_channel) != HAL_OK) {
-        return motor_channel_to_error(motor.motor_channel);
+    if (HAL_TIM_PWM_Start(this->timer, this->timer_channel) != HAL_OK) {
+        return Error::INIT;
     }
-    motor.initialized = true;
+    this->initialized = true;
     return Error::OK;
 }
 
-Error L298N::deinitialize(Motor& motor) noexcept
+Error Motor::deinitialize() noexcept
 {
-    if (!motor.initialized) {
+    if (!this->initialized) {
         return Error::DEINIT;
     }
-    if (motor.timer == nullptr || motor.gpio == nullptr) {
+    if (this->timer == nullptr || this->gpio == nullptr) {
         return Error::DEINIT;
     }
-    if (HAL_TIM_PWM_Stop(motor.timer, motor.timer_channel) != HAL_OK) {
-        return motor_channel_to_error(motor.motor_channel);
+    if (HAL_TIM_PWM_Stop(this->timer, this->timer_channel) != HAL_OK) {
+        return Error::DEINIT;
     }
-    motor.initialized = false;
+    this->initialized = false;
     return Error::OK;
 }
 
-ExpectedRaw L298N::get_compare_raw(const MotorChannel motor_channel) const noexcept
+ExpectedRaw Motor::get_compare_raw() const noexcept
 {
-    const auto& motor{get_motor(motor_channel)};
-    if (!motor.initialized) {
-        return Unexpected{motor_channel_to_error(motor_channel)};
+    if (!this->initialized) {
+        return Unexpected{Error::FAIL};
     }
-    return ExpectedRaw{__HAL_TIM_GetCompare(motor.timer, motor.timer_channel)};
+    return ExpectedRaw{__HAL_TIM_GetCompare(this->timer, this->timer_channel)};
 }
 
-Error L298N::set_compare_raw(const MotorChannel motor_channel, const Raw raw) const noexcept
+Error Motor::set_compare_raw(const Raw raw) const noexcept
 {
-    assert(raw <= MAX_RAW && raw >= MIN_RAW);
-    const auto& motor{get_motor(motor_channel)};
-    if (!motor.initialized) {
-        return motor_channel_to_error(motor_channel);
+    if (!this->initialized) {
+        return Error::FAIL;
     }
-    __HAL_TIM_SetCompare(motor.timer, motor.timer_channel, raw);
+    __HAL_TIM_SetCompare(this->timer, this->timer_channel, raw);
     return Error::OK;
 }
 
-ExpectedVoltage L298N::get_compare_voltage(const MotorChannel motor_channel) const noexcept
+Error Motor::set_direction(const Direction direction) const noexcept
 {
-    const auto& motor{get_motor(motor_channel)};
-    if (!motor.initialized) {
-        return Unexpected{motor_channel_to_error(motor_channel)};
-    }
-    return ExpectedVoltage{raw_to_voltage(__HAL_TIM_GetCompare(motor.timer, motor.timer_channel))};
-}
-
-Error L298N::set_compare_voltage(const MotorChannel motor_channel, const Voltage voltage) const noexcept
-{
-    assert(voltage <= MAX_VOLTAGE_V && voltage >= MIN_VOLTAGE_V);
-    const auto& motor{get_motor(motor_channel)};
-    if (!motor.initialized) {
-        return motor_channel_to_error(motor_channel);
-    }
-    __HAL_TIM_SetCompare(motor.timer, motor.timer_channel, voltage_to_raw(voltage));
-    return Error::OK;
-}
-
-ExpectedSpeed L298N::get_compare_speed(const MotorChannel motor_channel) const noexcept
-{
-    const auto& motor{get_motor(motor_channel)};
-    if (!motor.initialized) {
-        return Unexpected{motor_channel_to_error(motor_channel)};
-    }
-    return ExpectedSpeed{raw_to_speed(__HAL_TIM_GetCompare(motor.timer, motor.timer_channel))};
-}
-
-Error L298N::set_compare_speed(const MotorChannel motor_channel, const Speed speed) const noexcept
-{
-    assert(speed <= MAX_SPEED_RPM && speed >= MIN_SPEED_RPM);
-    const auto& motor{get_motor(motor_channel)};
-    if (!motor.initialized) {
-        return motor_channel_to_error(motor_channel);
-    }
-    __HAL_TIM_SetCompare(motor.timer, motor.timer_channel, speed_to_raw(speed));
-    return Error::OK;
-}
-
-ExpectedTorque L298N::get_compare_torque(const MotorChannel motor_channel) const noexcept
-{
-    const auto& motor{get_motor(motor_channel)};
-    if (!motor.initialized) {
-        return Unexpected{motor_channel_to_error(motor_channel)};
-    }
-    return ExpectedTorque{raw_to_torque(__HAL_TIM_GetCompare(motor.timer, motor.timer_channel))};
-}
-
-Error L298N::set_compare_torque(const MotorChannel motor_channel, const Torque torque) const noexcept
-{
-    assert(torque >= MIN_TORQUE_NM && torque <= MAX_TORQUE_NM);
-    const auto& motor{get_motor(motor_channel)};
-    if (!motor.initialized) {
-        return motor_channel_to_error(motor_channel);
-    }
-    if (__HAL_TIM_SetCompare(motor.timer, motor.timer_channel, torque_to_raw(torque)) != HAL_OK) {
-        return motor_channel_to_error(motor_channel);
-    }
-    return Error::OK;
-}
-
-Error L298N::set_direction(const MotorChannel motor_channel, const Direction direction) const noexcept
-{
-    const auto& motor{get_motor(motor_channel)};
-    if (!motor.initialized) {
-        return motor_channel_to_error(motor_channel);
+    if (!this->initialized) {
+        return Error::FAIL;
     }
     switch (direction) {
         case Direction::SOFT_STOP:
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_in1, GPIO_PinState::GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_in2, GPIO_PinState::GPIO_PIN_RESET);
-            return set_compare_raw(motor_channel, MAX_RAW);
+            HAL_GPIO_WritePin(this->gpio, this->pin_in1, GPIO_PinState::GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(this->gpio, this->pin_in2, GPIO_PinState::GPIO_PIN_RESET);
+            return this->set_compare_raw(MAX_RAW);
         case Direction::FAST_STOP:
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_in1, GPIO_PinState::GPIO_PIN_SET);
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_in2, GPIO_PinState::GPIO_PIN_SET);
-            return set_compare_raw(motor_channel, MIN_RAW);
+            HAL_GPIO_WritePin(this->gpio, this->pin_in1, GPIO_PinState::GPIO_PIN_SET);
+            HAL_GPIO_WritePin(this->gpio, this->pin_in2, GPIO_PinState::GPIO_PIN_SET);
+            return this->set_compare_raw(MIN_RAW);
         case Direction::FORWARD:
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_in1, GPIO_PinState::GPIO_PIN_SET);
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_in2, GPIO_PinState::GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(this->gpio, this->pin_in1, GPIO_PinState::GPIO_PIN_SET);
+            HAL_GPIO_WritePin(this->gpio, this->pin_in2, GPIO_PinState::GPIO_PIN_RESET);
             return Error::OK;
         case Direction::BACKWARD:
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_in1, GPIO_PinState::GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(motor.gpio, motor.pin_in2, GPIO_PinState::GPIO_PIN_SET);
+            HAL_GPIO_WritePin(this->gpio, this->pin_in1, GPIO_PinState::GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(this->gpio, this->pin_in2, GPIO_PinState::GPIO_PIN_SET);
             return Error::OK;
         default:
-            return motor_channel_to_error(motor_channel);
+            return Error::FAIL;
     }
     return Error::OK;
 }
 
-ExpectedDirection L298N::get_direction(const MotorChannel motor_channel) const noexcept
+ExpectedDirection Motor::get_direction() const noexcept
 {
-    const auto& motor{get_motor(motor_channel)};
-    if (!motor.initialized) {
-        return Unexpected{motor_channel_to_error(motor_channel)};
+    if (!this->initialized) {
+        return Unexpected{Error::FAIL};
     }
-    const auto pin_out1{HAL_GPIO_ReadPin(motor.gpio, motor.pin_out1)};
-    const auto pin_out2{HAL_GPIO_ReadPin(motor.gpio, motor.pin_out2)};
+    const auto pin_out1{HAL_GPIO_ReadPin(this->gpio, this->pin_out1)};
+    const auto pin_out2{HAL_GPIO_ReadPin(this->gpio, this->pin_out2)};
     if (pin_out1 == GPIO_PinState::GPIO_PIN_SET && pin_out2 == GPIO_PinState::GPIO_PIN_RESET) {
         return ExpectedDirection{Direction::FORWARD};
     }
     if (pin_out1 == GPIO_PinState::GPIO_PIN_RESET && pin_out2 == GPIO_PinState::GPIO_PIN_SET) {
         return ExpectedDirection{Direction::BACKWARD};
     }
-    const auto raw{__HAL_TIM_GetCompare(motor.timer, motor.timer_channel)};
+    const auto raw{__HAL_TIM_GetCompare(this->timer, this->timer_channel)};
     if ((pin_out1 == pin_out2) == GPIO_PinState::GPIO_PIN_RESET && raw >= MAX_RAW) {
         return ExpectedDirection{Direction::SOFT_STOP};
     }
@@ -251,98 +146,233 @@ ExpectedDirection L298N::get_direction(const MotorChannel motor_channel) const n
     return Unexpected{Error::OK};
 }
 
-Error L298N::set_forward(const MotorChannel motor_channel) const noexcept
+L298N::L298N(const MotorChannels& motor_channels) noexcept : motor_channels_{motor_channels}
 {
-    return set_direction(motor_channel, Direction::FORWARD);
+    std::ranges::for_each(this->motor_channels_, [](auto& motor_channel) { motor_channel.second.initialize(); });
 }
 
-Error L298N::set_backward(const MotorChannel motor_channel) const noexcept
+L298N::L298N(MotorChannels&& motor_channels) noexcept : motor_channels_{std::forward<MotorChannels>(motor_channels)}
 {
-    return set_direction(motor_channel, Direction::BACKWARD);
+    std::ranges::for_each(this->motor_channels_, [](auto& motor_channel) { motor_channel.second.initialize(); });
 }
 
-Error L298N::set_soft_stop(const MotorChannel motor_channel) const noexcept
+L298N::~L298N() noexcept
 {
-    return set_direction(motor_channel, Direction::SOFT_STOP);
+    std::ranges::for_each(this->motor_channels_, [](auto& motor_channel) { motor_channel.second.deinitialize(); });
 }
 
-Error L298N::set_fast_stop(const MotorChannel motor_channel) const noexcept
+const MotorChannels& L298N::motor_channels() const& noexcept
 {
-    return set_direction(motor_channel, Direction::FAST_STOP);
+    return this->motor_channels_;
 }
 
-const Motor& L298N::get_motor(const MotorChannel motor_channel) const noexcept
+MotorChannels&& L298N::motor_channels() && noexcept
 {
-    if (const auto motor{
-            std::ranges::find_if(std::as_const(motors_),
-                                 [motor_channel](const Motor& item) { return item.motor_channel == motor_channel; })};
-        motor != motors_.cend()) {
-        return *motor;
+    return std::forward<L298N>(*this).motor_channels_;
+}
+
+void L298N::motor_channels(const MotorChannels& motor_channels) noexcept
+{
+    this->motor_channels_ = motor_channels;
+}
+
+void L298N::motor_channels(MotorChannels&& motor_channels) noexcept
+{
+    this->motor_channels_ = std::forward<MotorChannels>(motor_channels);
+}
+
+ExpectedRaw L298N::get_compare_raw(const Channel channel) const noexcept
+{
+    return this->get_motor(channel).get_compare_raw();
+}
+
+Error L298N::set_compare_raw(const Channel channel, const Raw raw) const noexcept
+{
+    assert(raw <= Motor::MAX_RAW && raw >= Motor::MIN_RAW);
+    if (raw >= Motor::MAX_RAW || raw <= Motor::MIN_RAW) {
+        return Error::FAIL;
+    }
+    return this->get_motor(channel).set_compare_raw(raw);
+}
+
+ExpectedVoltage L298N::get_compare_voltage(const Channel channel) const noexcept
+{
+    if (auto raw{this->get_motor(channel).get_compare_raw()}; !raw.has_value()) {
+        return Unexpected{Error::FAIL};
+    } else {
+        return ExpectedVoltage{raw_to_voltage(std::move(raw).value())};
+    }
+}
+
+Error L298N::set_compare_voltage(const Channel channel, const Voltage voltage) const noexcept
+{
+    assert(voltage <= MAX_VOLTAGE_V && voltage >= MIN_VOLTAGE_V);
+    if (voltage >= MAX_VOLTAGE_V || voltage <= MIN_VOLTAGE_V) {
+        return Error::FAIL;
+    }
+    return this->get_motor(channel).set_compare_raw(voltage_to_raw(voltage));
+}
+
+ExpectedSpeed L298N::get_compare_speed(const Channel channel) const noexcept
+{
+    if (auto raw{this->get_motor(channel).get_compare_raw()}; !raw.has_value()) {
+        return Unexpected{std::move(raw).error()};
+    } else {
+        return ExpectedSpeed{raw_to_speed(std::move(raw).value())};
+    }
+}
+
+Error L298N::set_compare_speed(const Channel channel, const Speed speed) const noexcept
+{
+    assert(speed <= MAX_SPEED_RPM && speed >= MIN_SPEED_RPM);
+    if (speed >= MAX_SPEED_RPM || speed <= MIN_SPEED_RPM) {
+        return Error::FAIL;
+    }
+    return this->get_motor(channel).set_compare_raw(speed_to_raw(speed));
+}
+
+ExpectedTorque L298N::get_compare_torque(const Channel channel) const noexcept
+{
+    if (auto raw{this->get_motor(channel).get_compare_raw()}; !raw.has_value()) {
+        return Unexpected{std::move(raw).error()};
+    } else {
+        return ExpectedSpeed{raw_to_torque(std::move(raw).value())};
+    }
+}
+
+Error L298N::set_compare_torque(const Channel channel, const Torque torque) const noexcept
+{
+    assert(torque <= MAX_TORQUE_NM && torque >= MIN_TORQUE_NM);
+    if (torque >= MAX_TORQUE_NM || torque <= MIN_TORQUE_NM) {
+        return Error::FAIL;
+    }
+    return this->get_motor(channel).set_compare_raw(torque_to_raw(torque));
+}
+
+Error L298N::set_direction(const Channel channel, const Direction direction) const noexcept
+{
+    return this->get_motor(channel).set_direction(direction);
+}
+
+ExpectedDirection L298N::get_direction(const Channel channel) const noexcept
+{
+    return this->get_motor(channel).get_direction();
+}
+
+Error L298N::set_forward(const Channel channel) const noexcept
+{
+    return this->get_motor(channel).set_direction(Direction::FORWARD);
+}
+
+Error L298N::set_backward(const Channel channel) const noexcept
+{
+    return this->get_motor(channel).set_direction(Direction::BACKWARD);
+}
+
+Error L298N::set_soft_stop(const Channel channel) const noexcept
+{
+    return this->get_motor(channel).set_direction(Direction::SOFT_STOP);
+}
+
+Error L298N::set_fast_stop(const Channel channel) const noexcept
+{
+    return this->get_motor(channel).set_direction(Direction::FAST_STOP);
+}
+
+Error L298N::toggle_direction(const Channel channel) const noexcept
+{
+    const auto& motor{get_motor(channel)};
+    if (!motor.initialized) {
+        return Error::FAIL;
+    }
+    if (auto direction{motor.get_direction()}; !direction.has_value()) {
+        return std::move(direction).error();
+    } else {
+        switch (direction.value()) {
+            case Direction::FORWARD:
+                return motor.set_direction(Direction::BACKWARD);
+            case Direction::BACKWARD:
+                return motor.set_direction(Direction::FORWARD);
+            case Direction::FAST_STOP:
+                return Error::OK;
+            case Direction::SOFT_STOP:
+                return Error::OK;
+        }
+    }
+}
+
+const Motor& L298N::get_motor(const Channel channel) const noexcept
+{
+    if (const auto motor_channel{std::ranges::find_if(std::as_const(this->motor_channels_),
+                                                      [channel](const auto& item) {
+                                                          const auto& [key, value]{item};
+                                                          return key == channel;
+                                                      })};
+        motor_channel != this->motor_channels_.cend()) {
+        return motor_channel->second;
     }
     std::unreachable();
 }
 
-Motor& L298N::get_motor(const MotorChannel motor_channel) noexcept
+Motor& L298N::get_motor(const Channel channel) noexcept
 {
-    if (auto motor{
-            std::ranges::find_if(motors_,
-                                 [motor_channel](const Motor& item) { return item.motor_channel == motor_channel; })};
-        motor != motors_.cend()) {
-        return *motor;
+    if (auto motor_channel{std::ranges::find_if(this->motor_channels_,
+                                                [channel](const auto& item) {
+                                                    const auto& [key, value]{item};
+                                                    return key == channel;
+                                                })};
+        motor_channel != this->motor_channels_.cend()) {
+        return motor_channel->second;
     }
     std::unreachable();
-}
-
-Error L298N::motor_channel_to_error(const MotorChannel motor_channel) noexcept
-{
-    switch (motor_channel) {
-        case MotorChannel::CHANNEL1:
-            return Error::CHANNEL1;
-        case MotorChannel::CHANNEL2:
-            return Error::CHANNEL2;
-        default:
-            std::unreachable();
-    }
 }
 
 Speed L298N::raw_to_speed(const Raw raw) noexcept
 {
-    assert(raw <= MAX_RAW && raw >= MIN_RAW);
-    return std::clamp(Speed{(raw - MIN_RAW) * (MAX_SPEED_RPM - MIN_SPEED_RPM) / (MAX_RAW - MIN_RAW) + MAX_SPEED_RPM},
-                      MIN_SPEED_RPM,
-                      MAX_SPEED_RPM);
+    assert(raw <= Motor::MAX_RAW && raw >= Motor::MIN_RAW);
+    return std::clamp(
+        Speed{(raw - Motor::MIN_RAW) * (MAX_SPEED_RPM - MIN_SPEED_RPM) / (Motor::MAX_RAW - Motor::MIN_RAW) +
+              MAX_SPEED_RPM},
+        MIN_SPEED_RPM,
+        MAX_SPEED_RPM);
 }
 
 Raw L298N::speed_to_raw(const Speed speed) noexcept
 {
     assert(speed <= MAX_SPEED_RPM && speed >= MIN_SPEED_RPM);
-    return std::clamp(Raw{(speed - MIN_SPEED_RPM) * (MAX_RAW - MIN_RAW) / (MAX_SPEED_RPM - MIN_SPEED_RPM) + MIN_RAW},
-                      MIN_RAW,
-                      MAX_RAW);
+    return std::clamp(
+        Raw{(speed - MIN_SPEED_RPM) * (Motor::MAX_RAW - Motor::MIN_RAW) / (MAX_SPEED_RPM - MIN_SPEED_RPM) +
+            Motor::MIN_RAW},
+        Motor::MIN_RAW,
+        Motor::MAX_RAW);
 }
 
 Voltage L298N::raw_to_voltage(const Raw raw) noexcept
 {
-    assert(raw <= MAX_RAW && raw >= MIN_RAW);
-    return std::clamp(Voltage{(raw - MIN_RAW) * (MAX_VOLTAGE_V - MIN_VOLTAGE_V) / (MAX_RAW - MIN_RAW) + MIN_VOLTAGE_V},
-                      MIN_VOLTAGE_V,
-                      MAX_VOLTAGE_V);
+    assert(raw <= Motor::MAX_RAW && raw >= Motor::MIN_RAW);
+    return std::clamp(
+        Voltage{(raw - Motor::MIN_RAW) * (MAX_VOLTAGE_V - MIN_VOLTAGE_V) / (Motor::MAX_RAW - Motor::MIN_RAW) +
+                MIN_VOLTAGE_V},
+        MIN_VOLTAGE_V,
+        MAX_VOLTAGE_V);
 }
 
 Raw L298N::voltage_to_raw(const Voltage voltage) noexcept
 {
     assert(voltage <= MAX_VOLTAGE_V && voltage >= MIN_VOLTAGE_V);
     return std::clamp(
-        Raw{(voltage - MIN_VOLTAGE_V) * (MAX_RAW - MIN_RAW) / Raw(MAX_VOLTAGE_V - MIN_VOLTAGE_V) + MIN_RAW},
-        MIN_RAW,
-        MAX_RAW);
+        Raw{(voltage - MIN_VOLTAGE_V) * (Motor::MAX_RAW - Motor::MIN_RAW) / Raw(MAX_VOLTAGE_V - MIN_VOLTAGE_V) +
+            Motor::MIN_RAW},
+        Motor::MIN_RAW,
+        Motor::MAX_RAW);
 }
 
 Torque L298N::raw_to_torque(const Raw raw) noexcept
 {
-    assert(raw <= MAX_RAW && raw >= MIN_RAW);
+    assert(raw <= Motor::MAX_RAW && raw >= Motor::MIN_RAW);
     return std::clamp(
-        Torque{(raw - MIN_RAW) * (MAX_TORQUE_NM - MIN_TORQUE_NM) / Torque(MAX_RAW - MIN_RAW) + MIN_TORQUE_NM},
+        Torque{(raw - Motor::MIN_RAW) * (MAX_TORQUE_NM - MIN_TORQUE_NM) / Torque(Motor::MAX_RAW - Motor::MIN_RAW) +
+               MIN_TORQUE_NM},
         MIN_TORQUE_NM,
         MAX_TORQUE_NM);
 }
@@ -350,7 +380,9 @@ Torque L298N::raw_to_torque(const Raw raw) noexcept
 Raw L298N::torque_to_raw(const Torque torque) noexcept
 {
     assert(torque <= MAX_TORQUE_NM && torque >= MIN_TORQUE_NM);
-    return std::clamp(Raw{(torque - MIN_TORQUE_NM) * (MAX_RAW - MIN_RAW) / (MAX_TORQUE_NM - MIN_TORQUE_NM) + MIN_RAW},
-                      MIN_RAW,
-                      MAX_RAW);
+    return std::clamp(
+        Raw{(torque - MIN_TORQUE_NM) * (Motor::MAX_RAW - Motor::MIN_RAW) / (MAX_TORQUE_NM - MIN_TORQUE_NM) +
+            Motor::MIN_RAW},
+        Motor::MIN_RAW,
+        Motor::MAX_RAW);
 }
