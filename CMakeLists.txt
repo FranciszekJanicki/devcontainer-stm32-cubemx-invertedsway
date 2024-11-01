@@ -35,14 +35,13 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Inc/arithmetic.hpp"
     "Core/Inc/quaternion3d.hpp"
     "Core/Inc/vector3d.hpp"
-    "Core/Inc/rotation3d.hpp"
     "Core/Src/mpu6050.cpp"
     "Core/Src/l298n.cpp"
+    "Core/Src/motor.cpp"
     "Core/Inc/filters.hpp"
-    "Core/Inc/common.hpp"
     "Core/Inc/regulator.hpp"
-    "Core/Inc/kalman_filter.hpp"
-    "Core/Inc/inverted_sway.hpp"
+    "Core/Inc/kalman.hpp"
+    "Core/Src/system.cpp"
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE

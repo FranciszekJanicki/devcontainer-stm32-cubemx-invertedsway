@@ -12,9 +12,13 @@
 #include <cstdio>
 #include <cstring>
 
-using TimerHandle = TIM_HandleTypeDef*;
-using GpioHandle = GPIO_TypeDef*;
-using UartHandle = UART_HandleTypeDef*;
-using I2cHandle = I2C_HandleTypeDef*;
+namespace InvertedSway {
+
+    using TimerHandle = TIM_HandleTypeDef*;
+    using GpioHandle = GPIO_TypeDef*;
+    using UartHandle = UART_HandleTypeDef*;
+    using I2cHandle = I2C_HandleTypeDef*;
+
+}; // namespace InvertedSway
 
 #endif // COMMON_HPP
