@@ -1,22 +1,18 @@
-#ifndef HAL_SENSOR_HPP
-#define HAL_SENSOR_HPP
+#ifndef ENCODER_HPP
+#define ENCODER_HPP
 
 #include "common.hpp"
 #include "stm32l4xx_hal_tim.h"
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstdint>
-#include <expected>
 #include <utility>
 
 namespace InvertedSway {
 
     struct Encoder {
-        enum struct Direction {
-            CLOCKWISE,
-            COUNTER_CLOCKWISE,
-        };
-
+    public:
         enum struct Error {
             OK,
             FAIL,
@@ -24,74 +20,28 @@ namespace InvertedSway {
             DEINIT,
         };
 
-        using Count = std::uint8_t;
+        using Count = std::uint16_t;
         using Angle = std::int16_t;
-        using ExpectedCount = std::expected<Count, Error>;
-        using ExpectedAngle = std::expected<Angle, Error>;
-        using Unexpected = std::unexpected<Error>;
 
-        static const char* error_to_string(const Error error) noexcept
-        {
-            switch (error) {
-                case Error::OK:
-                    return "OK";
-                case Error::FAIL:
-                    return "FAIL";
-                case Error::INIT:
-                    return "INIT";
-                case Error::DEINIT:
-                    return "DEINIT";
-                default:
-                    return "NONE";
-            }
-        }
+        static const char* error_to_string(const Error error) noexcept;
 
-        [[nodiscard]] Error initialize() noexcept
-        {
-            if (this->initialized) {
-                return Error::INIT;
-            }
-            if (HAL_TIM_Encoder_Start(timer, TIM_CHANNEL_ALL) != HAL_OK) {
-                return Error::INIT;
-            }
-            return Error::OK;
-        }
+        Encoder() noexcept = default;
+        Encoder(TimerHandle timer) noexcept;
 
-        [[nodiscard]] Error deinitialize() noexcept
-        {
-            if (!this->initialized) {
-                return Error::DEINIT;
-            }
-            if (HAL_TIM_Encoder_Stop(timer, TIM_CHANNEL_ALL) != HAL_OK) {
-                return Error::DEINIT;
-            }
-            return Error::OK;
-        }
+        Encoder(const Encoder& other) noexcept = default;
+        Encoder(Encoder&& other) noexcept = default;
 
-        [[nodiscard]] ExpectedCount get_count() noexcept
-        {
-            if (!this->initialized) {
-                return Unexpected{Error::FAIL};
-            }
-            return ExpectedCount{this->last_count = static_cast<Count>(__HAL_TIM_GetCounter(this->timer))};
-        }
+        Encoder& operator=(const Encoder& other) noexcept = default;
+        Encoder& operator=(Encoder&& other) noexcept = default;
 
-        [[nodiscard]] ExpectedAngle get_angle() noexcept
-        {
-            if (!this->initialized) {
-                return Unexpected{Error::FAIL};
-            }
-            const auto count_difference{
-                static_cast<Count>(__HAL_TIM_GetCounter(this->timer)) -
-                std::exchange(this->last_count, static_cast<Count>(__HAL_TIM_GetCounter(this->timer)))};
-            if (count_difference >= COUNT_PER_ENCODER_COUNT || count_difference <= -COUNT_PER_ENCODER_COUNT) {
-                this->angle = std::clamp(
-                    this->angle + static_cast<Angle>((count_difference / COUNT_PER_ENCODER_COUNT) % MAX_COUNT),
-                    MIN_ANGLE_DEG,
-                    MAX_ANGLE_DEG);
-            }
-            return ExpectedAngle{this->angle};
-        }
+        ~Encoder() noexcept;
+
+        [[nodiscard]] Count get_count() noexcept;
+        [[nodiscard]] Angle get_angle() noexcept;
+
+    private:
+        [[nodiscard]] Error initialize() noexcept;
+        [[nodiscard]] Error deinitialize() noexcept;
 
         static constexpr Count COUNT_PER_ENCODER_COUNT{4};
 
@@ -104,14 +54,14 @@ namespace InvertedSway {
         static constexpr Angle MIN_ANGLE_DEG{0};
         static constexpr Angle MAX_ANGLE_DEG{360};
 
-        TimerHandle timer{nullptr};
+        TimerHandle timer_{nullptr};
 
-        Angle angle{};
-        std::uint64_t last_count{};
+        Angle angle_{};
+        std::uint64_t last_count_{};
 
-        bool initialized{false};
+        bool initialized_{false};
     };
 
 }; // namespace InvertedSway
 
-#endif // HAL_SENSOR_HPP
+#endif // ENCODER_HPP

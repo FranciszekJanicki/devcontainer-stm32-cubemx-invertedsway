@@ -11,11 +11,12 @@
 namespace InvertedSway {
 
     using Value = System::Value;
-    System::System(MPU6050&& mpu6050, L298N&& l298n, Kalman<Value>&& kalman, Regulator&& regulator) :
+    System::System(MPU6050&& mpu6050, L298N&& l298n, Kalman<Value>&& kalman, Regulator&& regulator, Encoder&& encoder) :
         mpu6050_{std::forward<MPU6050>(mpu6050)},
         l298n_{std::forward<L298N>(l298n)},
         kalman_{std::forward<Kalman<Value>>(kalman)},
-        regulator_{std::forward<Regulator>(regulator)}
+        regulator_{std::forward<Regulator>(regulator)},
+        encoder_{std::forward<Encoder>(encoder)}
     {
         // do setup
     }
@@ -25,11 +26,11 @@ namespace InvertedSway {
         // undo setup
     }
 
-    void System::operator()(const Value angle) noexcept
+    void System::operator()(const Value input_angle) noexcept
     {
         this->update_output_signal();
-        this->update_input_signal(angle);
-        this->update_error_signal(angle);
+        this->update_input_signal(input_angle);
+        this->update_error_signal();
         this->update_control_signal();
     }
 
@@ -38,6 +39,7 @@ namespace InvertedSway {
         this->output_signal_ = this->kalman_(this->mpu6050_.get_gyroscope_scaled().x,
                                              this->mpu6050_.get_accelerometer_scaled().x,
                                              this->dt_);
+        [[maybe_unused]] const auto encoder_value{this->encoder_.get_angle()};
     }
 
     void System::update_input_signal(const Value input_signal) noexcept
@@ -45,10 +47,9 @@ namespace InvertedSway {
         this->input_signal_ = input_signal;
     }
 
-    void System::update_error_signal(const Value input_signal) noexcept
+    void System::update_error_signal() noexcept
     {
         this->update_output_signal();
-        this->update_input_signal(input_signal);
         this->error_signal_ = this->input_signal_ - this->output_signal_;
     }
 

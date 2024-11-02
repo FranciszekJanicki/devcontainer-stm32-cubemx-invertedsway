@@ -1,6 +1,7 @@
 #ifndef SYSTEM_HPP
 #define SYSTEM_HPP
 
+#include "encoder.hpp"
 #include "kalman.hpp"
 #include "l298n.hpp"
 #include "mpu6050.hpp"
@@ -25,7 +26,7 @@ namespace InvertedSway {
         using Regulator = RegulatorFunction<Value>;
 #endif
 
-        System(MPU6050&& mpu6050, L298N&& l298n, Kalman<Value>&& kalman, Regulator&& regulator);
+        System(MPU6050&& mpu6050, L298N&& l298n, Kalman<Value>&& kalman, Regulator&& regulator, Encoder&& encoder);
 
         System(const System& other) = delete;
         System(System&& other) noexcept = delete;
@@ -36,13 +37,14 @@ namespace InvertedSway {
         ~System() noexcept;
 
         void operator()(const Value angle) noexcept;
-        void update_output_signal() noexcept;
-        void update_input_signal(const Value input_signal) noexcept;
-        void update_error_signal(const Value input_signal) noexcept;
-        void update_control_signal() noexcept;
 
     private:
         static Value angle_to_voltage(const Value angle) noexcept;
+
+        void update_output_signal() noexcept;
+        void update_input_signal(const Value input_signal) noexcept;
+        void update_error_signal() noexcept;
+        void update_control_signal() noexcept;
 
         static constexpr Value MOTOR_RESISTANCE{0};
         static constexpr Value EARTH_ACCELERATION{9.81};
@@ -65,6 +67,7 @@ namespace InvertedSway {
         L298N l298n_{};
         Kalman<Value> kalman_{};
         Regulator regulator_{};
+        Encoder encoder_{};
     };
 
 }; // namespace InvertedSway
