@@ -9,11 +9,12 @@
 
 namespace InvertedSway {
 
+#define REGULATOR_VARIANT
+
     /* REGULATOR BASE */
     template <Linalg::Arithmetic Value>
     struct Regulator {
         virtual ~Regulator() noexcept = 0;
-        virtual Value operator()(const Value, const Value) noexcept = 0;
     };
 
     enum struct RegulatorAlgo {
@@ -27,26 +28,27 @@ namespace InvertedSway {
     /* PID */
     template <Linalg::Arithmetic Value>
     struct RegulatorPID : public Regulator<Value> {
-        Value operator()(const Value error, const Value dt) noexcept override
+        Value operator()(const Value error, const Value dt) noexcept
         {
-            sum += (error + previous_error) / 2 * dt;
-            sum = std::clamp(sum, -windup, windup);
-            return P * error + D * (error - std::exchange(previous_error, error)) / dt + I * sum;
+            this->sum += (error + this->previous_error) / 2 * dt;
+            this->sum = std::clamp(this->sum, -this->windup, this->windup);
+            return this->P * error + this->D * (error - std::exchange(this->previous_error, error)) / dt +
+                   this->I * this->sum;
         }
 
         Value P{};
         Value I{};
         Value D{};
+        Value windup{};
 
         Value sum{};
         Value previous_error{};
-        Value windup{};
     };
 
     /* LQR */
     template <Linalg::Arithmetic Value>
     struct RegulatorLQR : public Regulator<Value> {
-        Value operator()(const Value error, const Value) noexcept override
+        Value operator()(const Value error, const Value) noexcept
         {
             // implement lqr algorithm here
             return error;
@@ -55,7 +57,7 @@ namespace InvertedSway {
 
     template <Linalg::Arithmetic Value>
     struct RegulatorADRC : public Regulator<Value> {
-        Value operator()(const Value error, const Value) noexcept override
+        Value operator()(const Value error, const Value) noexcept
         {
             // implement adrc algorithm here
             return error;
@@ -70,26 +72,32 @@ namespace InvertedSway {
             ZERO,
         };
 
-        State operator()(const Value error) noexcept override
+        State operator()(const Value error) noexcept
         {
-            if (state == State::POSITIVE) {
-                if (error < hysteresis_down) {
-                    state = State::ZERO;
-                } else {
-                    state = State::POSITIVE;
-                }
-            } else {
-                if (error > hysteresis_up) {
-                    state = State::POSITIVE;
-                } else {
-                    state = State::ZERO;
-                }
+            switch (this->state) {
+                case State::POSITIVE:
+                    if (error < this->hysteresis_down) {
+                        this->state = State::ZERO;
+                    } else {
+                        this->state = State::POSITIVE;
+                    }
+                    break;
+                case State::ZERO:
+                    if (error > this->hysteresis_up) {
+                        this->state = State::POSITIVE;
+                    } else {
+                        this->state = State::ZERO;
+                    }
+                    break;
+                default:
+                    break;
             }
-            return state;
+            return this->state;
         }
 
         Value hysteresis_up{};
         Value hysteresis_down{};
+
         State state{State::ZERO};
     };
 
@@ -102,34 +110,34 @@ namespace InvertedSway {
             ZERO,
         };
 
-        State operator()(const Value error) noexcept override
+        State operator()(const Value error) noexcept
         {
-            switch (state) {
+            switch (this->state) {
                 case State::POSITIVE:
-                    if (error < hysteresis_down_right) {
-                        state = State::ZERO;
+                    if (error < this->hysteresis_down) {
+                        this->state = State::ZERO;
                     }
                     break;
                 case State::NEGATIVE:
-                    if (error > hysteresis_up_left) {
-                        state = State::ZERO;
+                    if (error > this->hysteresis_up) {
+                        this->state = State::ZERO;
                     }
                     break;
                 case State::ZERO:
-                    if (error > hysteresis_up_right) {
-                        state = State::POSITIVE;
-                    } else if (error < hysteresis_down_left) {
-                        state = State::NEGATIVE;
+                    if (error > this->hysteresis_up) {
+                        this->state = State::POSITIVE;
+                    } else if (error < this->hysteresis_down) {
+                        this->state = State::NEGATIVE;
                     }
                     break;
+                default:
+                    break;
             }
-            return state;
+            return this->state;
         }
 
-        Value hysteresis_up_left{};
-        Value hysteresis_down_left{};
-        Value hysteresis_up_right{};
-        Value hysteresis_down_right{};
+        Value hysteresis_up{};
+        Value hysteresis_down{};
         State state{State::ZERO};
     };
 
@@ -218,7 +226,6 @@ namespace InvertedSway {
                 return [](const Value error) mutable { return error; };
         }
     }
-
 }; // namespace InvertedSway
 
 #endif // REGULATOR_HPP

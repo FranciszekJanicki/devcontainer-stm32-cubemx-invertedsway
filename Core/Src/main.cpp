@@ -4,9 +4,11 @@
 #include "i2c.h"
 #include "l298n.hpp"
 #include "mpu6050.hpp"
+#include "regulator.hpp"
 #include "tim.h"
 #include "usart.h"
 #include <cstdio>
+#include <system.hpp>
 
 using namespace InvertedSway;
 
@@ -51,6 +53,8 @@ void SystemClock_Config(void)
     }
 }
 
+System* system_handle{nullptr};
+
 int main()
 {
     HAL_Init();
@@ -61,6 +65,13 @@ int main()
     MX_TIM2_Init();
     MX_I2C1_Init();
     MX_TIM1_Init();
+
+    // System system{MPU6050{},
+    //               L298N{},
+    //               Kalman<double>{},
+    //               make_regulator_variant<double>(RegulatorAlgo::PID, 1.0, 1.0, 0.1, 0.0),
+    //               Encoder{}};
+    // system_handle = &system;
 
     printf("dupa");
 
@@ -112,6 +123,16 @@ int main()
     }
 }
 
+// void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+// {
+//     if (htim == nullptr) {
+//         return;
+//     }
+//     if (htim == &htim2) {
+//         (*system_handle)(0.0);
+//     }
+// }
+
 // void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 // {
 //     if (GPIO_Pin == INTR_Pin) {
@@ -150,6 +171,5 @@ void Error_Handler()
 
 #ifdef USE_FULL_ASSERT
 void assert_failed(uint8_t* file, uint32_t line)
-{
-}
+{}
 #endif /* USE_FULL_ASSERT */

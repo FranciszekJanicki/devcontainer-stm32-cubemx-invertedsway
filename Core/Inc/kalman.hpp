@@ -46,8 +46,8 @@ namespace InvertedSway {
         Value Q_bias{};
         Value R{};
 
-        std::array<std::array<Value, 2>, 2> P;
         std::array<Value, 2> K;
+        std::array<std::array<Value, 2>, 2> P;
     };
 
 }; // namespace InvertedSway

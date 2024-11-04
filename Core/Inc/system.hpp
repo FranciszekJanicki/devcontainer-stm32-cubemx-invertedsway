@@ -17,7 +17,6 @@ namespace InvertedSway {
     public:
         using Value = MPU6050::Scaled;
 
-#define REGULATOR_LAMBDA
 #if defined(REGULATOR_PTR)
         using Regulator = RegulatorPtr<Value>;
 #elif defined(REGULATOR_VARIANT)
