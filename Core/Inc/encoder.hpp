@@ -13,20 +13,11 @@ namespace InvertedSway {
 
     struct Encoder {
     public:
-        enum struct Error {
-            OK,
-            FAIL,
-            INIT,
-            DEINIT,
-        };
-
         using Count = std::uint16_t;
         using Angle = std::int16_t;
 
-        static const char* error_to_string(const Error error) noexcept;
-
         Encoder() noexcept = default;
-        Encoder(TimerHandle timer) noexcept;
+        Encoder(TimerHandle timer, const Angle starting_angle) noexcept;
 
         Encoder(const Encoder& other) noexcept = default;
         Encoder(Encoder&& other) noexcept = default;
@@ -36,17 +27,19 @@ namespace InvertedSway {
 
         ~Encoder() noexcept;
 
-        [[nodiscard]] Count get_count() noexcept;
         [[nodiscard]] Angle get_angle() noexcept;
 
     private:
-        [[nodiscard]] Error initialize() noexcept;
-        [[nodiscard]] Error deinitialize() noexcept;
+        static Angle encoder_count_to_angle(const Count encoder_count) noexcept;
+        static Count count_to_encoder_count(const Count count) noexcept;
+
+        Count get_previous_count() noexcept;
+
+        void initialize() noexcept;
+        void deinitialize() noexcept;
 
         static constexpr Count COUNT_PER_ENCODER_COUNT{4};
-
-        static constexpr Count MIN_ENCODER_COUNT{0};
-        static constexpr Count MAX_ENCODER_COUNT{10};
+        static constexpr Count ENCODER_COUNT_PER_REVOLUTION{10};
 
         static constexpr Count MIN_COUNT{0};
         static constexpr Count MAX_COUNT{static_cast<Count>(std::pow(2, 16) - 1)};

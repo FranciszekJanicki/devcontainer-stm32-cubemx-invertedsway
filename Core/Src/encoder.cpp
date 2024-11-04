@@ -4,25 +4,8 @@ namespace InvertedSway {
 
     using Count = Encoder::Count;
     using Angle = Encoder::Angle;
-    using Error = Encoder::Error;
 
-    const char* Encoder::error_to_string(const Error error) noexcept
-    {
-        switch (error) {
-            case Error::OK:
-                return "OK";
-            case Error::FAIL:
-                return "FAIL";
-            case Error::INIT:
-                return "INIT";
-            case Error::DEINIT:
-                return "DEINIT";
-            default:
-                return "NONE";
-        }
-    }
-
-    Encoder::Encoder(TimerHandle timer) noexcept : timer_{timer}
+    Encoder::Encoder(TimerHandle timer, const Angle starting_angle) noexcept : timer_{timer}, angle_{starting_angle}
     {
         this->initialize();
     }
@@ -32,43 +15,58 @@ namespace InvertedSway {
         this->deinitialize();
     }
 
-    [[nodiscard]] Error Encoder::initialize() noexcept
+    Angle Encoder::encoder_count_to_angle(const Count encoder_count) noexcept
+    {
+        assert(encoder_count <= ENCODER_COUNT_PER_REVOLUTION && encoder_count >= 0);
+        return std::clamp(Angle{(encoder_count - 0) * (MAX_ANGLE_DEG - MIN_ANGLE_DEG) / (ENCODER_COUNT_PER_REVOLUTION) +
+                                MIN_ANGLE_DEG},
+                          MIN_ANGLE_DEG,
+                          MAX_ANGLE_DEG);
+    }
+
+    Count Encoder::count_to_encoder_count(const Count count) noexcept
+    {
+        assert(count <= MAX_COUNT && count >= MIN_COUNT);
+        return (count / COUNT_PER_ENCODER_COUNT) % ENCODER_COUNT_PER_REVOLUTION;
+    }
+
+    void Encoder::initialize() noexcept
     {
         if (this->initialized_) {
-            return Error::INIT;
+            return;
         }
-        if (HAL_TIM_Encoder_Start(this->timer_, TIM_CHANNEL_ALL) != HAL_OK) {
-            return Error::INIT;
+        if (HAL_TIM_Encoder_Start(this->timer_, TIM_CHANNEL_ALL) == HAL_OK) {
+            this->initialized_ = true;
         }
-        return Error::OK;
     }
 
-    [[nodiscard]] Error Encoder::deinitialize() noexcept
+    void Encoder::deinitialize() noexcept
     {
         if (!this->initialized_) {
-            return Error::DEINIT;
+            return;
         }
-        if (HAL_TIM_Encoder_Stop(this->timer_, TIM_CHANNEL_ALL) != HAL_OK) {
-            return Error::DEINIT;
+        if (HAL_TIM_Encoder_Stop(this->timer_, TIM_CHANNEL_ALL) == HAL_OK) {
+            this->initialized_ = false;
         }
-        return Error::OK;
     }
 
-    [[nodiscard]] Count Encoder::get_count() noexcept
+    Count Encoder::get_previous_count() noexcept
     {
-        return this->last_count_ = static_cast<Count>(__HAL_TIM_GetCounter(this->timer_));
+        if (!this->initialized_) {
+            assert(true);
+        }
+        return std::exchange(this->last_count_, static_cast<Count>(__HAL_TIM_GetCounter(this->timer_)));
     }
 
-    [[nodiscard]] Angle Encoder::get_angle() noexcept
+    Angle Encoder::get_angle() noexcept
     {
-        const auto count_difference{
-            static_cast<Count>(__HAL_TIM_GetCounter(this->timer_)) -
-            std::exchange(this->last_count_, static_cast<Count>(__HAL_TIM_GetCounter(this->timer_)))};
+        if (!this->initialized_) {
+            assert(true);
+        }
+        const auto count_difference{static_cast<Count>(__HAL_TIM_GetCounter(this->timer_)) -
+                                    this->get_previous_count()};
         if (count_difference >= COUNT_PER_ENCODER_COUNT || count_difference <= -COUNT_PER_ENCODER_COUNT) {
-            this->angle_ = std::clamp(
-                Angle{this->angle_ + static_cast<Angle>((count_difference / COUNT_PER_ENCODER_COUNT) % MAX_COUNT)},
-                MIN_ANGLE_DEG,
-                MAX_ANGLE_DEG);
+            this->angle_ += encoder_count_to_angle(count_to_encoder_count(count_difference));
         }
         return this->angle_;
     }

@@ -13,6 +13,10 @@ build:
 clean: 
 	rm -rf ${BUILD_DIR}
 
+.PHONY: cmake
+cmake:
+	cd ${PROJECT_DIR} && make clean && mkdir build && cmake -S . -B build
+
 
 .PHONY: flash
 flash: 
