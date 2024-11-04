@@ -34,7 +34,7 @@ void MX_TIM1_Init(void)
 
     /* USER CODE END TIM1_Init 0 */
 
-    TIM_HallSensor_InitTypeDef sConfig = {0};
+    TIM_Encoder_InitTypeDef sConfig = {0};
     TIM_MasterConfigTypeDef sMasterConfig = {0};
 
     /* USER CODE BEGIN TIM1_Init 1 */
@@ -47,14 +47,19 @@ void MX_TIM1_Init(void)
     htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     htim1.Init.RepetitionCounter = 0;
     htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+    sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
     sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+    sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
     sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
     sConfig.IC1Filter = 0;
-    sConfig.Commutation_Delay = 0;
-    if (HAL_TIMEx_HallSensor_Init(&htim1, &sConfig) != HAL_OK) {
+    sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+    sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+    sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+    sConfig.IC2Filter = 0;
+    if (HAL_TIM_Encoder_Init(&htim1, &sConfig) != HAL_OK) {
         Error_Handler();
     }
-    sMasterConfig.MasterOutputTrigger = TIM_TRGO_OC2REF;
+    sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
     sMasterConfig.MasterOutputTrigger2 = TIM_TRGO2_RESET;
     sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
     if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK) {
@@ -112,10 +117,10 @@ void MX_TIM2_Init(void)
     HAL_TIM_MspPostInit(&htim2);
 }
 
-void HAL_TIMEx_HallSensor_MspInit(TIM_HandleTypeDef* timex_hallsensorHandle)
+void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef* tim_encoderHandle)
 {
     GPIO_InitTypeDef GPIO_InitStruct = {0};
-    if (timex_hallsensorHandle->Instance == TIM1) {
+    if (tim_encoderHandle->Instance == TIM1) {
         /* USER CODE BEGIN TIM1_MspInit 0 */
 
         /* USER CODE END TIM1_MspInit 0 */
@@ -126,9 +131,8 @@ void HAL_TIMEx_HallSensor_MspInit(TIM_HandleTypeDef* timex_hallsensorHandle)
         /**TIM1 GPIO Configuration
         PA8     ------> TIM1_CH1
         PA9     ------> TIM1_CH2
-        PA10     ------> TIM1_CH3
         */
-        GPIO_InitStruct.Pin = GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10;
+        GPIO_InitStruct.Pin = GPIO_PIN_8 | GPIO_PIN_9;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -179,9 +183,9 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
     }
 }
 
-void HAL_TIMEx_HallSensor_MspDeInit(TIM_HandleTypeDef* timex_hallsensorHandle)
+void HAL_TIM_Encoder_MspDeInit(TIM_HandleTypeDef* tim_encoderHandle)
 {
-    if (timex_hallsensorHandle->Instance == TIM1) {
+    if (tim_encoderHandle->Instance == TIM1) {
         /* USER CODE BEGIN TIM1_MspDeInit 0 */
 
         /* USER CODE END TIM1_MspDeInit 0 */
@@ -191,9 +195,8 @@ void HAL_TIMEx_HallSensor_MspDeInit(TIM_HandleTypeDef* timex_hallsensorHandle)
         /**TIM1 GPIO Configuration
         PA8     ------> TIM1_CH1
         PA9     ------> TIM1_CH2
-        PA10     ------> TIM1_CH3
         */
-        HAL_GPIO_DeInit(GPIOA, GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10);
+        HAL_GPIO_DeInit(GPIOA, GPIO_PIN_8 | GPIO_PIN_9);
 
         /* USER CODE BEGIN TIM1_MspDeInit 1 */
 
