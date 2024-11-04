@@ -26,7 +26,6 @@ namespace InvertedSway {
 
     Count Encoder::count_to_encoder_count(const Count count) noexcept
     {
-        assert(count <= MAX_COUNT && count >= MIN_COUNT);
         return (count / COUNT_PER_ENCODER_COUNT) % ENCODER_COUNT_PER_REVOLUTION;
     }
 
