@@ -58,6 +58,11 @@ namespace InvertedSway {
             // implement lqr algorithm here
             return error;
         }
+
+        Value placeholder1{};
+        Value placeholder2{};
+        Value placeholder3{};
+        Value placeholder4{};
     };
 
     template <Linalg::Arithmetic Value>
@@ -67,6 +72,11 @@ namespace InvertedSway {
             // implement adrc algorithm here
             return error;
         }
+
+        Value placeholder1{};
+        Value placeholder2{};
+        Value placeholder3{};
+        Value placeholder4{};
     };
 
     /* BINARY */
@@ -100,6 +110,9 @@ namespace InvertedSway {
             // return this->state;
             return Value{}; // for compatibility with other variants
         }
+
+        Value placeholder1{};
+        Value placeholder2{};
 
         Value hysteresis_up{};
         Value hysteresis_down{};
@@ -142,6 +155,9 @@ namespace InvertedSway {
             // return this->state;
             return Value{}; // for compatibility with other variants
         }
+
+        Value placeholder1{};
+        Value placeholder2{};
 
         Value hysteresis_up{};
         Value hysteresis_down{};
@@ -204,6 +220,11 @@ namespace InvertedSway {
             // implement lqr algorithm here
             return error;
         }
+
+        Value placeholder1{};
+        Value placeholder2{};
+        Value placeholder3{};
+        Value placeholder4{};
     };
 
     template <Linalg::Arithmetic Value>
@@ -213,6 +234,11 @@ namespace InvertedSway {
             // implement adrc algorithm here
             return error;
         }
+
+        Value placeholder1{};
+        Value placeholder2{};
+        Value placeholder3{};
+        Value placeholder4{};
     };
 
     /* BINARY */
@@ -246,6 +272,9 @@ namespace InvertedSway {
             // return this->state;
             return Value{}; // for compatibility with other variants
         }
+
+        Value placeholder1{};
+        Value placeholder2{};
 
         Value hysteresis_up{};
         Value hysteresis_down{};
@@ -288,6 +317,9 @@ namespace InvertedSway {
             // return this->state;
             return Value{}; // for compatibility with other variants
         }
+
+        Value placeholder1{};
+        Value placeholder2{};
 
         Value hysteresis_up{};
         Value hysteresis_down{};
@@ -359,6 +391,11 @@ namespace InvertedSway {
             // implement lqr algorithm here
             return error;
         }
+
+        Value placeholder1{};
+        Value placeholder2{};
+        Value placeholder3{};
+        Value placeholder4{};
     };
 
     template <Linalg::Arithmetic Value>
@@ -368,6 +405,11 @@ namespace InvertedSway {
             // implement adrc algorithm here
             return error;
         }
+
+        Value placeholder1{};
+        Value placeholder2{};
+        Value placeholder3{};
+        Value placeholder4{};
     };
 
     /* BINARY */
@@ -401,6 +443,9 @@ namespace InvertedSway {
             // return this->state;
             return Value{}; // for compatibility with other variants
         }
+
+        Value placeholder1{};
+        Value placeholder2{};
 
         Value hysteresis_up{};
         Value hysteresis_down{};
@@ -443,6 +488,9 @@ namespace InvertedSway {
             // return this->state;
             return Value{}; // for compatibility with other variants
         }
+
+        Value placeholder1{};
+        Value placeholder2{};
 
         Value hysteresis_up{};
         Value hysteresis_down{};

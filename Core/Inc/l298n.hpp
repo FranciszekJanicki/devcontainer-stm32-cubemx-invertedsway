@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdint>
 #include <expected>
+#include <tuple>
 #include <utility>
 
 namespace InvertedSway {
@@ -34,8 +35,17 @@ namespace InvertedSway {
         using MotorChannels = std::array<MotorChannel, 2>;
 
         template <typename... MotorArgs>
-        [[nodiscard]] static MotorChannel make_motor_channel(const Channel channel, MotorArgs... motor_args) noexcept;
-        [[nodiscard]] static MotorChannel make_motor_channel(const Channel channel) noexcept;
+        static MotorChannel make_motor_channel(const Channel channel, MotorArgs... motor_args) noexcept
+        {
+            return MotorChannel{std::piecewise_construct,
+                                std::forward_as_tuple(channel),
+                                std::forward_as_tuple(motor_args...)};
+        }
+
+        static MotorChannel make_motor_channel(const Channel channel) noexcept
+        {
+            return MotorChannel{std::piecewise_construct, std::forward_as_tuple(channel), std::forward_as_tuple()};
+        }
 
         L298N() noexcept = default;
 

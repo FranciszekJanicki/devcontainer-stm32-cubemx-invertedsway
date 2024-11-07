@@ -12,6 +12,7 @@ namespace InvertedSway {
     using Error = L298N::Error;
     using Direction = L298N::Direction;
     using Channel = L298N::Channel;
+    using MotorChannel = L298N::MotorChannel;
     using MotorChannels = L298N::MotorChannels;
     using Raw = L298N::Raw;
     using Speed = L298N::Speed;
@@ -23,21 +24,6 @@ namespace InvertedSway {
     using ExpectedSpeed = L298N::ExpectedSpeed;
     using ExpectedTorque = L298N::ExpectedTorque;
     using Unexpected = L298N::Unexpected;
-
-    template <typename... MotorArgs>
-    MotorChannel L298N::make_motor_channel(const Channel channel, MotorArgs... motor_args) noexcept
-    {
-        return std::pair<Channel, Motor>{std::piecewise_construct,
-                                         std::forward_as_tuple(channel),
-                                         std::forward_as_tuple(motor_args...)};
-    }
-
-    MotorChannel L298N::make_motor_channel(const Channel channel) noexcept
-    {
-        return std::pair<Channel, Motor>{std::piecewise_construct,
-                                         std::forward_as_tuple(channel),
-                                         std::forward_as_tuple()};
-    }
 
     L298N::L298N(const MotorChannels& motor_channels) noexcept : motor_channels_{motor_channels}
     {
