@@ -31,6 +31,7 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 )
 
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
+    "Core/Src/system_clock.c"
     "Core/Src/main.cpp"
     "Core/Inc/arithmetic.hpp"
     "Core/Inc/quaternion3d.hpp"
