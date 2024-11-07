@@ -29,6 +29,7 @@ namespace InvertedSway {
 
         ~System() noexcept;
 
+        void balance_sway(const Value angle, const Value dt) noexcept;
         void operator()(const Value angle, const Value dt) noexcept;
 
     private:
@@ -47,8 +48,6 @@ namespace InvertedSway {
 
         void update_direction() noexcept;
         void update_compare() noexcept;
-
-        bool initialized_{false};
 
         Value dt_{1};
 

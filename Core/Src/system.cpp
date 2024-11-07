@@ -25,21 +25,36 @@ namespace InvertedSway {
         regulator_{std::forward<RegulatorBlock>(regulator)},
         encoder_{std::forward<Encoder>(encoder)}
     {
-        // do setup
+        this->l298n_.set_direction(L298N::Channel::CHANNEL1, Motor::Direction::SOFT_STOP);
+        this->l298n_.set_compare_voltage(L298N::Channel::CHANNEL1, angle_to_voltage(this->control_signal_));
     }
 
     System::~System() noexcept
     {
-        // undo setup
+        this->l298n_.set_direction(L298N::Channel::CHANNEL1, Motor::Direction::SOFT_STOP);
+        this->l298n_.set_compare_voltage(L298N::Channel::CHANNEL1, 0);
     }
 
-    void System::operator()(const Value input_signal, const Value dt) noexcept
+    void System::balance_sway(const Value angle, const Value dt) noexcept
     {
         this->update_dt(dt);
-        this->update_input_signal(input_signal);
+        this->update_input_signal(angle);
         this->update_output_signal();
         this->update_error_signal();
         this->update_control_signal();
+        this->update_direction();
+        this->update_compare();
+    }
+
+    void System::operator()(const Value angle, const Value dt) noexcept
+    {
+        this->update_dt(dt);
+        this->update_input_signal(angle);
+        this->update_output_signal();
+        this->update_error_signal();
+        this->update_control_signal();
+        this->update_direction();
+        this->update_compare();
     }
 
     void System::update_dt(const Value dt) noexcept

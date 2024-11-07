@@ -127,8 +127,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
     if (htim == nullptr) {
         return;
     }
-    if (htim == &htim2) {
-        (*system_handle)(ANGLE, SAMPLING_TIME);
+    if (htim->Instance == TIM1) {
+        system_handle->balance_sway(ANGLE, SAMPLING_TIME);
     }
 }
 
