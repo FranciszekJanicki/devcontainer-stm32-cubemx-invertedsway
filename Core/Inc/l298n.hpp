@@ -33,6 +33,10 @@ namespace InvertedSway {
         using MotorChannel = std::pair<Channel, Motor>;
         using MotorChannels = std::array<MotorChannel, 2>;
 
+        template <typename... MotorArgs>
+        [[nodiscard]] static MotorChannel make_motor_channel(const Channel channel, MotorArgs... motor_args) noexcept;
+        [[nodiscard]] static MotorChannel make_motor_channel(const Channel channel) noexcept;
+
         L298N() noexcept = default;
 
         L298N(const MotorChannels& motor_channels) noexcept;

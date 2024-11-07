@@ -8,9 +8,15 @@
 #include "tim.h"
 #include "usart.h"
 #include <cstdio>
+#include <span>
 #include <system.hpp>
+#include <type_traits>
+#include <utility>
 
 using namespace InvertedSway;
+
+constexpr MPU6050::Scaled ANGLE = 0;
+constexpr MPU6050::Scaled SAMPLING_TIME = 1;
 
 void SystemClock_Config(void)
 {
@@ -53,9 +59,23 @@ void SystemClock_Config(void)
     }
 }
 
+namespace BetterMain {
+
+    using Arguments = std::span<const char*>;
+
+    template <typename Value>
+    [[nodiscard]] constexpr auto main(const Arguments arguments) noexcept -> decltype(auto)
+        requires(std::is_integral_v<Value>)
+    {
+        return Value{0};
+    }
+
+}; // namespace BetterMain
+
+// for using System object in callback
 System* system_handle{nullptr};
 
-int main()
+int main(const int argc, const char* argv[])
 {
     HAL_Init();
     SystemClock_Config();
@@ -66,72 +86,51 @@ int main()
     MX_I2C1_Init();
     MX_TIM1_Init();
 
-    // System system{MPU6050{},
-    //               L298N{},
-    //               Kalman<double>{},
-    //               make_regulator_variant<double>(RegulatorAlgo::PID, 1.0, 1.0, 0.1, 0.0),
-    //               Encoder{}};
-    // system_handle = &system;
-
-    printf("dupa");
-
-    // MPU6050 mpu6050{&hi2c1,
-    //                 MPU6050::ADDRESS,
-    //                 MPU6050::GYRO_FS_250,
-    //                 MPU6050::ACCEL_FS_2,
-    //                 MPU6050::GyroFilter{make_recursive_average<MPU6050::GyroRaw, MPU6050::Raw>()},
-    //                 MPU6050::AccelFilter{make_recursive_average<MPU6050::AccelRaw, MPU6050::Raw>()}};
-
     L298N l298n{L298N::MotorChannels{
-        L298N::MotorChannel{std::piecewise_construct,
-                            std::forward_as_tuple(L298N::Channel::CHANNEL1),
-                            std::forward_as_tuple(&htim2, TIM_CHANNEL_1, GPIOB, IN1_Pin, IN3_Pin, OUT1_Pin, OUT3_Pin)},
-        L298N::MotorChannel{std::piecewise_construct,
-                            std::forward_as_tuple(L298N::Channel::CHANNEL2),
-                            std::forward_as_tuple()},
+        L298N::make_motor_channel(L298N::Channel::CHANNEL1,
+                                  &htim2,
+                                  TIM_CHANNEL_1,
+                                  GPIOB,
+                                  IN1_Pin,
+                                  IN3_Pin,
+                                  OUT1_Pin,
+                                  OUT3_Pin),
+        L298N::make_motor_channel(L298N::Channel::CHANNEL2),
     }};
 
-    double voltage{0};
-    double voltage_step{0.1};
+    MPU6050 mpu6050{&hi2c1,
+                    MPU6050::ADDRESS,
+                    MPU6050::GYRO_FS_250,
+                    MPU6050::ACCEL_FS_2,
+                    make_recursive_average<MPU6050::GyroRaw, MPU6050::Raw>(),
+                    make_recursive_average<MPU6050::AccelRaw, MPU6050::Raw>()};
 
-    l298n.set_compare_voltage(L298N::Channel::CHANNEL1, voltage);
-    l298n.set_direction(L298N::Channel::CHANNEL1, Motor::Direction::FORWARD);
+    auto kalman = make_kalman<MPU6050::Scaled>(0.0, 0.0, 0.0, 0.0, 0.0);
+
+    auto regulator = make_regulator<MPU6050::Scaled>(RegulatorAlgo::PID, 0.0, 0.0, 0.0, 0.0);
+
+    Encoder encoder{&htim1, ANGLE};
+
+    System system{std::move(mpu6050), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
+    system_handle = &system;
 
     while (true) {
-        //     const auto& [ax, ay, az]{mpu6050.get_accelerometer_scaled()};
-        //     const auto& [gx, gy, gz]{mpu6050.get_gyroscope_scaled()};
-        //     const auto temperature{mpu6050.get_temperature_celsius()};
-        //     printf("ACC: X: %.2f Y:%.2f Z:%.2f \n\rGYR: X: %.2f Y:%.2f "
-        //            "Z:%.2f\n\rTEMP: %.2f\n\r",
-        //            ax,
-        //            ay,
-        //            az,
-        //            gx,
-        //            gy,
-        //            gz,
-        //            temperature);
-
-        //     const auto& [roll, pitch, yaw]{mpu6050.get_roll_pitch_yaw()};
-        //     printf("RPY: Roll: %.2f Pitch: %.2f Yaw: %.2f\n\r", roll, pitch, yaw);
-
-        if (voltage + voltage_step > 6 || voltage + voltage_step < 0) {
-            voltage_step *= -1;
-        }
-        voltage += voltage_step;
-        l298n.set_compare_voltage(L298N::Channel::CHANNEL1, voltage);
-        HAL_Delay(100);
+        ;
+        ;
     }
+
+    return BetterMain::main<int>(BetterMain::Arguments{argv, argc});
 }
 
-// void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
-// {
-//     if (htim == nullptr) {
-//         return;
-//     }
-//     if (htim == &htim2) {
-//         (*system_handle)(0.0);
-//     }
-// }
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+{
+    if (htim == nullptr) {
+        return;
+    }
+    if (htim == &htim2) {
+        (*system_handle)(ANGLE, SAMPLING_TIME);
+    }
+}
 
 // void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 // {

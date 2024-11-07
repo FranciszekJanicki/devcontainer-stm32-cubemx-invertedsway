@@ -14,7 +14,7 @@ namespace InvertedSway {
     struct Encoder {
     public:
         using Count = std::uint16_t;
-        using Angle = std::int16_t;
+        using Angle = double;
 
         Encoder() noexcept = default;
         Encoder(TimerHandle timer, const Angle starting_angle) noexcept;

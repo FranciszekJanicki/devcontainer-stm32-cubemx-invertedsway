@@ -24,12 +24,19 @@ namespace InvertedSway {
     using ExpectedTorque = L298N::ExpectedTorque;
     using Unexpected = L298N::Unexpected;
 
-    void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+    template <typename... MotorArgs>
+    MotorChannel L298N::make_motor_channel(const Channel channel, MotorArgs... motor_args) noexcept
     {
+        return std::pair<Channel, Motor>{std::piecewise_construct,
+                                         std::forward_as_tuple(channel),
+                                         std::forward_as_tuple(motor_args...)};
     }
 
-    void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim)
+    MotorChannel L298N::make_motor_channel(const Channel channel) noexcept
     {
+        return std::pair<Channel, Motor>{std::piecewise_construct,
+                                         std::forward_as_tuple(channel),
+                                         std::forward_as_tuple()};
     }
 
     L298N::L298N(const MotorChannels& motor_channels) noexcept : motor_channels_{motor_channels}
@@ -144,11 +151,9 @@ namespace InvertedSway {
 
     const Motor& L298N::get_motor(const Channel channel) const noexcept
     {
-        if (const auto motor_channel{std::ranges::find_if(std::as_const(this->motor_channels_),
-                                                          [channel](const auto& item) {
-                                                              const auto& [key, value]{item};
-                                                              return key == channel;
-                                                          })};
+        if (const auto motor_channel{
+                std::ranges::find_if(std::as_const(this->motor_channels_),
+                                     [channel](const auto& item) { return item.first == channel; })};
             motor_channel != this->motor_channels_.cend()) {
             return motor_channel->second;
         }
@@ -158,10 +163,7 @@ namespace InvertedSway {
     Motor& L298N::get_motor(const Channel channel) noexcept
     {
         if (auto motor_channel{std::ranges::find_if(this->motor_channels_,
-                                                    [channel](const auto& item) {
-                                                        const auto& [key, value]{item};
-                                                        return key == channel;
-                                                    })};
+                                                    [channel](const auto& item) { return item.first == channel; })};
             motor_channel != this->motor_channels_.cend()) {
             return motor_channel->second;
         }
