@@ -64,7 +64,7 @@ namespace BetterMain {
 
         auto regulator = make_regulator<MPU6050::Scaled>(RegulatorAlgo::PID, 0.0, 0.0, 0.0, 0.0);
 
-        Encoder encoder{&htim1, ANGLE};
+        Encoder encoder{&htim1};
 
         System system{std::move(mpu6050),
                       std::move(l298n),

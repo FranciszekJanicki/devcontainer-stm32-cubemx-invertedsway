@@ -53,8 +53,8 @@ namespace InvertedSway {
         if (!this->initialized_) {
             assert(true);
         }
-        this->count_ += static_cast<Count>(__HAL_TIM_GetCounter(this->timer_) - this->last_count_);
-        this->last_count_ = this->count_;
+        this->count_ +=
+            static_cast<Count>(__HAL_TIM_GetCounter(this->timer_) - std::exchange(this->last_count_, this->count_));
         return pulses_to_angle(count_to_pulses(this->count_));
     }
 
