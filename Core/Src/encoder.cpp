@@ -48,21 +48,14 @@ namespace InvertedSway {
         }
     }
 
-    Count Encoder::get_previous_count() noexcept
-    {
-        if (!this->initialized_) {
-            assert(true);
-        }
-        return std::exchange(this->last_count_, static_cast<Count>(__HAL_TIM_GetCounter(this->timer_)));
-    }
-
     Angle Encoder::get_angle() noexcept
     {
         if (!this->initialized_) {
             assert(true);
         }
-        return pulses_to_angle(
-            count_to_pulses(static_cast<Count>(__HAL_TIM_GetCounter(this->timer_)) - this->get_previous_count()));
+        this->count_ += static_cast<Count>(__HAL_TIM_GetCounter(this->timer_) - this->last_count_);
+        this->last_count_ = this->count_;
+        return pulses_to_angle(count_to_pulses(this->count_));
     }
 
 }; // namespace InvertedSway

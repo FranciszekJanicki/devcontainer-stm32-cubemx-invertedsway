@@ -47,7 +47,8 @@ namespace InvertedSway {
 
         TimerHandle timer_{nullptr};
 
-        std::uint64_t last_count_{};
+        Count last_count_{};
+        Count count_{};
 
         bool initialized_{false};
     };
