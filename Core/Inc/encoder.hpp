@@ -17,7 +17,7 @@ namespace InvertedSway {
         using Angle = double;
 
         Encoder() noexcept = default;
-        Encoder(TimerHandle timer, const Angle starting_angle) noexcept;
+        Encoder(TimerHandle timer) noexcept;
 
         Encoder(const Encoder& other) noexcept = default;
         Encoder(Encoder&& other) noexcept = default;
@@ -47,7 +47,6 @@ namespace InvertedSway {
 
         TimerHandle timer_{nullptr};
 
-        Angle angle_{};
         std::uint64_t last_count_{};
 
         bool initialized_{false};

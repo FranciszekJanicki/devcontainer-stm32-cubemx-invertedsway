@@ -5,7 +5,7 @@ namespace InvertedSway {
     using Count = Encoder::Count;
     using Angle = Encoder::Angle;
 
-    Encoder::Encoder(TimerHandle timer, const Angle starting_angle) noexcept : timer_{timer}, angle_{starting_angle}
+    Encoder::Encoder(TimerHandle timer) noexcept : timer_{timer}
     {
         this->initialize();
     }
