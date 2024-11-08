@@ -30,19 +30,17 @@ namespace InvertedSway {
         [[nodiscard]] Angle get_angle() noexcept;
 
     private:
-        static Angle encoder_count_to_angle(const Count encoder_count) noexcept;
-        static Count count_to_encoder_count(const Count count) noexcept;
+        static Angle pulses_to_angle(const Count pulse) noexcept;
+        static Count count_to_pulses(const Count count) noexcept;
 
         Count get_previous_count() noexcept;
 
         void initialize() noexcept;
         void deinitialize() noexcept;
 
-        static constexpr Count COUNT_PER_ENCODER_COUNT{4};
-        static constexpr Count ENCODER_COUNT_PER_REVOLUTION{10};
-
-        static constexpr Count MIN_COUNT{0};
-        static constexpr Count MAX_COUNT{static_cast<Count>(std::pow(2, 16) - 1)};
+        static constexpr Count COUNTS_PER_PULSE{4};
+        static constexpr Count PULSES_PER_REVOLUTION{40};
+        static constexpr Count COUNTER_PERIOD{65535};
 
         static constexpr Angle MIN_ANGLE_DEG{0};
         static constexpr Angle MAX_ANGLE_DEG{360};

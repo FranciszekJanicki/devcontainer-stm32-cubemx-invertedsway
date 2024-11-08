@@ -27,9 +27,11 @@ namespace BetterMain {
     using Arguments = std::span<const char*>;
 
     template <typename Value>
-    [[nodiscard]] constexpr auto main(const Arguments arguments) noexcept -> decltype(auto)
+    [[nodiscard]] constexpr auto main(const Arguments arguments) noexcept(false) -> decltype(auto)
         requires(std::is_integral_v<Value>)
     {
+        [[assume(true == true)]]
+
         HAL_Init();
         SystemClock_Config();
 

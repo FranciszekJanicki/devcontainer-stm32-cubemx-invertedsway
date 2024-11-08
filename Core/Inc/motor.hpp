@@ -5,7 +5,6 @@
 #include "stm32l4xx_hal.h"
 #include "stm32l4xx_hal_gpio.h"
 #include "stm32l4xx_hal_tim.h"
-#include <cmath>
 #include <cstdint>
 #include <expected>
 
@@ -28,9 +27,9 @@ namespace InvertedSway {
         };
 
         using Raw = std::uint16_t;
-        using Speed = std::double_t;
-        using Voltage = std::double_t;
-        using Torque = std::double_t;
+        using Speed = double;
+        using Voltage = double;
+        using Torque = double;
         using ExpectedVoltage = std::expected<Voltage, Error>;
         using ExpectedSpeed = std::expected<Speed, Error>;
         using ExpectedTorque = std::expected<Torque, Error>;
@@ -85,7 +84,8 @@ namespace InvertedSway {
         static Torque raw_to_torque(const Raw raw) noexcept;
         static Raw torque_to_raw(const Torque torque) noexcept;
 
-        static constexpr Raw MAX_RAW{static_cast<Raw>(std::pow(2, 16) - 1)};
+        static constexpr Raw COUNTER_PERIOD{65535};
+        static constexpr Raw MAX_RAW{COUNTER_PERIOD};
         static constexpr Raw MIN_RAW{0};
 
         static inline Voltage MAX_VOLTAGE_V{12};
