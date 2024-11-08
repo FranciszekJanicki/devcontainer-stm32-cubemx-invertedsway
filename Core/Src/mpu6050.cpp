@@ -8,6 +8,35 @@
 #include <cstdio>
 #include <expected>
 
+// void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+// {
+//     if (GPIO_Pin == INTR_Pin) {
+//         const auto interrupts{mpu6050_handle->get_int_status_register()};
+//         mpu6050_handle->get_motion_status_register();
+//         printf( "int_ status triggered: %X\n\n\r", interrupts);
+
+//         if (interrupts & (0x01 << MPU6050::INTERRUPT_FIFO_OFLOW_BIT)) // Bit 4 (0x10)
+//         {
+//             printf( "FIFO Overflow detected\n\r");
+//         }
+
+//         if (interrupts & (0x01 << MPU6050::INTERRUPT_MOT_BIT)) // Bit 6 (0x40)
+//         {
+//             printf( "Motion detected\n\r");
+//         }
+
+//         if (interrupts & (0x01 << MPU6050::INTERRUPT_ZMOT_BIT)) // Bit 5 (0x20)
+//         {
+//             printf( "Zero Motion detected\n\r");
+//         }
+
+//         if (interrupts & (0x01 << MPU6050::INTERRUPT_FF_BIT)) // Bit 7 (0x80)
+//         {
+//             printf( "Freefall detected\n\r");
+//         }
+//     }
+// }
+
 namespace InvertedSway {
 
     using Error = MPU6050::Error;

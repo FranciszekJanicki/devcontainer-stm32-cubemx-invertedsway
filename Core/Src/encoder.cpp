@@ -17,7 +17,6 @@ namespace InvertedSway {
 
     Angle Encoder::pulses_to_angle(const Count pulses) noexcept
     {
-        assert(pulses <= PULSES_PER_REVOLUTION && pulses >= 0);
         return std::clamp(Angle{pulses * (MAX_ANGLE_DEG - MIN_ANGLE_DEG) / PULSES_PER_REVOLUTION + MIN_ANGLE_DEG},
                           MIN_ANGLE_DEG,
                           MAX_ANGLE_DEG);

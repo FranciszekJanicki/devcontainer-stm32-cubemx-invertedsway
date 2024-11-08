@@ -40,7 +40,6 @@ namespace InvertedSway {
 
     Speed Motor::raw_to_speed(const Raw raw) noexcept
     {
-        assert(raw <= MAX_RAW && raw >= MIN_RAW);
         return std::clamp(
             Speed{(raw - MIN_RAW) * (MAX_SPEED_RPM - MIN_SPEED_RPM) / (MAX_RAW - MIN_RAW) + MAX_SPEED_RPM},
             MIN_SPEED_RPM,
@@ -49,7 +48,6 @@ namespace InvertedSway {
 
     Raw Motor::speed_to_raw(const Speed speed) noexcept
     {
-        assert(speed <= MAX_SPEED_RPM && speed >= MIN_SPEED_RPM);
         return std::clamp(
             Raw{(speed - MIN_SPEED_RPM) * (MAX_RAW - MIN_RAW) / (MAX_SPEED_RPM - MIN_SPEED_RPM) + MIN_RAW},
             MIN_RAW,
@@ -58,7 +56,6 @@ namespace InvertedSway {
 
     Voltage Motor::raw_to_voltage(const Raw raw) noexcept
     {
-        assert(raw <= MAX_RAW && raw >= MIN_RAW);
         return std::clamp(
             Voltage{(raw - MIN_RAW) * (MAX_VOLTAGE_V - MIN_VOLTAGE_V) / (MAX_RAW - MIN_RAW) + MIN_VOLTAGE_V},
             MIN_VOLTAGE_V,
@@ -67,7 +64,6 @@ namespace InvertedSway {
 
     Raw Motor::voltage_to_raw(const Voltage voltage) noexcept
     {
-        assert(voltage <= MAX_VOLTAGE_V && voltage >= MIN_VOLTAGE_V);
         return std::clamp(
             Raw{(voltage - MIN_VOLTAGE_V) * (MAX_RAW - MIN_RAW) / Raw(MAX_VOLTAGE_V - MIN_VOLTAGE_V) + MIN_RAW},
             MIN_RAW,
@@ -76,7 +72,6 @@ namespace InvertedSway {
 
     Torque Motor::raw_to_torque(const Raw raw) noexcept
     {
-        assert(raw <= MAX_RAW && raw >= MIN_RAW);
         return std::clamp(
             Torque{(raw - MIN_RAW) * (MAX_TORQUE_NM - MIN_TORQUE_NM) / Torque(MAX_RAW - MIN_RAW) + MIN_TORQUE_NM},
             MIN_TORQUE_NM,
@@ -85,7 +80,6 @@ namespace InvertedSway {
 
     Raw Motor::torque_to_raw(const Torque torque) noexcept
     {
-        assert(torque <= MAX_TORQUE_NM && torque >= MIN_TORQUE_NM);
         return std::clamp(
             Raw{(torque - MIN_TORQUE_NM) * (MAX_RAW - MIN_RAW) / (MAX_TORQUE_NM - MIN_TORQUE_NM) + MIN_RAW},
             MIN_RAW,
@@ -154,7 +148,6 @@ namespace InvertedSway {
 
     Error Motor::set_compare_voltage(const Voltage voltage) const noexcept
     {
-        assert(voltage <= MAX_VOLTAGE_V && voltage >= MIN_VOLTAGE_V);
         if (voltage >= MAX_VOLTAGE_V || voltage <= MIN_VOLTAGE_V) {
             return Error::FAIL;
         }
