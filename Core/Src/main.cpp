@@ -1,42 +1,17 @@
 #include "main.h"
+#include "event_handler.hpp"
 #include "filters.hpp"
 #include "gpio.h"
 #include "i2c.h"
 #include "l298n.hpp"
 #include "mpu6050.hpp"
 #include "regulator.hpp"
+#include "system.hpp"
 #include "system_clock.h"
 #include "tim.h"
 #include "usart.h"
 #include <cstdio>
-#include <span>
-#include <system.hpp>
-#include <type_traits>
 #include <utility>
-
-enum struct Event {
-    TIMER_ELAPSED,
-    PRINT_DUTKIEWICZ,
-    PRINT_DUPA,
-    PRINT_KARDYS,
-    PRINT_BERNAT,
-    PRINT_BOLTRUKIEWICZ,
-    NONE,
-};
-
-struct EventHandler {
-    void set_event(const Event event) noexcept
-    {
-        this->event = event;
-    }
-
-    [[nodiscard]] Event get_event() noexcept
-    {
-        return std::exchange(this->event, Event::NONE);
-    }
-
-    Event event{Event::NONE};
-};
 
 static EventHandler event_handler{};
 
@@ -88,7 +63,7 @@ int main()
     HAL_TIM_Base_Start_IT(&htim2);
 
     while (true) {
-        switch (event_handler.get_event()) {
+        switch (event_handler.get_event().value_or(Event::NONE)) {
             case Event::TIMER_ELAPSED: {
                 system.balance_sway(angle_degrees, sampling_time);
                 break;

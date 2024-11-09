@@ -44,6 +44,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Inc/kalman.hpp"
     "Core/Src/system.cpp"
     "Core/Src/encoder.cpp"
+    "Core/Inc/event_handler.hpp"
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
