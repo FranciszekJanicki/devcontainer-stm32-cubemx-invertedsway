@@ -40,104 +40,90 @@ struct EventHandler {
 
 static EventHandler event_handler{};
 
-namespace BetterMain {
+int main()
+{
+    using namespace InvertedSway;
 
-    using Arguments = std::span<const char*>;
+    HAL_Init();
+    SystemClock_Config();
 
-    template <typename Value>
-    [[nodiscard]] constexpr auto main(const Arguments arguments) noexcept(false) -> decltype(auto)
-        requires(std::is_integral_v<Value>)
-    {
-        [[assume(true == true)]]
+    MX_GPIO_Init();
+    MX_USART2_UART_Init();
+    MX_TIM2_Init();
+    MX_I2C1_Init();
+    MX_TIM1_Init();
 
-        using namespace InvertedSway;
+    L298N l298n{L298N::MotorChannels{
+        L298N::make_motor_channel(L298N::Channel::CHANNEL1,
+                                  &htim2,
+                                  TIM_CHANNEL_1,
+                                  GPIOB,
+                                  IN1_Pin,
+                                  IN3_Pin,
+                                  OUT1_Pin,
+                                  OUT3_Pin),
+        L298N::make_motor_channel(L298N::Channel::CHANNEL2),
+    }};
 
-        HAL_Init();
-        SystemClock_Config();
+    MPU6050 mpu6050{&hi2c1,
+                    MPU6050::ADDRESS,
+                    MPU6050::GYRO_FS_250,
+                    MPU6050::ACCEL_FS_2,
+                    MPU6050::make_gyro_filter(),
+                    MPU6050::make_accel_filter()};
 
-        MX_GPIO_Init();
-        MX_USART2_UART_Init();
-        MX_TIM2_Init();
-        MX_I2C1_Init();
-        MX_TIM1_Init();
+    auto kalman{make_kalman<MPU6050::Scaled>(0.0, 0.0, 0.0, 0.0, 0.0)};
 
-        L298N l298n{L298N::MotorChannels{
-            L298N::make_motor_channel(L298N::Channel::CHANNEL1,
-                                      &htim2,
-                                      TIM_CHANNEL_1,
-                                      GPIOB,
-                                      IN1_Pin,
-                                      IN3_Pin,
-                                      OUT1_Pin,
-                                      OUT3_Pin),
-            L298N::make_motor_channel(L298N::Channel::CHANNEL2),
-        }};
+    auto regulator{make_regulator<MPU6050::Scaled>(RegulatorAlgo::PID, 0.0, 0.0, 0.0, 0.0)};
 
-        MPU6050 mpu6050{&hi2c1,
-                        MPU6050::ADDRESS,
-                        MPU6050::GYRO_FS_250,
-                        MPU6050::ACCEL_FS_2,
-                        MPU6050::make_gyro_filter(),
-                        MPU6050::make_accel_filter()};
+    Encoder encoder{&htim1};
 
-        auto kalman{make_kalman<MPU6050::Scaled>(0.0, 0.0, 0.0, 0.0, 0.0)};
+    System system{std::move(mpu6050), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
 
-        auto regulator{make_regulator<MPU6050::Scaled>(RegulatorAlgo::PID, 0.0, 0.0, 0.0, 0.0)};
+    const MPU6050::Scaled angle_degrees{0};
 
-        Encoder encoder{&htim1};
+    // timer2 is set to meausre 1000 ms (counter period is 62499)
+    const MPU6050::Scaled sampling_time{1};
 
-        System system{std::move(mpu6050),
-                      std::move(l298n),
-                      std::move(kalman),
-                      std::move(regulator),
-                      std::move(encoder)};
+    HAL_TIM_Base_Start_IT(&htim2);
 
-        const MPU6050::Scaled angle_degrees{0};
-
-        // timer2 is set to meausre 1000 ms (counter period is 62499)
-        const MPU6050::Scaled sampling_time{1};
-
-        HAL_TIM_Base_Start_IT(&htim2);
-
-        while (true) {
-            switch (event_handler.get_event()) {
-                case Event::TIMER_ELAPSED: {
-                    system.balance_sway(angle_degrees, sampling_time);
-                    break;
-                }
-                case Event::PRINT_DUTKIEWICZ: {
-                    printf("DUTKIEWICZ\n\r");
-                    break;
-                }
-                case Event::PRINT_BERNAT: {
-                    printf("BERNAT\n\r");
-                    break;
-                }
-                case Event::PRINT_KARDYS: {
-                    printf("KARDYS\n\r");
-                    break;
-                }
-                case Event::PRINT_BOLTRUKIEWICZ: {
-                    printf("BOLTRUKIEWICZ\n\r");
-                    break;
-                }
-                case Event::PRINT_DUPA: {
-                    printf("DUPA\n\r");
-                    break;
-                }
-                case Event::NONE: {
-                    break;
-                }
-                default: {
-                    break;
-                }
+    while (true) {
+        switch (event_handler.get_event()) {
+            case Event::TIMER_ELAPSED: {
+                system.balance_sway(angle_degrees, sampling_time);
+                break;
+            }
+            case Event::PRINT_DUTKIEWICZ: {
+                printf("DUTKIEWICZ\n\r");
+                break;
+            }
+            case Event::PRINT_BERNAT: {
+                printf("BERNAT\n\r");
+                break;
+            }
+            case Event::PRINT_KARDYS: {
+                printf("KARDYS\n\r");
+                break;
+            }
+            case Event::PRINT_BOLTRUKIEWICZ: {
+                printf("BOLTRUKIEWICZ\n\r");
+                break;
+            }
+            case Event::PRINT_DUPA: {
+                printf("DUPA\n\r");
+                break;
+            }
+            case Event::NONE: {
+                break;
+            }
+            default: {
+                break;
             }
         }
-
-        return Value{0};
     }
 
-}; // namespace BetterMain
+    return 0;
+}
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
@@ -148,11 +134,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
         event_handler.set_event(Event::TIMER_ELAPSED);
         HAL_TIM_Base_Start_IT(htim);
     }
-}
-
-int main(const int argc, const char* argv[])
-{
-    return BetterMain::main<int>(BetterMain::Arguments{argv, argc});
 }
 
 void Error_Handler()
