@@ -13,7 +13,8 @@ namespace InvertedSway {
 
     struct Encoder {
     public:
-        using Count = std::uint16_t;
+        using uCount = std::uint16_t; // uCount and Count should be the same size
+        using Count = std::int16_t;
         using Angle = double;
 
         Encoder() noexcept = default;
@@ -30,24 +31,20 @@ namespace InvertedSway {
         [[nodiscard]] Angle get_angle() noexcept;
 
     private:
-        static Angle pulses_to_angle(const Count pulse) noexcept;
-        static Count count_to_pulses(const Count count) noexcept;
+        static Angle pulses_to_angle(const uCount pulse) noexcept;
 
-        Count get_previous_count() noexcept;
+        uCount get_previous_count() noexcept;
 
         void initialize() noexcept;
         void deinitialize() noexcept;
 
-        static constexpr Count COUNTS_PER_PULSE{4};
-        static constexpr Count PULSES_PER_REVOLUTION{40};
-        static constexpr Count COUNTER_PERIOD{65535};
+        static constexpr uCount COUNTS_PER_REVOLUTION{52};
+        static constexpr uCount COUNTER_PERIOD{65535};
 
         static constexpr Angle MIN_ANGLE_DEG{0};
         static constexpr Angle MAX_ANGLE_DEG{360};
 
         TimerHandle timer_{nullptr};
-
-        std::uint64_t last_count_{};
 
         bool initialized_{false};
     };

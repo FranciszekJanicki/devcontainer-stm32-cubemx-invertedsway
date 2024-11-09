@@ -2,7 +2,7 @@
 
 namespace InvertedSway {
 
-    using Count = Encoder::Count;
+    using uCount = Encoder::uCount;
     using Angle = Encoder::Angle;
 
     Encoder::Encoder(TimerHandle timer) noexcept : timer_{timer}
@@ -15,17 +15,10 @@ namespace InvertedSway {
         this->deinitialize();
     }
 
-    Angle Encoder::pulses_to_angle(const Count pulses) noexcept
+    Angle Encoder::pulses_to_angle(const uCount pulses) noexcept
     {
-        assert(pulses <= PULSES_PER_REVOLUTION && pulses >= 0);
-        return std::clamp(Angle{pulses * (MAX_ANGLE_DEG - MIN_ANGLE_DEG) / PULSES_PER_REVOLUTION + MIN_ANGLE_DEG},
-                          MIN_ANGLE_DEG,
-                          MAX_ANGLE_DEG);
-    }
-
-    Count Encoder::count_to_pulses(const Count count) noexcept
-    {
-        return (count % COUNTER_PERIOD) / COUNTS_PER_PULSE;
+        return Angle{static_cast<Count>(pulses) * (MAX_ANGLE_DEG - MIN_ANGLE_DEG) / COUNTS_PER_REVOLUTION +
+                     MIN_ANGLE_DEG};
     }
 
     void Encoder::initialize() noexcept
@@ -48,21 +41,12 @@ namespace InvertedSway {
         }
     }
 
-    Count Encoder::get_previous_count() noexcept
-    {
-        if (!this->initialized_) {
-            assert(true);
-        }
-        return std::exchange(this->last_count_, static_cast<Count>(__HAL_TIM_GetCounter(this->timer_)));
-    }
-
     Angle Encoder::get_angle() noexcept
     {
         if (!this->initialized_) {
             assert(true);
         }
-        return pulses_to_angle(
-            count_to_pulses(static_cast<Count>(__HAL_TIM_GetCounter(this->timer_)) - this->get_previous_count()));
+        return pulses_to_angle(static_cast<uCount>(__HAL_TIM_GetCounter(this->timer_)));
     }
 
 }; // namespace InvertedSway
