@@ -30,16 +30,14 @@ namespace InvertedSway {
         [[nodiscard]] Angle get_angle() noexcept;
 
     private:
-        static Angle pulses_to_angle(const Count pulse) noexcept;
-        static Count count_to_pulses(const Count count) noexcept;
-
-        Count get_previous_count() noexcept;
+        static Angle count_to_angle(const Count count) noexcept;
 
         void initialize() noexcept;
         void deinitialize() noexcept;
 
-        static constexpr Count COUNTS_PER_PULSE{4};
-        static constexpr Count PULSES_PER_REVOLUTION{40};
+        static constexpr Count COUNTS_PER_PULSE{1};
+        static constexpr Count PULSES_PER_REVOLUTION{52};
+        static constexpr Count COUNTS_PER_REVOLUTION{PULSES_PER_REVOLUTION * COUNTS_PER_PULSE};
         static constexpr Count COUNTER_PERIOD{65535};
 
         static constexpr Angle MIN_ANGLE_DEG{0};
