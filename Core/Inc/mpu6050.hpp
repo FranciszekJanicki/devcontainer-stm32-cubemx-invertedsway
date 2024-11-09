@@ -2,6 +2,7 @@
 #define MPU6050_HPP
 
 #include "common.hpp"
+#include "filters.hpp"
 #include "stm32l4xx_hal.h"
 #include "vector3d.hpp"
 #include <cstddef>
@@ -34,7 +35,10 @@ namespace InvertedSway {
         using GyroFilter = std::function<GyroRaw(GyroRaw)>;
         using AccelFilter = std::function<AccelRaw(AccelRaw)>;
 
-        static const char* error_to_string(const Error error) noexcept;
+        [[nodiscard]] static const char* error_to_string(const Error error) noexcept;
+
+        [[nodiscard]] static GyroFilter make_gyro_filter() noexcept;
+        [[nodiscard]] static AccelFilter make_accel_filter() noexcept;
 
         MPU6050() noexcept = default;
 
@@ -531,7 +535,6 @@ namespace InvertedSway {
         static constexpr std::uint8_t WHO_AM_I_BIT{6};
         static constexpr std::uint8_t WHO_AM_I_LENGTH{6};
     };
-
 }; // namespace InvertedSway
 
 #endif // MPU6050_HPP

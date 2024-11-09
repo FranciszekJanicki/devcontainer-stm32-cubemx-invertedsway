@@ -20,6 +20,7 @@ enum struct Event {
     PRINT_DUPA,
     PRINT_KARDYS,
     PRINT_BERNAT,
+    PRINT_BOLTRUKIEWICZ,
     NONE,
 };
 
@@ -37,7 +38,7 @@ struct EventHandler {
     Event event{Event::NONE};
 };
 
-static volatile EventHandler event_handler{};
+static EventHandler event_handler{};
 
 namespace BetterMain {
 
@@ -76,8 +77,8 @@ namespace BetterMain {
                         MPU6050::ADDRESS,
                         MPU6050::GYRO_FS_250,
                         MPU6050::ACCEL_FS_2,
-                        make_recursive_average<MPU6050::GyroRaw, MPU6050::Raw>(),
-                        make_recursive_average<MPU6050::AccelRaw, MPU6050::Raw>()};
+                        MPU6050::make_gyro_filter(),
+                        MPU6050::make_accel_filter()};
 
         auto kalman{make_kalman<MPU6050::Scaled>(0.0, 0.0, 0.0, 0.0, 0.0)};
 
@@ -100,24 +101,36 @@ namespace BetterMain {
 
         while (true) {
             switch (event_handler.get_event()) {
-                case Event::TIMER_ELAPSED:
+                case Event::TIMER_ELAPSED: {
                     system.balance_sway(angle_degrees, sampling_time);
                     break;
-                case Event::PRINT_DUTKIEWICZ:
+                }
+                case Event::PRINT_DUTKIEWICZ: {
                     printf("DUTKIEWICZ\n\r");
                     break;
-                case Event::PRINT_BERNAT:
+                }
+                case Event::PRINT_BERNAT: {
                     printf("BERNAT\n\r");
-                case Event::PRINT_KARDYS:
+                    break;
+                }
+                case Event::PRINT_KARDYS: {
                     printf("KARDYS\n\r");
                     break;
-                case Event::PRINT_DUPA:
+                }
+                case Event::PRINT_BOLTRUKIEWICZ: {
+                    printf("BOLTRUKIEWICZ\n\r");
+                    break;
+                }
+                case Event::PRINT_DUPA: {
                     printf("DUPA\n\r");
                     break;
-                case Event::NONE:
+                }
+                case Event::NONE: {
                     break;
-                default:
+                }
+                default: {
                     break;
+                }
             }
         }
 
@@ -131,7 +144,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
     if (htim == nullptr) {
         return;
     }
-    if (htim->Instance == TIM1) {
+    if (htim->Instance == TIM2) {
         event_handler.set_event(Event::TIMER_ELAPSED);
         HAL_TIM_Base_Start_IT(htim);
     }

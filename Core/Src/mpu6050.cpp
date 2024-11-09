@@ -72,6 +72,16 @@ namespace InvertedSway {
         }
     }
 
+    GyroFilter MPU6050::make_gyro_filter() noexcept
+    {
+        return make_recursive_average<GyroRaw, Raw>();
+    }
+
+    AccelFilter MPU6050::make_accel_filter() noexcept
+    {
+        return make_recursive_average<AccelRaw, Raw>();
+    }
+
     Scaled MPU6050::gyro_range_to_scale(const std::uint8_t gyro_range) noexcept
     {
         switch (gyro_range) {
