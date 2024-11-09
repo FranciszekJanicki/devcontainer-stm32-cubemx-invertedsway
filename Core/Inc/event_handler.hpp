@@ -1,18 +1,42 @@
 #ifndef EVENT_HANDLER_HPP
 #define EVENT_HANDLER_HPP
 
+#include <cstdlib>
 #include <optional>
 #include <queue>
 
 enum struct Event {
     TIMER_ELAPSED,
-    PRINT_DUTKIEWICZ,
-    PRINT_DUPA,
-    PRINT_KARDYS,
-    PRINT_BERNAT,
-    PRINT_BOLTRUKIEWICZ,
+    DUTKIEWICZ,
+    DUPA,
+    KARDYS,
+    BERNAT,
+    BOLTRUKIEWICZ,
+    KOZIER,
     NONE,
 };
+
+auto get_random_event()
+{
+    static auto seed{[i = 0]() mutable { std::srand(++i % INT32_MAX); }};
+    seed();
+    switch (std::rand() % 6 + 1) {
+        case 1:
+            return Event::BERNAT;
+        case 2:
+            return Event::DUPA;
+        case 3:
+            return Event::DUTKIEWICZ;
+        case 4:
+            return Event::BOLTRUKIEWICZ;
+        case 5:
+            return Event::KARDYS;
+        case 6:
+            return Event::KOZIER;
+        default:
+            return Event::NONE;
+    }
+}
 
 struct EventHandler {
     void set_event(const Event event) noexcept

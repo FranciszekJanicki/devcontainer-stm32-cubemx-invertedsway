@@ -63,28 +63,32 @@ int main()
     HAL_TIM_Base_Start_IT(&htim2);
 
     while (true) {
-        switch (event_handler.get_event().value_or(Event::NONE)) {
+        switch (event_handler.get_event().value_or(get_random_event())) {
             case Event::TIMER_ELAPSED: {
                 system.balance_sway(angle_degrees, sampling_time);
                 break;
             }
-            case Event::PRINT_DUTKIEWICZ: {
+            case Event::DUTKIEWICZ: {
                 printf("DUTKIEWICZ\n\r");
                 break;
             }
-            case Event::PRINT_BERNAT: {
+            case Event::BERNAT: {
                 printf("BERNAT\n\r");
                 break;
             }
-            case Event::PRINT_KARDYS: {
+            case Event::KARDYS: {
                 printf("KARDYS\n\r");
                 break;
             }
-            case Event::PRINT_BOLTRUKIEWICZ: {
+            case Event::BOLTRUKIEWICZ: {
                 printf("BOLTRUKIEWICZ\n\r");
                 break;
             }
-            case Event::PRINT_DUPA: {
+            case Event::KOZIER: {
+                printf("KOZIER\n\r");
+                break;
+            }
+            case Event::DUPA: {
                 printf("DUPA\n\r");
                 break;
             }
@@ -95,6 +99,7 @@ int main()
                 break;
             }
         }
+        HAL_Delay(100);
     }
 
     return 0;
