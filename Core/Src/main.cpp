@@ -14,13 +14,30 @@
 #include <type_traits>
 #include <utility>
 
-using namespace InvertedSway;
+enum struct Event {
+    TIMER_ELAPSED,
+    PRINT_DUTKIEWICZ,
+    PRINT_DUPA,
+    PRINT_KARDYS,
+    PRINT_BERNAT,
+    NONE,
+};
 
-constexpr MPU6050::Scaled ANGLE = 0;
-constexpr MPU6050::Scaled SAMPLING_TIME = 1;
+struct EventHandler {
+    void set_event(const Event event) noexcept
+    {
+        this->event = event;
+    }
 
-// for using System object in callback
-System* system_handle{nullptr};
+    [[nodiscard]] Event get_event() noexcept
+    {
+        return std::exchange(this->event, Event::NONE);
+    }
+
+    Event event{Event::NONE};
+};
+
+static volatile EventHandler event_handler{};
 
 namespace BetterMain {
 
@@ -31,6 +48,8 @@ namespace BetterMain {
         requires(std::is_integral_v<Value>)
     {
         [[assume(true == true)]]
+
+        using namespace InvertedSway;
 
         HAL_Init();
         SystemClock_Config();
@@ -60,9 +79,9 @@ namespace BetterMain {
                         make_recursive_average<MPU6050::GyroRaw, MPU6050::Raw>(),
                         make_recursive_average<MPU6050::AccelRaw, MPU6050::Raw>()};
 
-        auto kalman = make_kalman<MPU6050::Scaled>(0.0, 0.0, 0.0, 0.0, 0.0);
+        auto kalman{make_kalman<MPU6050::Scaled>(0.0, 0.0, 0.0, 0.0, 0.0)};
 
-        auto regulator = make_regulator<MPU6050::Scaled>(RegulatorAlgo::PID, 0.0, 0.0, 0.0, 0.0);
+        auto regulator{make_regulator<MPU6050::Scaled>(RegulatorAlgo::PID, 0.0, 0.0, 0.0, 0.0)};
 
         Encoder encoder{&htim1};
 
@@ -71,11 +90,35 @@ namespace BetterMain {
                       std::move(kalman),
                       std::move(regulator),
                       std::move(encoder)};
-        system_handle = &system;
+
+        const MPU6050::Scaled angle_degrees{0};
+
+        // timer2 is set to meausre 1000 ms (counter period is 62499)
+        const MPU6050::Scaled sampling_time{1};
+
+        HAL_TIM_Base_Start_IT(&htim2);
 
         while (true) {
-            ;
-            ;
+            switch (event_handler.get_event()) {
+                case Event::TIMER_ELAPSED:
+                    system.balance_sway(angle_degrees, sampling_time);
+                    break;
+                case Event::PRINT_DUTKIEWICZ:
+                    printf("DUTKIEWICZ\n\r");
+                    break;
+                case Event::PRINT_BERNAT:
+                    printf("BERNAT\n\r");
+                case Event::PRINT_KARDYS:
+                    printf("KARDYS\n\r");
+                    break;
+                case Event::PRINT_DUPA:
+                    printf("DUPA\n\r");
+                    break;
+                case Event::NONE:
+                    break;
+                default:
+                    break;
+            }
         }
 
         return Value{0};
@@ -89,7 +132,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
         return;
     }
     if (htim->Instance == TIM1) {
-        system_handle->balance_sway(ANGLE, SAMPLING_TIME);
+        event_handler.set_event(Event::TIMER_ELAPSED);
+        HAL_TIM_Base_Start_IT(htim);
     }
 }
 

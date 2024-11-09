@@ -84,7 +84,7 @@ namespace InvertedSway {
         static Torque raw_to_torque(const Raw raw) noexcept;
         static Raw torque_to_raw(const Torque torque) noexcept;
 
-        static constexpr Raw COUNTER_PERIOD{65535};
+        static constexpr Raw COUNTER_PERIOD{62499};
         static constexpr Raw MAX_RAW{COUNTER_PERIOD};
         static constexpr Raw MIN_RAW{0};
 
