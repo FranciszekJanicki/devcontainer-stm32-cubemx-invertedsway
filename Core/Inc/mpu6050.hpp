@@ -23,11 +23,11 @@ namespace InvertedSway {
             DEINIT,
         };
 
-        using Scaled = std::double_t;
+        using Scaled = float;
         using GyroScaled = Linalg::Vector3D<Scaled>;
         using AccelScaled = Linalg::Vector3D<Scaled>;
         using RollPitchYaw = Linalg::Vector3D<Scaled>;
-        using TempScaled = std::double_t;
+        using TempScaled = float;
         using Raw = std::int16_t;
         using GyroRaw = Linalg::Vector3D<Raw>;
         using AccelRaw = Linalg::Vector3D<Raw>;

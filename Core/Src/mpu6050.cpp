@@ -8,35 +8,6 @@
 #include <cstdio>
 #include <expected>
 
-// void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-// {
-//     if (GPIO_Pin == INTR_Pin) {
-//         const auto interrupts{mpu6050_handle->get_int_status_register()};
-//         mpu6050_handle->get_motion_status_register();
-//         printf( "int_ status triggered: %X\n\n\r", interrupts);
-
-//         if (interrupts & (0x01 << MPU6050::INTERRUPT_FIFO_OFLOW_BIT)) // Bit 4 (0x10)
-//         {
-//             printf( "FIFO Overflow detected\n\r");
-//         }
-
-//         if (interrupts & (0x01 << MPU6050::INTERRUPT_MOT_BIT)) // Bit 6 (0x40)
-//         {
-//             printf( "Motion detected\n\r");
-//         }
-
-//         if (interrupts & (0x01 << MPU6050::INTERRUPT_ZMOT_BIT)) // Bit 5 (0x20)
-//         {
-//             printf( "Zero Motion detected\n\r");
-//         }
-
-//         if (interrupts & (0x01 << MPU6050::INTERRUPT_FF_BIT)) // Bit 7 (0x80)
-//         {
-//             printf( "Freefall detected\n\r");
-//         }
-//     }
-// }
-
 namespace InvertedSway {
 
     using Error = MPU6050::Error;
@@ -86,15 +57,15 @@ namespace InvertedSway {
     {
         switch (gyro_range) {
             case GYRO_FS_250:
-                return 131.0;
+                return 131.0f;
             case GYRO_FS_500:
-                return 65.5;
+                return 65.5f;
             case GYRO_FS_1000:
-                return 32.8;
+                return 32.8f;
             case GYRO_FS_2000:
-                return 16.4;
+                return 16.4f;
             default:
-                return 0.0;
+                return 0.0f;
         }
     }
 
@@ -102,15 +73,15 @@ namespace InvertedSway {
     {
         switch (accel_range) {
             case ACCEL_FS_2:
-                return 16384.0;
+                return 16384.0f;
             case ACCEL_FS_4:
-                return 8192.0;
+                return 8192.0f;
             case ACCEL_FS_8:
-                return 4096.0;
+                return 4096.0f;
             case ACCEL_FS_16:
-                return 2048.0;
+                return 2048.0f;
             default:
-                return 0.0;
+                return 0.0f;
         }
     }
 
@@ -154,12 +125,19 @@ namespace InvertedSway {
 
         if (this->get_device_id() == this->address_) {
             this->device_reset(1);
-            this->set_sleep_enabled(1);
-            this->set_clock_source(CLOCK_INTERNAL);
+            HAL_Delay(50);
+            this->set_sleep_enabled(0);
+            HAL_Delay(100);
+            // this->set_clock_source(CLOCK_INTERNAL);
+            // HAL_Delay(50);
             this->set_sampling_rate(200);
+            HAL_Delay(50);
             this->set_dlpf(DLPF_BW_256);
+            HAL_Delay(50);
             this->set_full_scale_gyro_range(this->gyro_range_);
+            HAL_Delay(50);
             this->set_full_scale_accel_range(this->accel_range_);
+            HAL_Delay(50);
             this->set_interrupt();
         }
     }
@@ -481,8 +459,8 @@ namespace InvertedSway {
     void MPU6050::set_interrupt() const noexcept
     {
         this->set_interrupt_mode(INTMODE_ACTIVEHIGH);
-        this->set_interrupt_drive(INTDRV_PUSHPULL);
-        this->set_interrupt_latch(INTLATCH_WAITCLEAR);
+        // this->set_interrupt_drive(INTDRV_PUSHPULL);
+        this->set_interrupt_latch(INTLATCH_50USPULSE);
         this->set_interrupt_latch_clear(INTCLEAR_STATUSREAD);
         this->set_int_enable_register(1);
 
@@ -547,14 +525,15 @@ namespace InvertedSway {
                           I2C_TIMEOUT);
     }
 
-    void MPU6050::set_int_enable_register(std::uint8_t enable) const noexcept
+    void MPU6050::set_int_enable_register(const std::uint8_t enable) const noexcept
     {
+        std::uint8_t buffer = enable;
         HAL_I2C_Mem_Write(this->i2c_,
                           this->address_,
                           RA_INT_ENABLE,
                           sizeof(RA_INT_ENABLE),
-                          &enable,
-                          sizeof(enable),
+                          &buffer,
+                          sizeof(buffer),
                           I2C_TIMEOUT);
     }
 

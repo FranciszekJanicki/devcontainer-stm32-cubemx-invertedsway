@@ -19,12 +19,7 @@ int main()
     MX_USART2_UART_Init();
     MX_I2C1_Init();
 
-    MPU6050 mpu6050{&hi2c1,
-                    MPU6050::ADDRESS,
-                    MPU6050::GYRO_FS_250,
-                    MPU6050::ACCEL_FS_2,
-                    MPU6050::make_gyro_filter(),
-                    MPU6050::make_accel_filter()};
+    MPU6050 mpu6050{&hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::ACCEL_FS_2};
 
     while (true) {
         if (HAL_GPIO_ReadPin(INTR_GPIO_Port, INTR_Pin) == GPIO_PinState::GPIO_PIN_SET) {
