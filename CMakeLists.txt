@@ -32,19 +32,8 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Src/system_clock.c"
-    "Core/Src/main.cpp"
-    "Core/Inc/arithmetic.hpp"
-    "Core/Inc/quaternion3d.hpp"
-    "Core/Inc/vector3d.hpp"
-    "Core/Src/mpu6050.cpp"
-    "Core/Src/l298n.cpp"
-    "Core/Src/motor.cpp"
-    "Core/Inc/filters.hpp"
-    "Core/Inc/regulator.hpp"
-    "Core/Inc/kalman.hpp"
-    "Core/Src/system.cpp"
-    "Core/Src/encoder.cpp"
-    "Core/Inc/event_handler.hpp"
+    "Core/Src/main.c"
+    "Core/Src/mpu6050.c"
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
