@@ -15,6 +15,7 @@ int main()
     HAL_Init();
     SystemClock_Config();
 
+    MX_GPIO_Init();
     MX_USART2_UART_Init();
     MX_I2C1_Init();
 
@@ -26,21 +27,20 @@ int main()
                     MPU6050::make_accel_filter()};
 
     while (true) {
-        const auto& [ax, ay, az]{mpu6050.get_accelerometer_scaled()};
-        const auto& [gx, gy, gz]{mpu6050.get_gyroscope_scaled()};
-        const auto temp{mpu6050.get_temperature_celsius()};
+        if (HAL_GPIO_ReadPin(INTR_GPIO_Port, INTR_Pin) == GPIO_PinState::GPIO_PIN_SET) {
+            const auto& [ax, ay, az]{mpu6050.get_accelerometer_scaled()};
+            const auto& [gx, gy, gz]{mpu6050.get_gyroscope_scaled()};
+            const auto temp{mpu6050.get_temperature_celsius()};
 
-        printf("ACC: X: %.2f Y:%.2f Z:%.2f \n\rGYR: X: %.2f Y:%.2f Z:%.2f\n\rTEMP: %.2f\n\r",
-               ax,
-               ay,
-               az,
-               gx,
-               gy,
-               gz,
-               temp);
+            printf("acc: %f, %f, %f\n\r", ax, ay, az);
+            printf("gyro: %f, %f, %f\n\r", gx, gy, gz);
+            printf("temp: %f\n\r", temp);
 
-        HAL_Delay(1000);
+            HAL_Delay(1000);
+        }
     }
+
+    fflush(stdout);
 
     return 0;
 }

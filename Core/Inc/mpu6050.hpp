@@ -79,8 +79,9 @@ namespace InvertedSway {
 
         std::uint8_t get_device_id() const noexcept;
 
-        void set_dlpf(const std::uint8_t value) const noexcept;
         void device_reset(const std::uint8_t reset) const noexcept;
+        void set_sampling_rate(const std::uint8_t rate) const noexcept;
+        void set_dlpf(const std::uint8_t value) const noexcept;
         void set_clock_source(const std::uint8_t source) const noexcept;
         void set_sleep_enabled(const std::uint8_t enable) const noexcept;
         void set_cycle_enabled(const std::uint8_t enable) const noexcept;
@@ -147,6 +148,8 @@ namespace InvertedSway {
         static constexpr std::uint32_t I2C_TIMEOUT{100};
         static constexpr std::uint8_t ADDRESS{0xD0};  // AD0 low
         static constexpr std::uint8_t ADDRESS2{0xD1}; // AD0 high
+        static constexpr std::uint8_t GYRO_OUTPUT_RATE_KHZ{8};
+        static constexpr std::uint8_t ACCEL_OUTPUT_RATE_KHZ{1};
 
         //	Registers addresses
         static constexpr std::uint8_t RA_SELF_TEST_X{0x0D};
