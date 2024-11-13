@@ -32,8 +32,8 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Src/system_clock.c"
-    "Core/Src/main.c"
-    "Core/Src/mpu6050.c"
+    "Core/Src/main.cpp"
+    "Core/Src/mpu6050.cpp"
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
