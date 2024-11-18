@@ -27,17 +27,17 @@ namespace InvertedSway {
 
     L298N::L298N(const MotorChannels& motor_channels) noexcept : motor_channels_{motor_channels}
     {
-        std::ranges::for_each(this->motor_channels_, [](auto& motor_channel) { motor_channel.second.initialize(); });
+        this->initialize();
     }
 
     L298N::L298N(MotorChannels&& motor_channels) noexcept : motor_channels_{std::forward<MotorChannels>(motor_channels)}
     {
-        std::ranges::for_each(this->motor_channels_, [](auto& motor_channel) { motor_channel.second.initialize(); });
+        this->initialize();
     }
 
     L298N::~L298N() noexcept
     {
-        std::ranges::for_each(this->motor_channels_, [](auto& motor_channel) { motor_channel.second.deinitialize(); });
+        this->deinitialize();
     }
 
     const MotorChannels& L298N::motor_channels() const& noexcept
