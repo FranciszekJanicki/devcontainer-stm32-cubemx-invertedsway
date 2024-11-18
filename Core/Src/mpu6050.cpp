@@ -96,6 +96,23 @@ namespace InvertedSway {
         this->initialize();
     }
 
+    MPU6050::MPU6050(I2cHandle i2c,
+                     const std::uint8_t addres,
+                     const std::uint8_t gyro_range,
+                     const std::uint8_t accel_range,
+                     GyroFilter&& gyro_filter,
+                     AccelFilter&& accel_filter) noexcept :
+        i2c_{i2c},
+        address_{addres},
+        gyro_range_{gyro_range},
+        accel_range_{accel_range},
+        gyro_filter_{std::forward<GyroFilter>(gyro_filter)},
+        accel_filter_{std::forward<AccelFilter>(accel_filter)}
+
+    {
+        this->initialize();
+    }
+
     MPU6050::~MPU6050() noexcept
     {
         this->deinitialize();
@@ -108,6 +125,7 @@ namespace InvertedSway {
                 printf("device is not ready\r\n");
                 return;
             }
+            this->set_address_pin(AD0_GPIO_Port, AD0_Pin);
             if (this->get_device_id() == this->address_) {
                 this->device_reset(1);
                 HAL_Delay(50);
@@ -147,6 +165,15 @@ namespace InvertedSway {
                           &buffer,
                           sizeof(buffer),
                           I2C_TIMEOUT);
+    }
+
+    void MPU6050::set_address_pin(GpioHandle gpio, const std::uint16_t address_pin) const noexcept
+    {
+        if (this->address_ == ADDRESS) {
+            HAL_GPIO_WritePin(gpio, address_pin, GPIO_PinState::GPIO_PIN_RESET);
+        } else if (this->address_ == ADDRESS2) {
+            HAL_GPIO_WritePin(gpio, address_pin, GPIO_PinState::GPIO_PIN_SET);
+        }
     }
 
     void MPU6050::device_reset(const std::uint8_t reset) const noexcept

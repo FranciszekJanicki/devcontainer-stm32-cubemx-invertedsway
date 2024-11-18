@@ -63,6 +63,13 @@ namespace InvertedSway {
                 const std::uint8_t gyro_range,
                 const std::uint8_t accel_range) noexcept;
 
+        MPU6050(I2cHandle i2c,
+                const std::uint8_t addres,
+                const std::uint8_t gyro_range,
+                const std::uint8_t accel_range,
+                GyroFilter&& gyro_filter,
+                AccelFilter&& accel_filter) noexcept;
+
         MPU6050(const MPU6050& other) noexcept = default;
         MPU6050(MPU6050&& other) noexcept = default;
 
@@ -407,6 +414,7 @@ namespace InvertedSway {
         std::uint8_t get_device_id() const noexcept;
 
         void device_reset(const std::uint8_t reset) const noexcept;
+        void set_address_pin(GpioHandle gpio, const std::uint16_t address_pin) const noexcept;
         void set_sampling_rate_and_dlpf(const std::uint32_t rate, const std::uint8_t dlpf) const noexcept;
         void set_dlpf(const std::uint8_t value) const noexcept;
         void set_clock_source(const std::uint8_t source) const noexcept;
