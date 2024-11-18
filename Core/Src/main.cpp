@@ -1,5 +1,5 @@
 #include "main.h"
-#include "event_handler.hpp"
+#include "encoder.hpp"
 #include "filters.hpp"
 #include "gpio.h"
 #include "i2c.h"
@@ -13,7 +13,7 @@
 #include <cstdio>
 #include <utility>
 
-static EventHandler event_handler{};
+static bool timer_elapsed{false};
 
 int main()
 {
@@ -40,66 +40,26 @@ int main()
         L298N::make_motor_channel(L298N::Channel::CHANNEL2),
     }};
 
-    MPU6050 mpu6050{&hi2c1,
-                    MPU6050::ADDRESS,
-                    MPU6050::GYRO_FS_250,
-                    MPU6050::ACCEL_FS_2,
-                    MPU6050::make_gyro_filter(),
-                    MPU6050::make_accel_filter()};
+    MPU6050 mpu6050{&hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::ACCEL_FS_2};
 
-    auto kalman{make_kalman<MPU6050::Scaled>(0.0, 0.0, 0.0, 0.0, 0.0)};
+    auto kalman{make_kalman<float>(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
 
-    auto regulator{make_regulator<MPU6050::Scaled>(RegulatorAlgo::PID, 0.0, 0.0, 0.0, 0.0)};
+    auto regulator{make_regulator<float>(RegulatorAlgo::PID, 0.0f, 0.0f, 0.0f, 0.0f)};
 
     Encoder encoder{&htim1};
 
     System system{std::move(mpu6050), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
 
-    const MPU6050::Scaled angle_degrees{0};
+    const float angle{0.f};
+    const float sampling_time{MPU6050::SAMPLING_TIME_S};
 
-    // timer2 is set to meausre 1000 ms (counter period is 62499)
-    const MPU6050::Scaled sampling_time{1};
-
-    HAL_TIM_Base_Start_IT(&htim2);
+    HAL_TIM_Base_Start_IT(&htim3);
 
     while (true) {
-        switch (event_handler.get_event().value_or(get_random_event())) {
-            case Event::TIMER_ELAPSED: {
-                system.balance_sway(angle_degrees, sampling_time);
-                break;
-            }
-            case Event::DUTKIEWICZ: {
-                printf("DUTKIEWICZ\n\r");
-                break;
-            }
-            case Event::BERNAT: {
-                printf("BERNAT\n\r");
-                break;
-            }
-            case Event::KARDYS: {
-                printf("KARDYS\n\r");
-                break;
-            }
-            case Event::BOLTRUKIEWICZ: {
-                printf("BOLTRUKIEWICZ\n\r");
-                break;
-            }
-            case Event::KOZIER: {
-                printf("KOZIER\n\r");
-                break;
-            }
-            case Event::DUPA: {
-                printf("DUPA\n\r");
-                break;
-            }
-            case Event::NONE: {
-                break;
-            }
-            default: {
-                break;
-            }
+        if (timer_elapsed) {
+            system.balance_sway(angle, sampling_time);
+            timer_elapsed = false;
         }
-        HAL_Delay(100);
     }
 
     return 0;
@@ -110,8 +70,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
     if (htim == nullptr) {
         return;
     }
-    if (htim->Instance == TIM2) {
-        event_handler.set_event(Event::TIMER_ELAPSED);
+    if (htim->Instance == TIM3) {
+        bool timer_elapsed = true;
         HAL_TIM_Base_Start_IT(htim);
     }
 }

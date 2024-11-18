@@ -19,7 +19,16 @@ namespace InvertedSway {
         using KalmanFilter = Kalman<Value>;
         using RegulatorBlock = Regulator<Value>;
 
-        System(MPU6050&& mpu6050, L298N&& l298n, KalmanFilter&& kalman, RegulatorBlock&& regulator, Encoder&& encoder);
+        System(MPU6050&& mpu6050,
+               L298N&& l298n,
+               KalmanFilter&& kalman,
+               RegulatorBlock&& regulator,
+               Encoder&& encoder) noexcept;
+        System(const MPU6050& mpu6050,
+               const L298N& l298n,
+               const KalmanFilter& kalman,
+               const RegulatorBlock& regulator,
+               const Encoder& encoder);
 
         System(const System& other) = delete;
         System(System&& other) noexcept = delete;
@@ -29,8 +38,8 @@ namespace InvertedSway {
 
         ~System() noexcept;
 
-        void balance_sway(const Value angle, const Value dt) noexcept;
-        void operator()(const Value angle, const Value dt) noexcept;
+        void balance_sway(const Value angle, const Value dt = MPU6050::SAMPLING_TIME_S) noexcept;
+        void operator()(const Value angle, const Value dt = MPU6050::SAMPLING_TIME_S) noexcept;
 
     private:
         static Value angle_to_voltage(const Value angle) noexcept;
@@ -49,7 +58,7 @@ namespace InvertedSway {
         void update_direction() noexcept;
         void update_compare() noexcept;
 
-        Value dt_{1};
+        Value dt_{MPU6050::SAMPLING_TIME_S};
 
         Value error_signal_{};
         Value input_signal_{};
@@ -61,6 +70,9 @@ namespace InvertedSway {
         KalmanFilter kalman_{};
         RegulatorBlock regulator_{};
         Encoder encoder_{};
+
+        Value gx_{};
+        Value ax_{};
     };
 
 }; // namespace InvertedSway

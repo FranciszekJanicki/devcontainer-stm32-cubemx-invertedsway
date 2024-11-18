@@ -292,4 +292,20 @@ namespace InvertedSway {
         }
     }
 
+    Error Motor::set_compare_max() const noexcept
+    {
+        if (!this->initialized) {
+            return Error::FAIL;
+        }
+        return this->set_compare_raw(MAX_RAW);
+    }
+
+    Error Motor::set_compare_min() const noexcept
+    {
+        if (!this->initialized) {
+            return Error::FAIL;
+        }
+        return this->set_compare_raw(MIN_RAW);
+    }
+
 }; // namespace InvertedSway

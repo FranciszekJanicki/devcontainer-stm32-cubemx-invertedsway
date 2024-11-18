@@ -34,6 +34,12 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Src/system_clock.c"
     "Core/Src/main.cpp"
     "Core/Src/mpu6050.cpp"
+    "Core/Src/l298n.cpp"
+    "Core/Src/motor.cpp"
+    "Core/Src/system.cpp"
+    "Core/Inc/regulator.hpp"
+    "Core/Inc/kalman.hpp"
+    "Core/Src/encoder.cpp"
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE

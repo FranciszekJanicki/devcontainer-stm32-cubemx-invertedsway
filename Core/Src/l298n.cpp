@@ -135,6 +135,26 @@ namespace InvertedSway {
         return this->get_motor(channel).toggle_direction();
     }
 
+    Error L298N::initialize() noexcept
+    {
+        std::ranges::for_each(this->motor_channels_, [](auto& motor_channel) {
+            auto& motor{motor_channel.second};
+            motor.initialize();
+            motor.set_soft_stop();
+            motor.set_compare_min();
+        });
+    }
+
+    Error L298N::deinitialize() noexcept
+    {
+        std::ranges::for_each(this->motor_channels_, [](auto& motor_channel) {
+            auto& motor{motor_channel.second};
+            motor.set_fast_stop();
+            motor.set_compare_min();
+            motor.deinitialize();
+        });
+    }
+
     const Motor& L298N::get_motor(const Channel channel) const noexcept
     {
         if (const auto motor_channel{

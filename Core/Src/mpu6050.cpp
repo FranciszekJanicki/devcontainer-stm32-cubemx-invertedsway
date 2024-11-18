@@ -1,6 +1,7 @@
 #include "mpu6050.hpp"
 #include "common.hpp"
 #include "main.h"
+#include "stm32l4xx_hal.h"
 #include "stm32l4xx_hal_i2c.h"
 #include <cmath>
 #include <cstddef>
@@ -88,22 +89,6 @@ namespace InvertedSway {
     MPU6050::MPU6050(I2cHandle i2c,
                      const std::uint8_t addres,
                      const std::uint8_t gyro_range,
-                     const std::uint8_t accel_range,
-                     GyroFilter&& gyro_filter,
-                     AccelFilter&& accel_filter) noexcept :
-        i2c_{i2c},
-        address_{addres},
-        gyro_range_{gyro_range},
-        accel_range_{accel_range},
-        gyro_filter_{gyro_filter},
-        accel_filter_{accel_filter}
-    {
-        this->initialize();
-    }
-
-    MPU6050::MPU6050(I2cHandle i2c,
-                     const std::uint8_t addres,
-                     const std::uint8_t gyro_range,
                      const std::uint8_t accel_range) noexcept :
         i2c_{i2c}, address_{addres}, gyro_range_{gyro_range}, accel_range_{accel_range}
 
@@ -118,34 +103,37 @@ namespace InvertedSway {
 
     void MPU6050::initialize() noexcept
     {
-        if (HAL_I2C_IsDeviceReady(this->i2c_, this->address_, 10, I2C_TIMEOUT) != HAL_OK) {
-            printf("device is not ready\r\n");
-            return;
-        }
-
-        if (this->get_device_id() == this->address_) {
-            this->device_reset(1);
-            HAL_Delay(50);
-            this->set_sleep_enabled(0);
-            HAL_Delay(100);
-            // this->set_clock_source(CLOCK_INTERNAL);
-            // HAL_Delay(50);
-            this->set_sampling_rate(200);
-            HAL_Delay(50);
-            this->set_dlpf(DLPF_BW_256);
-            HAL_Delay(50);
-            this->set_full_scale_gyro_range(this->gyro_range_);
-            HAL_Delay(50);
-            this->set_full_scale_accel_range(this->accel_range_);
-            HAL_Delay(50);
-            this->set_interrupt();
+        if (!this->initialized_) {
+            if (HAL_I2C_IsDeviceReady(this->i2c_, this->address_, 10, I2C_TIMEOUT) != HAL_OK) {
+                printf("device is not ready\r\n");
+                return;
+            }
+            if (this->get_device_id() == this->address_) {
+                this->device_reset(1);
+                HAL_Delay(50);
+                this->set_sleep_enabled(0);
+                HAL_Delay(50);
+                this->set_clock_source(CLOCK_INTERNAL);
+                HAL_Delay(50);
+                this->set_sampling_rate_and_dlpf(SAMPLING_RATE_HZ, DLPF_BW_256);
+                HAL_Delay(50);
+                this->set_full_scale_gyro_range(this->gyro_range_);
+                HAL_Delay(50);
+                this->set_full_scale_accel_range(this->accel_range_);
+                HAL_Delay(50);
+                this->set_interrupt();
+                this->initialized_ = true;
+            }
         }
     }
 
     void MPU6050::deinitialize() noexcept
     {
-        if (this->get_device_id() == this->address_) {
-            this->device_reset(1);
+        if (this->initialized_) {
+            if (this->get_device_id() == this->address_) {
+                this->device_reset(1);
+                this->initialized_ = false;
+            }
         }
     }
 
@@ -173,9 +161,18 @@ namespace InvertedSway {
                           I2C_TIMEOUT);
     }
 
-    void MPU6050::set_sampling_rate(const std::uint8_t rate) const noexcept
+    void MPU6050::set_sampling_rate_and_dlpf(const std::uint32_t rate, const std::uint8_t dlpf) const noexcept
     {
-        std::uint8_t buffer = (1000 * GYRO_OUTPUT_RATE_KHZ / rate) - 1;
+        this->set_dlpf(dlpf);
+        std::uint8_t buffer = ([](const std::uint8_t dlpf) {
+                                  if (dlpf == DLPF_BW_256) {
+                                      return GYRO_OUTPUT_RATE_DLPF_DIS_HZ;
+                                  } else {
+                                      return GYRO_OUTPUT_RATE_DLPF_EN_HZ;
+                                  }
+                              }(dlpf) /
+                               rate) -
+                              1;
         HAL_I2C_Mem_Write(this->i2c_,
                           this->address_,
                           RA_SMPLRT_DIV,
@@ -302,6 +299,9 @@ namespace InvertedSway {
 
     TempRaw MPU6050::get_temperature_raw() const noexcept
     {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
         std::uint8_t buffer[2];
         HAL_I2C_Mem_Read(this->i2c_,
                          this->address_,
@@ -315,11 +315,17 @@ namespace InvertedSway {
 
     TempScaled MPU6050::get_temperature_celsius() const noexcept
     {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
         return static_cast<TempScaled>(this->get_temperature_raw()) / 340 + 36.53;
     }
 
     Raw MPU6050::get_acceleration_x_raw() const noexcept
     {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
         std::uint8_t buffer[2];
         HAL_I2C_Mem_Read(this->i2c_,
                          this->address_,
@@ -333,6 +339,9 @@ namespace InvertedSway {
 
     Raw MPU6050::get_acceleration_y_raw() const noexcept
     {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
         std::uint8_t buffer[2];
         HAL_I2C_Mem_Read(this->i2c_,
                          this->address_,
@@ -346,6 +355,9 @@ namespace InvertedSway {
 
     Raw MPU6050::get_acceleration_z_raw() const noexcept
     {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
         std::uint8_t buffer[2];
         HAL_I2C_Mem_Read(this->i2c_,
                          this->address_,
@@ -359,6 +371,9 @@ namespace InvertedSway {
 
     AccelRaw MPU6050::get_accelerometer_raw() const noexcept
     {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
         std::uint8_t buffer[6];
         HAL_I2C_Mem_Read(this->i2c_,
                          this->address_,
@@ -375,6 +390,9 @@ namespace InvertedSway {
 
     AccelScaled MPU6050::get_accelerometer_scaled() const noexcept
     {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
         const auto accel_scale{accel_range_to_scale(this->accel_range_)};
         const auto accel_raw_result{this->get_accelerometer_raw()};
         return AccelScaled{static_cast<Scaled>(accel_raw_result.x) / accel_scale,
@@ -384,6 +402,9 @@ namespace InvertedSway {
 
     Raw MPU6050::get_rotation_x_raw() const noexcept
     {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
         std::uint8_t buffer[2];
         HAL_I2C_Mem_Read(this->i2c_,
                          this->address_,
@@ -397,6 +418,9 @@ namespace InvertedSway {
 
     Raw MPU6050::get_rotation_y_raw() const noexcept
     {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
         std::uint8_t buffer[2];
         HAL_I2C_Mem_Read(this->i2c_,
                          this->address_,
@@ -410,6 +434,9 @@ namespace InvertedSway {
 
     Raw MPU6050::get_rotation_z_raw() const noexcept
     {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
         std::uint8_t buffer[2];
         HAL_I2C_Mem_Read(this->i2c_,
                          this->address_,
@@ -423,6 +450,9 @@ namespace InvertedSway {
 
     GyroRaw MPU6050::get_gyroscope_raw() const noexcept
     {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
         std::uint8_t buffer[6];
         HAL_I2C_Mem_Read(this->i2c_,
                          this->address_,
@@ -438,6 +468,9 @@ namespace InvertedSway {
 
     GyroScaled MPU6050::get_gyroscope_scaled() const noexcept
     {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
         const auto gyro_scale{gyro_range_to_scale(this->gyro_range_)};
         const auto gyro_raw{this->get_gyroscope_raw()};
         return GyroScaled{static_cast<Scaled>(gyro_raw.x) / gyro_scale,
@@ -447,6 +480,9 @@ namespace InvertedSway {
 
     RollPitchYaw MPU6050::get_roll_pitch_yaw() const noexcept
     {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
         const auto accel_scaled{get_accelerometer_scaled()};
         return RollPitchYaw{
             std::atan2(accel_scaled.y, accel_scaled.z) * 180.0 / M_PI,

@@ -59,6 +59,8 @@ namespace InvertedSway {
         [[nodiscard]] Error set_soft_stop() const noexcept;
         [[nodiscard]] Error set_fast_stop() const noexcept;
         [[nodiscard]] Error toggle_direction() const noexcept;
+        [[nodiscard]] Error set_compare_max() const noexcept;
+        [[nodiscard]] Error set_compare_min() const noexcept;
 
         [[nodiscard]] Error initialize() noexcept;
         [[nodiscard]] Error deinitialize() noexcept;

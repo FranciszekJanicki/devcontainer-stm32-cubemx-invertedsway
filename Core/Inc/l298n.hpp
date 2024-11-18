@@ -88,6 +88,9 @@ namespace InvertedSway {
         [[nodiscard]] Error toggle_direction(const Channel channel) const noexcept;
 
     private:
+        Error initialize() noexcept;
+        Error deinitialize() noexcept;
+
         const Motor& get_motor(const Channel channel) const noexcept;
         Motor& get_motor(const Channel channel) noexcept;
 
