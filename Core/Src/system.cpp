@@ -27,7 +27,7 @@ namespace InvertedSway {
         regulator_{std::forward<RegulatorBlock>(regulator)},
         encoder_{std::forward<Encoder>(encoder)}
     {
-        // do stuff with kalman
+        this->initialize();
     }
 
     System::System(const MPU6050& mpu6050,
@@ -37,12 +37,12 @@ namespace InvertedSway {
                    const Encoder& encoder) :
         mpu6050_{mpu6050}, l298n_{l298n}, kalman_{kalman}, regulator_{regulator}, encoder_{encoder}
     {
-        // do stuff with kalman
+        this->initialize();
     }
 
     System::~System() noexcept
     {
-        // do stuff with kalman
+        this->deinitialize();
     }
 
     void System::balance_sway(const Value angle, const Value dt) noexcept
@@ -102,9 +102,9 @@ namespace InvertedSway {
         }
 #elif defined(REGULATOR_VARIANT)
         if (!this->regulator_.valueless_by_exception()) {
-            this->control_signal_ =
-                std::visit([this](auto& regulator) { return regulator(this->error_signal_, this->dt_); },
-                           this->regulator_);
+            this->control_signal_ = std::visit(
+                [this]<typename Regulator>(Regulator&& regulator) { return regulator(this->error_signal_, this->dt_); },
+                this->regulator_);
         }
 #elif defined(REGULATOR_LAMBDA)
         if (this->regulator_) {
@@ -116,7 +116,12 @@ namespace InvertedSway {
 
     Value System::angle_to_voltage(const Value angle) noexcept
     {
-        return SWAY_MASS * EARTH_ACCELERATION * MOTOR_RESISTANCE * std::sin(angle) / MOTOR_VELOCITY_CONSTANT;
+        return SWAY_MASS_KG * EARTH_ACCELERATION * MOTOR_RESISTANCE * std::sin(angle) / MOTOR_VELOCITY_CONSTANT;
+    }
+
+    Value System::voltage_to_angle(const Value voltage) noexcept
+    {
+        return std::asin((voltage * MOTOR_VELOCITY_CONSTANT) / (SWAY_MASS_KG * EARTH_ACCELERATION * MOTOR_RESISTANCE));
     }
 
     void System::update_direction() noexcept
@@ -135,6 +140,27 @@ namespace InvertedSway {
 
     void System::update_compare() noexcept
     {
-        this->l298n_.set_compare_voltage(L298N::Channel::CHANNEL1, angle_to_voltage(this->control_signal_));
+        if (this->last_control_signal_ < voltage_to_angle(MOTOR_START_THRESHOLD_V) &&
+            angle_to_voltage(this->control_signal_) > voltage_to_angle(MOTOR_START_THRESHOLD_V)) {
+            this->set_angle(voltage_to_angle(MAX_CONTROL_SIGNAL_V));
+        }
+        this->set_angle(this->control_signal_);
+        this->last_control_signal_ = this->control_signal_;
     }
+
+    void System::initialize() noexcept
+    {
+        this->set_angle(0.0);
+    }
+
+    void System::deinitialize() noexcept
+    {
+        this->set_angle(0.0);
+    }
+
+    void System::set_angle(const Value angle) noexcept
+    {
+        this->l298n_.set_compare_voltage(L298N::Channel::CHANNEL1, angle_to_voltage(angle));
+    }
+
 }; // namespace InvertedSway

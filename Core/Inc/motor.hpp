@@ -39,6 +39,9 @@ namespace InvertedSway {
 
         static const char* error_to_string(const Error error) noexcept;
 
+        static constexpr Voltage MAX_VOLTAGE_V{12};
+        static constexpr Voltage MIN_VOLTAGE_V{0};
+
         [[nodiscard]] ExpectedRaw get_compare_raw() const noexcept;
         [[nodiscard]] Error set_compare_raw(const Raw raw) const noexcept;
 
@@ -89,9 +92,6 @@ namespace InvertedSway {
         static constexpr Raw COUNTER_PERIOD{62499};
         static constexpr Raw MAX_RAW{COUNTER_PERIOD};
         static constexpr Raw MIN_RAW{0};
-
-        static inline Voltage MAX_VOLTAGE_V{12};
-        static inline Voltage MIN_VOLTAGE_V{0};
 
         static constexpr Speed MIN_SPEED_RPM{0};
         static constexpr Speed MAX_SPEED_RPM{1000};

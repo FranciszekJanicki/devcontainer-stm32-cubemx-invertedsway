@@ -18,6 +18,7 @@ static bool timer_elapsed{false};
 int main()
 {
     using namespace InvertedSway;
+    using namespace InvertedSway::Regulator;
 
     HAL_Init();
     SystemClock_Config();
@@ -44,13 +45,13 @@ int main()
 
     auto kalman{make_kalman<float>(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
 
-    auto regulator{make_regulator<float>(RegulatorAlgo::PID, 0.0f, 0.0f, 0.0f, 0.0f)};
+    auto regulator{make_regulator<float>(Algorithm::PID, 0.0f, 0.0f, 0.0f, 0.0f)};
 
     Encoder encoder{&htim1};
 
     System system{std::move(mpu6050), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
 
-    const float angle{0.f};
+    const float angle{0.0f};
     const float sampling_time{MPU6050::SAMPLING_TIME_S};
 
     HAL_TIM_Base_Start_IT(&htim3);
