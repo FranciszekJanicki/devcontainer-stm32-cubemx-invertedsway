@@ -29,10 +29,8 @@ namespace InvertedSway {
             using Type = First;
         };
 
-        std::find_first_of()
-
-            template <Linalg::Arithmetic Value>
-            struct PID
+        template <Linalg::Arithmetic Value>
+        struct PID
 #ifdef REGULATOR_PTR
             : public Base<Value>
 #endif
