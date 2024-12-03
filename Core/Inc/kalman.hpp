@@ -52,10 +52,14 @@ namespace InvertedSway {
         std::array<std::array<Value, 2>, 2> P{};
     };
 
-    template <Linalg::Arithmetic Value, typename... KalmanArgs>
-    [[nodiscard]] constexpr auto make_kalman(KalmanArgs&&... kalman_args) noexcept
+    template <Linalg::Arithmetic Value>
+    [[nodiscard]] constexpr auto make_kalman(const Value k_angle,
+                                             const Value k_bias,
+                                             const Value Q_angle,
+                                             const Value Q_bias,
+                                             const Value R) noexcept
     {
-        return Kalman<Value>{std::forward<KalmanArgs>(kalman_args)...};
+        return Kalman<Value>{k_angle, k_bias, Q_angle, Q_bias, R};
     }
 
 }; // namespace InvertedSway

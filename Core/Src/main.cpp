@@ -43,9 +43,9 @@ int main()
 
     MPU6050 mpu6050{&hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::ACCEL_FS_2};
 
-    auto kalman{make_kalman<float>(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
+    auto kalman{make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
 
-    auto regulator{make_regulator<float>(Algorithm::PID, 0.0f, 0.0f, 0.0f, 0.0f)};
+    auto regulator{make_regulator<Algorithm::PID>(0.0f, 0.0f, 0.0f, 0.0f)};
 
     Encoder encoder{&htim1};
 

@@ -3,6 +3,7 @@
 
 #include "arithmetic.hpp"
 #include <algorithm>
+#include <concepts>
 #include <functional>
 #include <memory>
 #include <utility>
@@ -23,8 +24,15 @@ namespace InvertedSway {
             TERNARY,
         };
 
-        template <Linalg::Arithmetic Value>
-        struct PID
+        template <typename First, typename... Rest>
+        struct FirstType {
+            using Type = First;
+        };
+
+        std::find_first_of()
+
+            template <Linalg::Arithmetic Value>
+            struct PID
 #ifdef REGULATOR_PTR
             : public Base<Value>
 #endif
@@ -33,13 +41,13 @@ namespace InvertedSway {
             {
                 this->sum += (error + this->previous_error) / 2 * dt;
                 this->sum = std::clamp(this->sum, -this->windup, this->windup);
-                return this->P * error + this->D * (error - std::exchange(this->previous_error, error)) / dt +
-                       this->I * this->sum;
+                return this->kp * error + this->kd * (error - std::exchange(this->previous_error, error)) / dt +
+                       this->ki * this->sum;
             }
 
-            Value P{};
-            Value I{};
-            Value D{};
+            Value kp{};
+            Value ki{};
+            Value kd{};
             Value windup{};
 
             Value sum{0};
@@ -57,11 +65,6 @@ namespace InvertedSway {
                 // implement lqr algorithm here
                 return error;
             }
-
-            Value placeholder1;
-            Value placeholder2;
-            Value placeholder3;
-            Value placeholder4;
         };
 
         template <Linalg::Arithmetic Value>
@@ -75,11 +78,6 @@ namespace InvertedSway {
                 // implement adrc algorithm here
                 return error;
             }
-
-            Value placeholder1;
-            Value placeholder2;
-            Value placeholder3;
-            Value placeholder4;
         };
 
         template <Linalg::Arithmetic Value>
@@ -93,7 +91,12 @@ namespace InvertedSway {
                 ZERO,
             };
 
-            Value operator()(const Value error, [[maybe_unused]] const Value dt) noexcept
+            Value operator()(const Value error, const Value dt) noexcept
+            {
+                return error;
+            }
+
+            State operator()(const Value error) noexcept
             {
                 switch (this->state) {
                     case State::POSITIVE:
@@ -113,12 +116,8 @@ namespace InvertedSway {
                     default:
                         break;
                 }
-                // return this->state;
-                return Value{}; // for compatibility with other variants
+                return this->state;
             }
-
-            Value placeholder1;
-            Value placeholder2;
 
             Value hysteresis_up{};
             Value hysteresis_down{};
@@ -138,7 +137,12 @@ namespace InvertedSway {
                 ZERO,
             };
 
-            Value operator()(const Value error, [[maybe_unused]] const Value dt) noexcept
+            Value operator()(const Value error, const Value dt) noexcept
+            {
+                return error;
+            }
+
+            State operator()(const Value error) noexcept
             {
                 switch (this->state) {
                     case State::POSITIVE:
@@ -161,12 +165,8 @@ namespace InvertedSway {
                     default:
                         break;
                 }
-                // return this->state;
-                return Value{}; // for compatibility with other variants
+                return this->state;
             }
-
-            Value placeholder1;
-            Value placeholder2;
 
             Value hysteresis_up{};
             Value hysteresis_down{};
@@ -180,22 +180,25 @@ namespace InvertedSway {
         template <Linalg::Arithmetic Value>
         using Regulator = std::variant<LQR<Value>, PID<Value>, ADRC<Value>, Binary<Value>, Ternary<Value>>;
 
-        template <Linalg::Arithmetic Value, typename... Args>
-        [[nodiscard]] auto make_regulator(const Algorithm algorithm, Args&&... args) noexcept
+        template <Algorithm algorithm, typename... Args>
+        [[nodiscard]] auto make_regulator(Args... args) noexcept
         {
-            switch (algorithm) {
-                case Algorithm::PID:
-                    return Regulator<Value>{std::in_place_type_t<PID<Value>>{}, std::forward<Args>(args)...};
-                case Algorithm::LQR:
-                    return Regulator<Value>{std::in_place_type_t<LQR<Value>>{}, std::forward<Args>(args)...};
-                case Algorithm::ADRC:
-                    return Regulator<Value>{std::in_place_type_t<ADRC<Value>>{}, std::forward<Args>(args)...};
-                case Algorithm::BINARY:
-                    return Regulator<Value>{std::in_place_type_t<Binary<Value>>{}, std::forward<Args>(args)...};
-                case Algorithm::TERNARY:
-                    return Regulator<Value>{std::in_place_type_t<Ternary<Value>>{}, std::forward<Args>(args)...};
-                default:
-                    return Regulator<Value>{};
+            using Value = typename FirstType<Args...>::Type;
+
+            if constexpr (algorithm == Algorithm::PID) {
+                return Regulator<Value>{std::in_place_type<PID<Value>>, args...};
+            }
+            if constexpr (algorithm == Algorithm::LQR) {
+                return Regulator<Value>{std::in_place_type<LQR<Value>>, args...};
+            }
+            if constexpr (algorithm == Algorithm::ADRC) {
+                return Regulator<Value>{std::in_place_type<ADRC<Value>>, args...};
+            }
+            if constexpr (algorithm == Algorithm::BINARY) {
+                return Regulator<Value>{std::in_place_type<Binary<Value>>, args...};
+            }
+            if constexpr (algorithm == Algorithm::TERNARY) {
+                return Regulator<Value>{std::in_place_type<Ternary<Value>>, args...};
             }
         }
 
@@ -207,73 +210,74 @@ namespace InvertedSway {
         template <Linalg::Arithmetic Value>
         using Regulator = std::function<Value(Value, Value)>;
 
-        template <Linalg::Arithmetic Value, typename... Args>
-        [[nodiscard]] auto make_regulator(const Algorithm algorithm, Args&&... args) noexcept
+        template <Algorithm algorithm, Linalg::Arithmetic... Args>
+        [[nodiscard]] auto make_regulator(Args... args) noexcept
         {
-            switch (algorithm) {
-                case Algorithm::PID:
-                    return [pid = PID<Value>{std::forward<Args>(args)...}](const Value error, const Value dt) mutable {
-                        return pid(error, dt);
-                    };
-                case Algorithm::LQR:
-                    return [lqr = LQR<Value>{std::forward<Args>(args)...}](const Value error, const Value dt) mutable {
-                        return lqr(error, dt);
-                    };
-                case Algorithm::ADRC:
-                    return
-                        [adrc = ADRC<Value>{std::forward<Args>(args)...}](const Value error, const Value dt) mutable {
-                            return adrc(error, dt);
-                        };
-                case Algorithm::BINARY:
-                    return [binary = Binary<Value>{std::forward<Args>(args)...}](const Value error) mutable {
-                        return binary(error);
-                    };
-                case Algorithm::TERNARY:
-                    return [ternary = Ternary<Value>{std::forward<Args>(args)...}](const Value error) mutable {
-                        return ternary(error);
-                    };
-                default:
-                    return [](const Value error) mutable { return error; };
+            using Value = typename FirstType<Args...>::Type;
+
+            if constexpr (algorithm == Algorithm::PID) {
+                return
+                    [pid = PID<Value>{args...}](const Value error, const Value dt) mutable { return pid(error, dt); };
+            }
+            if constexpr (algorithm == Algorithm::LQR) {
+                return
+                    [lqr = LQR<Value>{args...}](const Value error, const Value dt) mutable { return lqr(error, dt); };
+            }
+            if constexpr (algorithm == Algorithm::ADRC) {
+                return [adrc = ADRC<Value>{args...}](const Value error, const Value dt) mutable {
+                    return adrc(error, dt);
+                };
+            }
+            if constexpr (algorithm == Algorithm::BINARY) {
+                return [binary = Binary<Value>{args...}](const Value error) mutable { return binary(error); };
+            }
+            if constexpr (algorithm == Algorithm::TERNARY) {
+                return [ternary = Ternary<Value>{args...}](const Value error) mutable { return ternary(error); };
             }
         }
+    }
 
 #endif // REGULATOR_LAMBDA
 
 /* UNIQUE_PTR SOLUTION (RUNTIME POLYMORPHISM)*/
 #ifdef REGULATOR_PTR
 
-        /* REGULATOR BASE */
-        template <Linalg::Arithmetic Value>
-        struct Base {
-            virtual ~Base() noexcept = 0;
-        };
+    /* REGULATOR BASE */
+    template <Linalg::Arithmetic Value>
+    struct Base {
+        virtual ~Base() noexcept = 0;
+    };
 
-        template <Linalg::Arithmetic Value>
-        using Regulator = std::unique_ptr<Regulator<Value>>;
+    template <Linalg::Arithmetic Value>
+    using Regulator = std::unique_ptr<Regulator<Value>>;
 
-        template <Linalg::Arithmetic Value, typename... Args>
-        [[nodiscard]] auto make_regulator(const Algorithm algorithm, Args&&... args)
-        {
-            switch (algorithm) {
-                case Algorithm::PID:
-                    return std::make_unique<PID<Value>>(std::forward<Args>(args)...);
-                case Algorithm::LQR:
-                    return std::make_unique<LQR<Value>>(std::forward<Args>(args)...);
-                case Algorithm::ADRC:
-                    return std::make_unique<ADRC<Value>>(std::forward<Args>(args)...);
-                case Algorithm::BINARY:
-                    return std::make_unique<Binary<Value>>(std::forward<Args>(args)...);
-                case Algorithm::TERNARY:
-                    return std::make_unique<Ternary<Value>>(std::forward<Args>(args)...);
-                default:
-                    return Regulator<Value>{nullptr};
-            }
+    template <Algorithm algorithm, Linalg::Arithmetic... Args>
+    [[nodiscard]] Regulator<Value> make_regulator(Args... args)
+    {
+        using Value = typename FirstType<Args...>::Type;
+
+        if constexpr (algorithm == Algorithm::PID) {
+            return std::make_unique<PID<Value>>(args...);
         }
+        if constexpr (algorithm == Algorithm::LQR) {
+            return std::make_unique<LQR<Value>>(args...);
+        }
+        if constexpr (algorithm == Algorithm::ADRC) {
+            return std::make_unique<ADRC<Value>>(args...);
+        }
+        if constexpr (algorithm == Algorithm::BINARY) {
+            return std::make_unique<Binary<Value>>(args...);
+        }
+        if constexpr (algorithm == Algorithm::TERNARY) {
+            return std::make_unique<Ternary<Value>>(args...);
+        }
+    }
+}
 
 #endif // REGULATOR_PTR
-
-    }; // namespace Regulator
-
-}; // namespace InvertedSway
+}
+; // namespace Regulator
+}
+; // namespace InvertedSway
 
 #endif // REGULATOR_HPP
