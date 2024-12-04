@@ -103,12 +103,14 @@ namespace InvertedSway {
 #elif defined(REGULATOR_VARIANT)
         if (!this->regulator_.valueless_by_exception()) {
             this->control_signal_ = std::visit(
-                [this]<typename Regulator>(Regulator&& regulator) { return regulator(this->error_signal_, this->dt_); },
+                [this]<typename Regulator>(Regulator&& regulator) {
+                    return std::invoke(regulator, this->error_signal_, this->dt_);
+                },
                 this->regulator_);
         }
 #elif defined(REGULATOR_LAMBDA)
         if (this->regulator_) {
-            this->control_signal_ = this->regulator_(this->error_signal_, this->dt_);
+            this->control_signal_ = std::invoke(this->regulator_, this->error_signal_, this->dt_);
         }
 #endif
         printf("regulated angle: %f\n\r", this->control_signal_);

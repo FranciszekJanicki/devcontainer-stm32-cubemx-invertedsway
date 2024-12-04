@@ -7,9 +7,9 @@ namespace InvertedSway {
 
     Angle Encoder::count_to_angle(const Count count) noexcept
     {
-        return std::clamp(Angle{count * (MAX_ANGLE_DEG - MIN_ANGLE_DEG) / COUNTS_PER_REVOLUTION + MIN_ANGLE_DEG},
-                          MIN_ANGLE_DEG,
-                          MAX_ANGLE_DEG);
+        return std::clamp(count, Count{0}, COUNTS_PER_REVOLUTION) * (MAX_ANGLE_DEG - MIN_ANGLE_DEG) /
+                   COUNTS_PER_REVOLUTION +
+               MIN_ANGLE_DEG;
     }
 
     Encoder::Encoder(TimerHandle timer) noexcept : timer_{timer}
@@ -53,5 +53,4 @@ namespace InvertedSway {
         // return count_to_angle(this->count_);
         return count_to_angle(static_cast<Count>(__HAL_TIM_GetCounter(this->timer_)));
     }
-
 }; // namespace InvertedSway

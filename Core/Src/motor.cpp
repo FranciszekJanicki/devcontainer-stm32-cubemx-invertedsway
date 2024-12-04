@@ -40,50 +40,41 @@ namespace InvertedSway {
 
     Speed Motor::raw_to_speed(const Raw raw) noexcept
     {
-        return std::clamp(
-            Speed{(raw - MIN_RAW) * (MAX_SPEED_RPM - MIN_SPEED_RPM) / (MAX_RAW - MIN_RAW) + MAX_SPEED_RPM},
-            MIN_SPEED_RPM,
-            MAX_SPEED_RPM);
+        return (std::clamp(raw, MIN_RAW, MAX_RAW) - MIN_RAW) * (MAX_SPEED_RPM - MIN_SPEED_RPM) / (MAX_RAW - MIN_RAW) +
+               MAX_SPEED_RPM;
     }
 
     Raw Motor::speed_to_raw(const Speed speed) noexcept
     {
-        return std::clamp(
-            Raw{(speed - MIN_SPEED_RPM) * (MAX_RAW - MIN_RAW) / (MAX_SPEED_RPM - MIN_SPEED_RPM) + MIN_RAW},
-            MIN_RAW,
-            MAX_RAW);
+        return (std::clamp(speed, MIN_SPEED_RPM, MAX_SPEED_RPM) - MIN_SPEED_RPM) * (MAX_RAW - MIN_RAW) /
+                   (MAX_SPEED_RPM - MIN_SPEED_RPM) +
+               MIN_RAW;
     }
 
     Voltage Motor::raw_to_voltage(const Raw raw) noexcept
     {
-        return std::clamp(
-            Voltage{(raw - MIN_RAW) * (MAX_VOLTAGE_V - MIN_VOLTAGE_V) / (MAX_RAW - MIN_RAW) + MIN_VOLTAGE_V},
-            MIN_VOLTAGE_V,
-            MAX_VOLTAGE_V);
+        return (std::clamp(raw, MIN_RAW, MAX_RAW) - MIN_RAW) * (MAX_VOLTAGE_V - MIN_VOLTAGE_V) / (MAX_RAW - MIN_RAW) +
+               MIN_VOLTAGE_V;
     }
 
     Raw Motor::voltage_to_raw(const Voltage voltage) noexcept
     {
-        return std::clamp(
-            Raw{(voltage - MIN_VOLTAGE_V) * (MAX_RAW - MIN_RAW) / Raw(MAX_VOLTAGE_V - MIN_VOLTAGE_V) + MIN_RAW},
-            MIN_RAW,
-            MAX_RAW);
+        return (std::clamp(voltage, MIN_VOLTAGE_V, MAX_VOLTAGE_V) - MIN_VOLTAGE_V) * (MAX_RAW - MIN_RAW) /
+                   (MAX_VOLTAGE_V - MIN_VOLTAGE_V) +
+               MIN_RAW;
     }
 
     Torque Motor::raw_to_torque(const Raw raw) noexcept
     {
-        return std::clamp(
-            Torque{(raw - MIN_RAW) * (MAX_TORQUE_NM - MIN_TORQUE_NM) / Torque(MAX_RAW - MIN_RAW) + MIN_TORQUE_NM},
-            MIN_TORQUE_NM,
-            MAX_TORQUE_NM);
+        return (std::clamp(raw, MIN_RAW, MAX_RAW) - MIN_RAW) * (MAX_TORQUE_NM - MIN_TORQUE_NM) / (MAX_RAW - MIN_RAW) +
+               MIN_TORQUE_NM;
     }
 
     Raw Motor::torque_to_raw(const Torque torque) noexcept
     {
-        return std::clamp(
-            Raw{(torque - MIN_TORQUE_NM) * (MAX_RAW - MIN_RAW) / (MAX_TORQUE_NM - MIN_TORQUE_NM) + MIN_RAW},
-            MIN_RAW,
-            MAX_RAW);
+        return (std::clamp(torque, MIN_TORQUE_NM, MAX_TORQUE_NM) - MIN_TORQUE_NM) * (MAX_RAW - MIN_RAW) /
+                   (MAX_TORQUE_NM - MIN_TORQUE_NM) +
+               MIN_RAW;
     }
 
     Error Motor::initialize() noexcept
@@ -307,5 +298,4 @@ namespace InvertedSway {
         }
         return this->set_compare_raw(MIN_RAW);
     }
-
 }; // namespace InvertedSway
