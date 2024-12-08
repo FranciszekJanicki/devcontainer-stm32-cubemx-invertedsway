@@ -23,24 +23,7 @@ namespace InvertedSway {
             DEINIT,
         };
 
-        using Scaled = float;
-        using GyroScaled = Linalg::Vector3D<Scaled>;
-        using AccelScaled = Linalg::Vector3D<Scaled>;
-        using RollPitchYaw = Linalg::Vector3D<Scaled>;
-        using TempScaled = float;
-        using Raw = std::int16_t;
-        using GyroRaw = Linalg::Vector3D<Raw>;
-        using AccelRaw = Linalg::Vector3D<Raw>;
-        using TempRaw = std::int16_t;
-        using GyroFilter = std::function<GyroRaw(GyroRaw)>;
-        using AccelFilter = std::function<AccelRaw(AccelRaw)>;
-
-        [[nodiscard]] static const char* error_to_string(const Error error) noexcept;
-
-        [[nodiscard]] static GyroFilter make_gyro_filter() noexcept;
-        [[nodiscard]] static AccelFilter make_accel_filter() noexcept;
-
-        enum DeviceAddress : std::uint8_t {
+        enum Address : std::uint8_t {
             ADDRESS = 0xD0,  // AD0 low
             ADDRESS2 = 0xD1, // AD0 high
         };
@@ -59,18 +42,32 @@ namespace InvertedSway {
             ACCEL_FS_16 = 0x03,
         };
 
+        using Scaled = float;
+        using GyroScaled = Linalg::Vector3D<Scaled>;
+        using AccelScaled = Linalg::Vector3D<Scaled>;
+        using RollPitchYaw = Linalg::Vector3D<Scaled>;
+        using TempScaled = float;
+        using Raw = std::int16_t;
+        using GyroRaw = Linalg::Vector3D<Raw>;
+        using AccelRaw = Linalg::Vector3D<Raw>;
+        using TempRaw = std::int16_t;
+        using GyroFilter = std::function<GyroRaw(GyroRaw)>;
+        using AccelFilter = std::function<AccelRaw(AccelRaw)>;
+
+        [[nodiscard]] static const char* error_to_string(const Error error) noexcept;
+
+        [[nodiscard]] static GyroFilter make_gyro_filter() noexcept;
+        [[nodiscard]] static AccelFilter make_accel_filter() noexcept;
+
         static constexpr std::uint32_t SAMPLING_RATE_HZ{8000};
         static constexpr float SAMPLING_TIME_S{1.f / static_cast<float>(SAMPLING_RATE_HZ)};
 
         MPU6050() noexcept = default;
 
-        MPU6050(I2cHandle i2c,
-                const DeviceAddress device_addres,
-                const GyroRange gyro_range,
-                const AccelRange accel_range) noexcept;
+        MPU6050(I2cHandle i2c, const Address addres, const GyroRange gyro_range, const AccelRange accel_range) noexcept;
 
         MPU6050(I2cHandle i2c,
-                const DeviceAddress device_addres,
+                const Address addres,
                 const GyroRange gyro_range,
                 const AccelRange accel_range,
                 GyroFilter&& gyro_filter,
@@ -90,7 +87,7 @@ namespace InvertedSway {
         [[nodiscard]] RollPitchYaw get_roll_pitch_yaw() const noexcept;
 
     private:
-        enum RegisterAddress : std::uint8_t {
+        enum RegAddress : std::uint8_t {
             RA_SELF_TEST_X = 0x0D,
             RA_SELF_TEST_Y = 0x0E,
             RA_SELF_TEST_Z = 0x0F,
@@ -223,7 +220,7 @@ namespace InvertedSway {
             EXT_SYNC_ACCEL_ZOUT_L = 0x7,
         };
 
-        enum DLPF : std::uint8_t {
+        enum Dlpf : std::uint8_t {
             DLPF_BW_256 = 0x00,
             DLPF_BW_188 = 0x01,
             DLPF_BW_98 = 0x02,
@@ -534,13 +531,14 @@ namespace InvertedSway {
 
         I2cHandle i2c_{nullptr};
 
-        DeviceAddress address_{};
+        Address address_{};
         GyroRange gyro_range_{};
         AccelRange accel_range_{};
 
         GyroFilter gyro_filter_{[](GyroRaw gyro_raw) { return gyro_raw; }};
         AccelFilter accel_filter_{[](AccelRaw accel_raw) { return accel_raw; }};
     };
+
 }; // namespace InvertedSway
 
 #endif // MPU6050_HPP

@@ -87,7 +87,7 @@ namespace InvertedSway {
     }
 
     MPU6050::MPU6050(I2cHandle i2c,
-                     const DeviceAddress address,
+                     const Address address,
                      const GyroRange gyro_range,
                      const AccelRange accel_range) noexcept :
         i2c_{i2c}, address_{address}, gyro_range_{gyro_range}, accel_range_{accel_range}
@@ -97,7 +97,7 @@ namespace InvertedSway {
     }
 
     MPU6050::MPU6050(I2cHandle i2c,
-                     const DeviceAddress address,
+                     const Address address,
                      const GyroRange gyro_range,
                      const AccelRange accel_range,
                      GyroFilter&& gyro_filter,
