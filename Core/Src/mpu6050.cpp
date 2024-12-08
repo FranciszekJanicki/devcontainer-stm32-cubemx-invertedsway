@@ -54,7 +54,7 @@ namespace InvertedSway {
         return make_recursive_average<AccelRaw, Raw>();
     }
 
-    Scaled MPU6050::gyro_range_to_scale(const std::uint8_t gyro_range) noexcept
+    Scaled MPU6050::gyro_range_to_scale(const GyroRange gyro_range) noexcept
     {
         switch (gyro_range) {
             case GYRO_FS_250:
@@ -70,7 +70,7 @@ namespace InvertedSway {
         }
     }
 
-    Scaled MPU6050::accel_range_to_scale(const std::uint8_t accel_range) noexcept
+    Scaled MPU6050::accel_range_to_scale(const AccelRange accel_range) noexcept
     {
         switch (accel_range) {
             case ACCEL_FS_2:
@@ -87,23 +87,23 @@ namespace InvertedSway {
     }
 
     MPU6050::MPU6050(I2cHandle i2c,
-                     const std::uint8_t addres,
-                     const std::uint8_t gyro_range,
-                     const std::uint8_t accel_range) noexcept :
-        i2c_{i2c}, address_{addres}, gyro_range_{gyro_range}, accel_range_{accel_range}
+                     const DeviceAddress address,
+                     const GyroRange gyro_range,
+                     const AccelRange accel_range) noexcept :
+        i2c_{i2c}, address_{address}, gyro_range_{gyro_range}, accel_range_{accel_range}
 
     {
         this->initialize();
     }
 
     MPU6050::MPU6050(I2cHandle i2c,
-                     const std::uint8_t addres,
-                     const std::uint8_t gyro_range,
-                     const std::uint8_t accel_range,
+                     const DeviceAddress address,
+                     const GyroRange gyro_range,
+                     const AccelRange accel_range,
                      GyroFilter&& gyro_filter,
                      AccelFilter&& accel_filter) noexcept :
         i2c_{i2c},
-        address_{addres},
+        address_{address},
         gyro_range_{gyro_range},
         accel_range_{accel_range},
         gyro_filter_{std::forward<GyroFilter>(gyro_filter)},
@@ -127,7 +127,7 @@ namespace InvertedSway {
             }
             this->set_address_pin(AD0_GPIO_Port, AD0_Pin);
             if (this->get_device_id() == this->address_) {
-                this->device_reset(1);
+                this->device_reset();
                 HAL_Delay(50);
                 this->set_sleep_enabled(0);
                 HAL_Delay(50);
@@ -149,7 +149,7 @@ namespace InvertedSway {
     {
         if (this->initialized_) {
             if (this->get_device_id() == this->address_) {
-                this->device_reset(1);
+                this->device_reset();
                 this->initialized_ = false;
             }
         }
@@ -176,9 +176,9 @@ namespace InvertedSway {
         }
     }
 
-    void MPU6050::device_reset(const std::uint8_t reset) const noexcept
+    void MPU6050::device_reset() const noexcept
     {
-        std::uint8_t buffer = (reset & 1U) << PWR1_DEVICE_RESET_BIT;
+        std::uint8_t buffer = 1U << PWR1_DEVICE_RESET_BIT;
         HAL_I2C_Mem_Write(this->i2c_,
                           this->address_,
                           RA_PWR_MGMT_1,
@@ -300,7 +300,7 @@ namespace InvertedSway {
                           I2C_TIMEOUT);
     }
 
-    void MPU6050::set_full_scale_gyro_range(const std::uint8_t range) const noexcept
+    void MPU6050::set_full_scale_gyro_range(const GyroRange range) const noexcept
     {
         std::uint8_t buffer = (range & 0x7) << 3;
         HAL_I2C_Mem_Write(this->i2c_,
@@ -312,7 +312,7 @@ namespace InvertedSway {
                           I2C_TIMEOUT);
     }
 
-    void MPU6050::set_full_scale_accel_range(const std::uint8_t range) const noexcept
+    void MPU6050::set_full_scale_accel_range(const AccelRange range) const noexcept
     {
         std::uint8_t buffer = (range & 0x7) << 3;
         HAL_I2C_Mem_Write(this->i2c_,
