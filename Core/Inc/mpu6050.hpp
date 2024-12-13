@@ -43,21 +43,16 @@ namespace InvertedSway {
         };
 
         using Scaled = float;
-        using GyroScaled = Linalg::Vector3D<Scaled>;
-        using AccelScaled = Linalg::Vector3D<Scaled>;
-        using RollPitchYaw = Linalg::Vector3D<Scaled>;
-        using TempScaled = float;
+        using GyroScaled = Linalg::Vector3D<Scaled>;   // radians
+        using AccelScaled = Linalg::Vector3D<Scaled>;  // m/s^2
+        using RollPitchYaw = Linalg::Vector3D<Scaled>; // degrees
+        using TempScaled = float;                      // celsius
         using Raw = std::int16_t;
         using GyroRaw = Linalg::Vector3D<Raw>;
         using AccelRaw = Linalg::Vector3D<Raw>;
         using TempRaw = std::int16_t;
-        using GyroFilter = std::function<GyroRaw(GyroRaw)>;
-        using AccelFilter = std::function<AccelRaw(AccelRaw)>;
 
         [[nodiscard]] static const char* error_to_string(const Error error) noexcept;
-
-        [[nodiscard]] static GyroFilter make_gyro_filter() noexcept;
-        [[nodiscard]] static AccelFilter make_accel_filter() noexcept;
 
         static constexpr std::uint32_t SAMPLING_RATE_HZ{8000};
         static constexpr float SAMPLING_TIME_S{1.f / static_cast<float>(SAMPLING_RATE_HZ)};
@@ -65,13 +60,6 @@ namespace InvertedSway {
         MPU6050() noexcept = default;
 
         MPU6050(I2cHandle i2c, const Address addres, const GyroRange gyro_range, const AccelRange accel_range) noexcept;
-
-        MPU6050(I2cHandle i2c,
-                const Address addres,
-                const GyroRange gyro_range,
-                const AccelRange accel_range,
-                GyroFilter&& gyro_filter,
-                AccelFilter&& accel_filter) noexcept;
 
         MPU6050(const MPU6050& other) noexcept = default;
         MPU6050(MPU6050&& other) noexcept = default;
@@ -81,9 +69,22 @@ namespace InvertedSway {
 
         ~MPU6050() noexcept;
 
+        /* celcius */
         [[nodiscard]] TempScaled get_temperature_celsius() const noexcept;
+
+        /* meters per square second */
         [[nodiscard]] AccelScaled get_accelerometer_scaled() const noexcept;
+        [[nodiscard]] Scaled get_acceleration_x_scaled() const noexcept;
+        [[nodiscard]] Scaled get_acceleration_y_scaled() const noexcept;
+        [[nodiscard]] Scaled get_acceleration_z_scaled() const noexcept;
+
+        /* radians */
         [[nodiscard]] GyroScaled get_gyroscope_scaled() const noexcept;
+        [[nodiscard]] Scaled get_rotation_x_scaled() const noexcept;
+        [[nodiscard]] Scaled get_rotation_y_scaled() const noexcept;
+        [[nodiscard]] Scaled get_rotation_z_scaled() const noexcept;
+
+        /* degrees */
         [[nodiscard]] RollPitchYaw get_roll_pitch_yaw() const noexcept;
 
     private:
@@ -220,7 +221,7 @@ namespace InvertedSway {
             EXT_SYNC_ACCEL_ZOUT_L = 0x7,
         };
 
-        enum Dlpf : std::uint8_t {
+        enum DLPF : std::uint8_t {
             DLPF_BW_256 = 0x00,
             DLPF_BW_188 = 0x01,
             DLPF_BW_98 = 0x02,
@@ -534,9 +535,6 @@ namespace InvertedSway {
         Address address_{};
         GyroRange gyro_range_{};
         AccelRange accel_range_{};
-
-        GyroFilter gyro_filter_{[](GyroRaw gyro_raw) { return gyro_raw; }};
-        AccelFilter accel_filter_{[](AccelRaw accel_raw) { return accel_raw; }};
     };
 
 }; // namespace InvertedSway
