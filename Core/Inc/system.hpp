@@ -69,7 +69,7 @@ namespace InvertedSway {
 
         Value dt_{MPU6050::SAMPLING_TIME_S};
         Value gx_{};
-        Value ax_{};
+        Value roll_{};
         Value error_signal_{};
         Value input_signal_{};
         Value output_signal_{};

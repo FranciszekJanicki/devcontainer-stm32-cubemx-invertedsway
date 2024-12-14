@@ -568,6 +568,42 @@ namespace InvertedSway {
             {}};
     }
 
+    Scaled MPU6050::get_roll() const noexcept
+    {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
+
+        const auto accel_scaled{get_accelerometer_scaled()};
+
+        return std::atan2(accel_scaled.y, accel_scaled.z) * 180.0 / M_PI;
+    }
+
+    Scaled MPU6050::get_pitch() const noexcept
+    {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
+
+        const auto accel_scaled{get_accelerometer_scaled()};
+
+        return -(std::atan2(accel_scaled.x,
+                            std::sqrt(accel_scaled.y * accel_scaled.y + accel_scaled.z * accel_scaled.z)) *
+                 180.0) /
+               M_PI;
+    }
+
+    Scaled MPU6050::get_yaw() const noexcept
+    {
+        if (!this->initialized_) {
+            std::unreachable();
+        }
+
+        const auto accel_scaled{get_accelerometer_scaled()};
+
+        return {};
+    }
+
     void MPU6050::set_interrupt() const noexcept
     {
         this->set_interrupt_mode(INTMODE_ACTIVEHIGH);

@@ -76,12 +76,12 @@ namespace InvertedSway {
     void System::update_output_signal() noexcept
     {
         if (HAL_GPIO_ReadPin(INTR_GPIO_Port, INTR_Pin) == GPIO_PinState::GPIO_PIN_SET) {
-            this->ax_ = this->mpu6050_.get_accelerometer_scaled().x;
-            this->gx_ = this->mpu6050_.get_gyroscope_scaled().x;
+            this->roll_ = this->mpu6050_.get_roll();
+            this->gx_ = this->mpu6050_.get_rotation_x_scaled();
         }
-        printf("mpu angle: %f, %f\n\r", this->ax_, this->gx_);
+        printf("mpu angle: %f, %f\n\r", this->ax_, this->roll_);
 
-        this->output_signal_ = this->kalman_(this->gx_, this->ax_, this->dt_);
+        this->output_signal_ = this->kalman_(this->gx_, this->roll_, this->dt_);
         printf("kalman angle: %f\n\r", this->output_signal_);
 
         printf("encoder angle: %f\n\r", this->encoder_.get_angle());

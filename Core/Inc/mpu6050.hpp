@@ -86,6 +86,9 @@ namespace InvertedSway {
 
         /* degrees */
         [[nodiscard]] RollPitchYaw get_roll_pitch_yaw() const noexcept;
+        [[nodiscard]] Scaled get_roll() const noexcept;
+        [[nodiscard]] Scaled get_pitch() const noexcept;
+        [[nodiscard]] Scaled get_yaw() const noexcept;
 
     private:
         enum RegAddress : std::uint8_t {
