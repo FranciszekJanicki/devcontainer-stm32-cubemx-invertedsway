@@ -7,60 +7,54 @@
 
 namespace InvertedSway {
 
-    template <Linalg::Arithmetic Value>
-    struct Kalman {
-        constexpr Value operator()(const Value gyro, const Value accel, const Value dt) noexcept
-        {
-            this->predict(gyro, dt);
-            this->update(accel);
-            return this->k_angle;
-        }
+    namespace Filters {
 
-        constexpr void predict(const Value gyro, const Value dt) noexcept
-        {
-            this->k_angle += dt * (gyro - this->k_bias);
+        template <Linalg::Arithmetic Value>
+        struct Kalman {
+            constexpr Value operator()(const Value gyro, const Value accel, const Value dt) noexcept
+            {
+                this->predict(gyro, dt);
+                this->update(accel);
+                return this->k_angle;
+            }
 
-            this->P[0][0] += dt * (dt * this->P[1][1] - this->P[0][1] - this->P[1][0] + this->Q_angle);
-            this->P[0][1] -= dt * this->P[1][1];
-            this->P[1][0] -= dt * this->P[1][1];
-            this->P[1][1] += dt * this->Q_angle;
+            constexpr void predict(const Value gyro, const Value dt) noexcept
+            {
+                this->k_angle += dt * (gyro - this->k_bias);
 
-            const Value S{1 / (this->P[0][0] + this->R)};
-            this->K[0] = this->P[0][0] * S;
-            this->K[1] = this->P[1][0] * S;
-        }
+                this->P[0][0] += dt * (dt * this->P[1][1] - this->P[0][1] - this->P[1][0] + this->Q_angle);
+                this->P[0][1] -= dt * this->P[1][1];
+                this->P[1][0] -= dt * this->P[1][1];
+                this->P[1][1] += dt * this->Q_angle;
 
-        constexpr void update(const Value accel) noexcept
-        {
-            const Value dy{accel - this->k_angle};
-            this->k_angle += K[0] * dy;
-            this->k_bias += K[1] * dy;
+                const Value S{1 / (this->P[0][0] + this->R)};
+                this->K[0] = this->P[0][0] * S;
+                this->K[1] = this->P[1][0] * S;
+            }
 
-            this->P[0][0] *= (Value{1} - this->K[0]);
-            this->P[0][1] *= (Value{1} - this->K[0]);
-            this->P[1][0] -= this->K[1] * this->P[0][0];
-            this->P[1][1] -= this->K[1] * this->P[0][1];
-        }
+            constexpr void update(const Value accel) noexcept
+            {
+                const Value dy{accel - this->k_angle};
+                this->k_angle += K[0] * dy;
+                this->k_bias += K[1] * dy;
 
-        Value k_angle;
-        Value k_bias;
-        Value Q_angle;
-        Value Q_bias;
-        Value R;
+                this->P[0][0] *= (Value{1} - this->K[0]);
+                this->P[0][1] *= (Value{1} - this->K[0]);
+                this->P[1][0] -= this->K[1] * this->P[0][0];
+                this->P[1][1] -= this->K[1] * this->P[0][1];
+            }
 
-        std::array<Value, 2> K{};
-        std::array<std::array<Value, 2>, 2> P{};
-    };
+            Value k_angle;
+            Value k_bias;
+            Value Q_angle;
+            Value Q_bias;
+            Value R;
 
-    template <Linalg::Arithmetic Value>
-    [[nodiscard]] constexpr auto make_kalman(const Value k_angle,
-                                             const Value k_bias,
-                                             const Value Q_angle,
-                                             const Value Q_bias,
-                                             const Value R) noexcept
-    {
-        return Kalman<Value>{k_angle, k_bias, Q_angle, Q_bias, R};
-    }
+            std::array<Value, 2> K{};
+            std::array<std::array<Value, 2>, 2> P{};
+        };
+
+    }; // namespace Filters
 
 }; // namespace InvertedSway
 

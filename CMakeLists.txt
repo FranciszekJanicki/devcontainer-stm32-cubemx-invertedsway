@@ -37,7 +37,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Src/l298n.cpp"
     "Core/Src/motor.cpp"
     "Core/Src/system.cpp"
-    "Core/Inc/regulator.hpp"
+    "Core/Inc/regulators.hpp"
     "Core/Inc/kalman.hpp"
     "Core/Src/encoder.cpp"
 )

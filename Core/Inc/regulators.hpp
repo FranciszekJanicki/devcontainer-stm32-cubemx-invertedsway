@@ -12,9 +12,14 @@
 // i have chosen std::variant for polymorphic regulator, as its sigma container
 #define REGULATOR_VARIANT
 
+template <typename First, typename... Rest>
+struct FirstType {
+    using Type = First;
+};
+
 namespace InvertedSway {
 
-    namespace Regulator {
+    namespace Regulators {
 
         enum struct Algorithm {
             PID,
@@ -22,11 +27,6 @@ namespace InvertedSway {
             ADRC,
             BINARY,
             TERNARY,
-        };
-
-        template <typename First, typename... Rest>
-        struct FirstType {
-            using Type = First;
         };
 
         template <Linalg::Arithmetic Value>

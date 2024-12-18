@@ -5,9 +5,10 @@
 #include "i2c.h"
 #include "l298n.hpp"
 #include "mpu6050.hpp"
-#include "regulator.hpp"
+#include "regulators.hpp"
 #include "system.hpp"
 #include "system_clock.h"
+#include "tests.hpp"
 #include "tim.h"
 #include "usart.h"
 #include <cstdio>
@@ -18,7 +19,8 @@ static bool timer_elapsed{false};
 int main()
 {
     using namespace InvertedSway;
-    using namespace InvertedSway::Regulator;
+    using namespace Regulators;
+    using namespace Filters;
 
     HAL_Init();
     SystemClock_Config();
@@ -29,19 +31,15 @@ int main()
     MX_I2C1_Init();
     MX_TIM1_Init();
 
+    float const angle{0.0f};
+    float const sampling_time{MPU6050::SAMPLING_TIME_S};
+
     L298N l298n{L298N::MotorChannels{
-        L298N::make_motor_channel(L298N::Channel::CHANNEL1,
-                                  &htim2,
-                                  TIM_CHANNEL_1,
-                                  GPIOB,
-                                  IN1_Pin,
-                                  IN3_Pin,
-                                  OUT1_Pin,
-                                  OUT3_Pin),
+        L298N::make_motor_channel(L298N::Channel::CHANNEL1, &htim2, TIM_CHANNEL_1, GPIOB, IN1_Pin, IN3_Pin),
         L298N::make_motor_channel(L298N::Channel::CHANNEL2),
     }};
 
-    MPU6050 mpu6050{&hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::ACCEL_FS_2};
+    MPU6050 mpu6050{&hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::ACCEL_FS_2, MPU6050::SAMPLING_RATE_HZ};
 
     auto kalman{make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
 
@@ -50,9 +48,6 @@ int main()
     Encoder encoder{&htim1};
 
     System system{std::move(mpu6050), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
-
-    const float angle{0.0f};
-    const float sampling_time{MPU6050::SAMPLING_TIME_S};
 
     HAL_TIM_Base_Start_IT(&htim3);
 

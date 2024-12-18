@@ -58,18 +58,21 @@ namespace InvertedSway {
         static constexpr float SAMPLING_TIME_S{1.f / static_cast<float>(SAMPLING_RATE_HZ)};
 
         MPU6050() noexcept = default;
+        MPU6050(I2cHandle i2c,
+                const Address addres,
+                const GyroRange gyro_range,
+                const AccelRange accel_range,
+                const std::uint32_t sampling_rate) noexcept;
 
-        MPU6050(I2cHandle i2c, const Address addres, const GyroRange gyro_range, const AccelRange accel_range) noexcept;
-
-        MPU6050(const MPU6050& other) noexcept = default;
+        MPU6050(const MPU6050& other) noexcept = delete;
         MPU6050(MPU6050&& other) noexcept = default;
 
-        MPU6050& operator=(const MPU6050& other) noexcept = default;
+        MPU6050& operator=(const MPU6050& other) noexcept = delete;
         MPU6050& operator=(MPU6050&& other) noexcept = default;
 
         ~MPU6050() noexcept;
 
-        /* celcius */
+        /* celsius */
         [[nodiscard]] TempScaled get_temperature_celsius() const noexcept;
 
         /* meters per square second */
@@ -469,7 +472,7 @@ namespace InvertedSway {
         static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_DIS_HZ{8000};
         static constexpr std::uint32_t ACCEL_OUTPUT_RATE_HZ{1000};
 
-        void initialize() noexcept;
+        void initialize(const std::uint32_t sampling_rate) noexcept;
         void deinitialize() noexcept;
 
         std::uint8_t get_device_id() const noexcept;

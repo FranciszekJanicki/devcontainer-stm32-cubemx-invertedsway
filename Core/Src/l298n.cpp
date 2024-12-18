@@ -7,28 +7,22 @@
 #include <ranges>
 #include <utility>
 
+using namespace InvertedSway;
+using Error = L298N::Error;
+using Direction = L298N::Direction;
+using Channel = L298N::Channel;
+using MotorChannel = L298N::MotorChannel;
+using MotorChannels = L298N::MotorChannels;
+using Raw = L298N::Raw;
+using Speed = L298N::Speed;
+using Voltage = L298N::Voltage;
+using Direction = L298N::Direction;
+using ExpectedRaw = L298N::ExpectedRaw;
+using ExpectedVoltage = L298N::ExpectedVoltage;
+using ExpectedSpeed = L298N::ExpectedSpeed;
+using Unexpected = L298N::Unexpected;
+
 namespace InvertedSway {
-
-    using Error = L298N::Error;
-    using Direction = L298N::Direction;
-    using Channel = L298N::Channel;
-    using MotorChannel = L298N::MotorChannel;
-    using MotorChannels = L298N::MotorChannels;
-    using Raw = L298N::Raw;
-    using Speed = L298N::Speed;
-    using Voltage = L298N::Voltage;
-    using Torque = L298N::Torque;
-    using ExpectedDirection = L298N::ExpectedDirection;
-    using ExpectedRaw = L298N::ExpectedRaw;
-    using ExpectedVoltage = L298N::ExpectedVoltage;
-    using ExpectedSpeed = L298N::ExpectedSpeed;
-    using ExpectedTorque = L298N::ExpectedTorque;
-    using Unexpected = L298N::Unexpected;
-
-    L298N::L298N(const MotorChannels& motor_channels) noexcept : motor_channels_{motor_channels}
-    {
-        this->initialize();
-    }
 
     L298N::L298N(MotorChannels&& motor_channels) noexcept : motor_channels_{std::forward<MotorChannels>(motor_channels)}
     {
@@ -40,19 +34,9 @@ namespace InvertedSway {
         this->deinitialize();
     }
 
-    const MotorChannels& L298N::motor_channels() const& noexcept
-    {
-        return this->motor_channels_;
-    }
-
     MotorChannels&& L298N::motor_channels() && noexcept
     {
         return std::forward<L298N>(*this).motor_channels_;
-    }
-
-    void L298N::motor_channels(const MotorChannels& motor_channels) noexcept
-    {
-        this->motor_channels_ = motor_channels;
     }
 
     void L298N::motor_channels(MotorChannels&& motor_channels) noexcept
@@ -90,24 +74,9 @@ namespace InvertedSway {
         return this->get_motor(channel).set_compare_speed(speed);
     }
 
-    ExpectedTorque L298N::get_compare_torque(const Channel channel) const noexcept
-    {
-        return this->get_motor(channel).get_compare_torque();
-    }
-
-    Error L298N::set_compare_torque(const Channel channel, const Torque torque) const noexcept
-    {
-        return this->get_motor(channel).set_compare_torque(torque);
-    }
-
     Error L298N::set_direction(const Channel channel, const Direction direction) const noexcept
     {
         return this->get_motor(channel).set_direction(direction);
-    }
-
-    ExpectedDirection L298N::get_direction(const Channel channel) const noexcept
-    {
-        return this->get_motor(channel).get_direction();
     }
 
     Error L298N::set_forward(const Channel channel) const noexcept
@@ -130,16 +99,10 @@ namespace InvertedSway {
         return this->get_motor(channel).set_direction(Direction::FAST_STOP);
     }
 
-    Error L298N::toggle_direction(const Channel channel) const noexcept
-    {
-        return this->get_motor(channel).toggle_direction();
-    }
-
     Error L298N::initialize() noexcept
     {
         std::ranges::for_each(this->motor_channels_, [](auto& motor_channel) {
             auto& motor{motor_channel.second};
-            motor.initialize();
             motor.set_soft_stop();
             motor.set_compare_min();
         });
@@ -151,7 +114,6 @@ namespace InvertedSway {
             auto& motor{motor_channel.second};
             motor.set_fast_stop();
             motor.set_compare_min();
-            motor.deinitialize();
         });
     }
 

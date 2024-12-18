@@ -2,48 +2,68 @@
 #define FILTERS_HPP
 
 #include "arithmetic.hpp"
+#include "kalman.hpp"
+#include <functional>
 #include <queue>
 #include <utility>
 
 namespace InvertedSway {
 
-    template <typename Filtered, typename Samples = Filtered>
-    [[nodiscard]] constexpr auto make_recursive_average(const Filtered start_condition = {}) noexcept
-    {
-        return [estimate = Filtered{}, prev_estimate = start_condition, samples = Samples{1}](
-                   const Filtered measurement) mutable {
-            estimate = (std::exchange(prev_estimate, estimate) * Samples{samples - Samples{1}} / samples) +
-                       (measurement / samples);
-            samples += Samples{1};
-            return estimate;
-        };
-    }
+    namespace Filters {
 
-    template <typename Filtered, typename Samples = Filtered>
-    [[nodiscard]] constexpr auto make_moving_average(const Filtered start_condition = {},
-                                                     const Samples last_samples = 10)
-    {
-        assert(last_samples > 0);
-        return [estimate = Filtered{},
-                prev_estimate = start_condition,
-                measurements = std::queue<Filtered>{start_condition},
-                last_samples](const Filtered measurement) mutable {
-            estimate = std::exchange(prev_estimate, estimate) + ((measurement - measurements.front()) / last_samples);
-            measurements.pop();
-            measurements.push(measurement);
-            return estimate;
-        };
-    }
+        template <Linalg::Arithmetic Value>
+        using Filter = std::function<Value(Value)>;
 
-    template <typename Filtered, typename Samples = Filtered, typename Alpha = Filtered>
-    [[nodiscard]] constexpr auto make_low_pass(const Filtered start_condition = {}, const Alpha alpha = 1) noexcept
-    {
-        assert(alpha >= 0 && alpha <= 1);
-        return [estimate = Filtered{}, prev_estimate = start_condition, alpha](const Filtered measurement) {
-            estimate = (std::exchange(prev_estimate, estimate) * alpha) + (measurement * (Alpha{1} - alpha));
-            return estimate;
-        };
-    }
+        template <Linalg::Arithmetic Value>
+        [[nodiscard]] constexpr auto make_recursive_average(Value const start_condition = 0) noexcept
+        {
+            return [estimate = start_condition, samples = Value{1}](Value const measurement) mutable {
+                estimate = (estimate * (samples - 1) + measurement) / samples;
+                samples += Value{1};
+                return estimate;
+            };
+        }
+
+        template <Linalg::Arithmetic Value>
+        [[nodiscard]] constexpr auto make_moving_average(Value const start_condition = 0, Value const last_samples = 10)
+        {
+            assert(last_samples > 0);
+            std::queue<Value> measurements{};
+            for (Value i{}; i < last_samples; ++i) {
+                measurements.push(start_condition);
+            }
+            return [estimate = start_condition, last_samples, measurements = std::move(measurements)](
+                       Value const measurement) mutable {
+                estimate = estimate + (measurement - measurements.front()) / last_samples;
+                if (!measurements.empty()) {
+                    measurements.pop();
+                }
+                measurements.push(measurement);
+                return estimate;
+            };
+        }
+
+        template <Linalg::Arithmetic Value>
+        [[nodiscard]] constexpr auto make_low_pass(Value const start_condition = 0, Value const alpha = 0.5) noexcept
+        {
+            assert(alpha >= 0 && alpha <= 1);
+            return [estimate = start_condition, alpha](Value const measurement) mutable {
+                estimate = (estimate * alpha) + (measurement * (Value{1} - alpha));
+                return estimate;
+            };
+        }
+
+        template <Linalg::Arithmetic Value>
+        [[nodiscard]] constexpr auto make_kalman(const Value k_angle,
+                                                 const Value k_bias,
+                                                 const Value Q_angle,
+                                                 const Value Q_bias,
+                                                 const Value R) noexcept
+        {
+            return Kalman<Value>{k_angle, k_bias, Q_angle, Q_bias, R};
+        }
+
+    }; // namespace Filters
 
 }; // namespace InvertedSway
 

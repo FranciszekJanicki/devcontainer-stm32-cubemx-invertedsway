@@ -3,39 +3,27 @@
 #include "l298n.hpp"
 #include "main.h"
 #include "mpu6050.hpp"
-#include "regulator.hpp"
+#include "regulators.hpp"
 #include <cstdio>
 #include <functional>
 #include <memory>
 #include <utility>
 #include <variant>
 
+using namespace InvertedSway;
+using Value = System::Value;
+using Kalman = System::Kalman;
+using Regulator = System::Regulator;
+
 namespace InvertedSway {
 
-    using Value = System::Value;
-    using KalmanFilter = System::KalmanFilter;
-    using RegulatorBlock = System::RegulatorBlock;
-
-    System::System(MPU6050&& mpu6050,
-                   L298N&& l298n,
-                   KalmanFilter&& kalman,
-                   RegulatorBlock&& regulator,
-                   Encoder&& encoder) noexcept :
+    System::System(MPU6050&& mpu6050, L298N&& l298n, Kalman&& kalman, Regulator&& regulator, Encoder&& encoder) noexcept
+        :
         mpu6050_{std::forward<MPU6050>(mpu6050)},
         l298n_{std::forward<L298N>(l298n)},
-        kalman_{std::forward<KalmanFilter>(kalman)},
-        regulator_{std::forward<RegulatorBlock>(regulator)},
+        kalman_{std::forward<Kalman>(kalman)},
+        regulator_{std::forward<Regulator>(regulator)},
         encoder_{std::forward<Encoder>(encoder)}
-    {
-        this->initialize();
-    }
-
-    System::System(const MPU6050& mpu6050,
-                   const L298N& l298n,
-                   const KalmanFilter& kalman,
-                   const RegulatorBlock& regulator,
-                   const Encoder& encoder) :
-        mpu6050_{mpu6050}, l298n_{l298n}, kalman_{kalman}, regulator_{regulator}, encoder_{encoder}
     {
         this->initialize();
     }
@@ -79,7 +67,7 @@ namespace InvertedSway {
             this->roll_ = this->mpu6050_.get_roll();
             this->gx_ = this->mpu6050_.get_rotation_x_scaled();
         }
-        printf("mpu angle: %f, %f\n\r", this->ax_, this->roll_);
+        printf("mpu angle: %f, %f\n\r", this->gx_, this->roll_);
 
         this->output_signal_ = this->kalman_(this->gx_, this->roll_, this->dt_);
         printf("kalman angle: %f\n\r", this->output_signal_);

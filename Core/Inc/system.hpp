@@ -5,7 +5,7 @@
 #include "kalman.hpp"
 #include "l298n.hpp"
 #include "mpu6050.hpp"
-#include "regulator.hpp"
+#include "regulators.hpp"
 #include <functional>
 #include <memory>
 #include <utility>
@@ -16,25 +16,16 @@ namespace InvertedSway {
     struct System {
     public:
         using Value = MPU6050::Scaled;
-        using KalmanFilter = Kalman<Value>;
-        using RegulatorBlock = Regulator::Regulator<Value>;
+        using Kalman = Filters::Kalman<Value>;
+        using Regulator = Regulators::Regulator<Value>;
 
-        System(MPU6050&& mpu6050,
-               L298N&& l298n,
-               KalmanFilter&& kalman,
-               RegulatorBlock&& regulator,
-               Encoder&& encoder) noexcept;
-        System(const MPU6050& mpu6050,
-               const L298N& l298n,
-               const KalmanFilter& kalman,
-               const RegulatorBlock& regulator,
-               const Encoder& encoder);
+        System(MPU6050&& mpu6050, L298N&& l298n, Kalman&& kalman, Regulator&& regulator, Encoder&& encoder) noexcept;
 
         System(const System& other) = delete;
-        System(System&& other) noexcept = delete;
+        System(System&& other) noexcept = default;
 
         System& operator=(const System& other) = delete;
-        System& operator=(System&& other) noexcept = delete;
+        System& operator=(System&& other) noexcept = default;
 
         ~System() noexcept;
 
@@ -78,8 +69,8 @@ namespace InvertedSway {
 
         MPU6050 mpu6050_{};
         L298N l298n_{};
-        KalmanFilter kalman_{};
-        RegulatorBlock regulator_{};
+        Kalman kalman_{};
+        Regulator regulator_{};
         Encoder encoder_{};
     };
 }; // namespace InvertedSway

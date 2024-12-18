@@ -1,9 +1,10 @@
 #include "encoder.hpp"
 
-namespace InvertedSway {
+using namespace InvertedSway;
+using Count = Encoder::Count;
+using Angle = Encoder::Angle;
 
-    using Count = Encoder::Count;
-    using Angle = Encoder::Angle;
+namespace InvertedSway {
 
     Angle Encoder::count_to_angle(const Count count) noexcept
     {
@@ -53,4 +54,5 @@ namespace InvertedSway {
         // return count_to_angle(this->count_);
         return count_to_angle(static_cast<Count>(__HAL_TIM_GetCounter(this->timer_)));
     }
+
 }; // namespace InvertedSway

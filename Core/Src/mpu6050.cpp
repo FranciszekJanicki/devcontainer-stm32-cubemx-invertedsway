@@ -9,18 +9,19 @@
 #include <cstdio>
 #include <expected>
 
-namespace InvertedSway {
+using namespace InvertedSway;
+using Error = MPU6050::Error;
+using Scaled = MPU6050::Scaled;
+using GyroScaled = MPU6050::GyroScaled;
+using AccelScaled = MPU6050::AccelScaled;
+using RollPitchYaw = MPU6050::RollPitchYaw;
+using TempScaled = MPU6050::TempScaled;
+using Raw = MPU6050::Raw;
+using GyroRaw = MPU6050::GyroRaw;
+using AccelRaw = MPU6050::AccelRaw;
+using TempRaw = MPU6050::TempRaw;
 
-    using Error = MPU6050::Error;
-    using Scaled = MPU6050::Scaled;
-    using GyroScaled = MPU6050::GyroScaled;
-    using AccelScaled = MPU6050::AccelScaled;
-    using RollPitchYaw = MPU6050::RollPitchYaw;
-    using TempScaled = MPU6050::TempScaled;
-    using Raw = MPU6050::Raw;
-    using GyroRaw = MPU6050::GyroRaw;
-    using AccelRaw = MPU6050::AccelRaw;
-    using TempRaw = MPU6050::TempRaw;
+namespace InvertedSway {
 
     const char* MPU6050::error_to_string(const Error error) noexcept
     {
@@ -77,11 +78,12 @@ namespace InvertedSway {
     MPU6050::MPU6050(I2cHandle i2c,
                      const Address address,
                      const GyroRange gyro_range,
-                     const AccelRange accel_range) noexcept :
+                     const AccelRange accel_range,
+                     const std::uint32_t sampling_rate) noexcept :
         i2c_{i2c}, address_{address}, gyro_range_{gyro_range}, accel_range_{accel_range}
 
     {
-        this->initialize();
+        this->initialize(sampling_rate);
     }
 
     MPU6050::~MPU6050() noexcept
@@ -89,7 +91,7 @@ namespace InvertedSway {
         this->deinitialize();
     }
 
-    void MPU6050::initialize() noexcept
+    void MPU6050::initialize(const std::uint32_t sampling_rate) noexcept
     {
         if (!this->initialized_) {
             if (HAL_I2C_IsDeviceReady(this->i2c_, this->address_, 10, I2C_TIMEOUT) != HAL_OK) {
@@ -105,7 +107,7 @@ namespace InvertedSway {
                 HAL_Delay(50);
                 this->set_clock_source(CLOCK_INTERNAL);
                 HAL_Delay(50);
-                this->set_sampling_rate_and_dlpf(SAMPLING_RATE_HZ, DLPF_BW_256);
+                this->set_sampling_rate_and_dlpf(sampling_rate, DLPF_BW_256);
                 HAL_Delay(50);
                 this->set_full_scale_gyro_range(this->gyro_range_);
                 HAL_Delay(50);
