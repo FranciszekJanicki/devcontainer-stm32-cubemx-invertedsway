@@ -27,9 +27,10 @@ int main()
 
     MX_GPIO_Init();
     MX_USART2_UART_Init();
-    MX_TIM2_Init();
     MX_I2C1_Init();
     MX_TIM1_Init();
+    MX_TIM2_Init();
+    MX_TIM3_Init();
 
     float const angle{0.0f};
     float const sampling_time{MPU6050::SAMPLING_TIME_S};
@@ -63,13 +64,10 @@ int main()
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
-    if (htim == nullptr) {
-        return;
-    }
     if (htim->Instance == TIM3) {
         bool timer_elapsed = true;
-        HAL_TIM_Base_Start_IT(htim);
     }
+    HAL_TIM_Base_Start_IT(htim);
 }
 
 void Error_Handler()
