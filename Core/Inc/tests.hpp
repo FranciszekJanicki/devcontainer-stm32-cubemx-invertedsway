@@ -1,6 +1,11 @@
 #ifndef TESTS_HPP
 #define TESTS_HPP
 
+#include "encoder.hpp"
+#include "kalman.hpp"
+#include "motor.hpp"
+#include "mpu6050.hpp"
+
 namespace Tests {
 
     using namespace InvertedSway;

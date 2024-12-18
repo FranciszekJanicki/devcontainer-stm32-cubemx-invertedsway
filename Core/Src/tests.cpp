@@ -1,12 +1,15 @@
 #include "tests.hpp"
-#include "dutkiewicz.hpp"
 #include "encoder.hpp"
+#include "kalman.hpp"
 #include "motor.hpp"
 #include "mpu6050.hpp"
-#include "regulator.hpp"
+#include "regulators.hpp"
 #include "system.hpp"
 #include <cmath>
 #include <cstdio>
+
+using namespace InvertedSway;
+using Kalman = Filters::Kalman<float>;
 
 namespace Tests {
 
@@ -17,7 +20,7 @@ namespace Tests {
         motor.set_compare_min();
         motor.set_direction(Direction::FAST_STOP);
 
-        auto voltages{0.0f, 3.0f, 6.0f, 3.0f, 0.0f, -3.0f, -6.0f, -3.0f};
+        auto voltages = {0.0f, 3.0f, 6.0f, 3.0f, 0.0f, -3.0f, -6.0f, -3.0f};
 
         while (true) {
             for (auto const voltage : voltages) {
@@ -49,7 +52,7 @@ namespace Tests {
                 float const roll = mpu6050.get_roll();
                 float const gx = mpu6050.get_rotation_x_scaled();
                 printf("mpu angle: %f, %f\n\r", gx, roll);
-                printf("kalman angle: %f\n\r", kalman(gx, roll, dt););
+                printf("kalman angle: %f\n\r", kalman(gx, roll, dt));
             }
         }
     }
@@ -84,4 +87,5 @@ namespace Tests {
             printf("DUTKIEWICZ\n\r");
         }
     }
+
 }; // namespace Tests

@@ -40,6 +40,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Inc/regulators.hpp"
     "Core/Inc/kalman.hpp"
     "Core/Src/encoder.cpp"
+    "Core/Src/tests.cpp"
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
