@@ -52,9 +52,13 @@ void test_kalman()
     MX_I2C1_Init();
     MX_USART2_UART_Init();
 
-    KALMAN_TEST(MPU6050{&hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::ACCEL_FS_2, MPU6050::SAMPLING_RATE_HZ},
+    KALMAN_TEST(MPU6050{&hi2c1,
+                        MPU6050::Address::ADDRESS,
+                        MPU6050::GyroRange::GYRO_FS_250,
+                        MPU6050::AccelRange::ACCEL_FS_2,
+                        8000U},
                 make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f),
-                MPU6050::SAMPLING_TIME_S);
+                1.0f / static_cast<float>(8000U));
 }
 
 void test_dutkiewicz()

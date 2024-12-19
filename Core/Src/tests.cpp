@@ -81,14 +81,14 @@ namespace Tests {
         motor.set_fast_stop();
     }
 
-    void KALMAN_TEST(MPU6050 mpu6050, Kalman kalman, float dt) noexcept
+    void KALMAN_TEST(MPU6050 mpu6050, Kalman kalman, std::uint32_t const sampling_rate) noexcept
     {
         while (true) {
             if (HAL_GPIO_ReadPin(INTR_GPIO_Port, INTR_Pin) == GPIO_PinState::GPIO_PIN_SET) {
                 float const roll = mpu6050.get_roll();
                 float const gx = mpu6050.get_rotation_x_scaled();
                 printf("mpu angle: %f, %f\n\r", gx, roll);
-                printf("kalman angle: %f\n\r", kalman(gx, roll, dt));
+                printf("kalman angle: %f\n\r", kalman(gx, roll, 1.0f / static_cast<float>(sampling_rate)));
             }
         }
     }
@@ -120,7 +120,9 @@ namespace Tests {
     void DUTKIEWICZ_TEST() noexcept
     {
         while (true) {
-            printf("DUTKIEWICZ :D\n\r");
+            for (auto i{0}; i < 8; ++i)
+                printf("DUTKIEWICZ SIGMA\t");
+            printf("\n\r");
         }
     }
 

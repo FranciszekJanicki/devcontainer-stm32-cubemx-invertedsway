@@ -15,7 +15,7 @@ namespace Tests {
 
     void MOTOR_BOOST_TEST(Motor motor, float const voltage_start_threshold) noexcept;
 
-    void KALMAN_TEST(MPU6050 mpu6050, Kalman kalman, float const dt) noexcept;
+    void KALMAN_TEST(MPU6050 mpu6050, Kalman kalman, std::uint32_t const sampling_rate) noexcept;
 
     void ENCODER_TEST(Encoder encoder, Motor motor) noexcept;
 
