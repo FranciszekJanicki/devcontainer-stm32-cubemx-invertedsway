@@ -62,7 +62,7 @@ namespace InvertedSway {
 
     Motor::Motor(TimerHandle timer,
                  std::uint32_t const timer_channel,
-                 GpioHandle gpio,
+                 GPIOHandle gpio,
                  std::uint16_t const pin_in1,
                  std::uint16_t const pin_in2) noexcept :
         timer_{timer}, timer_channel_{timer_channel}, gpio_{gpio}, pin_in1_{pin_in1}, pin_in2_{pin_in2}

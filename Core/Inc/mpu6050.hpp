@@ -414,11 +414,8 @@ namespace InvertedSway {
         using AccelRaw = Linalg::Vector3D<Raw>;
         using TempRaw = std::int16_t;
 
-        static constexpr std::uint32_t SAMPLING_RATE_HZ{8000};
-        static constexpr float SAMPLING_TIME_S{1.0f / static_cast<float>(SAMPLING_RATE_HZ)};
-
         MPU6050() noexcept = default;
-        MPU6050(I2cHandle i2c,
+        MPU6050(I2CHandle i2c,
                 Address const addres,
                 GyroRange const gyro_range,
                 AccelRange const accel_range,
@@ -457,7 +454,7 @@ namespace InvertedSway {
         static Scaled gyro_range_to_scale(GyroRange const gyro_range) noexcept;
         static Scaled accel_range_to_scale(AccelRange const accel_range) noexcept;
 
-        static std::uint32_t get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept;
+        static std::uint8_t get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept;
 
         static constexpr Scaled M_PI{3.14f};
         static constexpr std::uint32_t I2C_TIMEOUT{100};
@@ -471,7 +468,7 @@ namespace InvertedSway {
 
         std::uint8_t get_device_id() const noexcept;
 
-        void set_address_pin(GpioHandle gpio, std::uint16_t const address_pin) const noexcept;
+        void set_address_pin(GPIOHandle gpio, std::uint16_t const address_pin) const noexcept;
         void set_sampling_divider(std::uint8_t const divider) const noexcept;
         void set_dlpf(DLPF const value) const noexcept;
         void set_clock_source(Clock const source) const noexcept;
@@ -529,7 +526,7 @@ namespace InvertedSway {
 
         bool initialized_{false};
 
-        I2cHandle i2c_{nullptr};
+        I2CHandle i2c_{nullptr};
 
         std::uint16_t address_{};
         GyroRange gyro_range_{};

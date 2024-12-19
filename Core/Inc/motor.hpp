@@ -48,7 +48,7 @@ namespace InvertedSway {
         Motor() noexcept = default;
         Motor(TimerHandle timer,
               std::uint32_t const timer_channel,
-              GpioHandle gpio,
+              GPIOHandle gpio,
               std::uint16_t const pin_in1,
               std::uint16_t const pin_in2) noexcept;
 
@@ -89,7 +89,7 @@ namespace InvertedSway {
         TimerHandle timer_{nullptr};
         std::uint32_t timer_channel_{};
 
-        GpioHandle gpio_{nullptr};
+        GPIOHandle gpio_{nullptr};
         std::uint16_t pin_in1_{};
         std::uint16_t pin_in2_{};
 
