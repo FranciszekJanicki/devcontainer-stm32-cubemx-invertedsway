@@ -620,7 +620,7 @@ namespace InvertedSway {
 
     void MPU6050::set_interrupt_mode(IntrMode const mode) const noexcept
     {
-        std::uint8_t buffer{(std::to_underlying(mode) & 1U) << std::to_underlying(IntrCfg::INT_LEVEL_BIT)};
+        std::uint8_t buffer{std::to_underlying(mode) << std::to_underlying(IntrCfg::INT_LEVEL_BIT)};
         HAL_I2C_Mem_Write(this->i2c_,
                           this->address_,
                           std::to_underlying(RA::INT_PIN_CFG),
@@ -632,7 +632,7 @@ namespace InvertedSway {
 
     void MPU6050::set_interrupt_drive(IntrDrive const drive) const noexcept
     {
-        std::uint8_t buffer{(std::to_underlying(drive) & 1U) << std::to_underlying(IntrCfg::INT_OPEN_BIT)};
+        std::uint8_t buffer{std::to_underlying(drive) << std::to_underlying(IntrCfg::INT_OPEN_BIT)};
         HAL_I2C_Mem_Write(this->i2c_,
                           this->address_,
                           std::to_underlying(RA::INT_PIN_CFG),
@@ -644,7 +644,7 @@ namespace InvertedSway {
 
     void MPU6050::set_interrupt_latch(IntrLatch const latch) const noexcept
     {
-        std::uint8_t buffer{(std::to_underlying(latch) & 1U) << std::to_underlying(IntrCfg::INT_RD_CLEAR_BIT)};
+        std::uint8_t buffer{std::to_underlying(latch) << std::to_underlying(IntrCfg::INT_RD_CLEAR_BIT)};
         HAL_I2C_Mem_Write(this->i2c_,
                           this->address_,
                           std::to_underlying(RA::INT_PIN_CFG),
@@ -656,7 +656,7 @@ namespace InvertedSway {
 
     void MPU6050::set_interrupt_latch_clear(IntrClear const clear) const noexcept
     {
-        std::uint8_t buffer{(std::to_underlying(clear) & 1U) << std::to_underlying(IntrCfg::LATCH_INT_EN_BIT)};
+        std::uint8_t buffer{std::to_underlying(clear) << std::to_underlying(IntrCfg::LATCH_INT_EN_BIT)};
         HAL_I2C_Mem_Write(this->i2c_,
                           this->address_,
                           std::to_underlying(RA::INT_PIN_CFG),
