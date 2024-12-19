@@ -15,10 +15,11 @@ namespace InvertedSway {
 
     struct System {
     public:
-        using Value = std::double_t;
+        using Value = std::float_t;
         using Kalman = Filters::Kalman<Value>;
         using Regulator = Regulators::Regulator<Value>;
 
+        System() = delete;
         System(MPU6050&& mpu6050, L298N&& l298n, Kalman&& kalman, Regulator&& regulator, Encoder&& encoder) noexcept;
 
         System(System const& other) = delete;
