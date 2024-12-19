@@ -30,7 +30,11 @@ static void balance_sway()
         L298N::make_motor_channel(L298N::Channel::CHANNEL2),
     }};
 
-    MPU6050 mpu6050{&hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::ACCEL_FS_2, MPU6050::SAMPLING_RATE_HZ};
+    MPU6050 mpu6050{&hi2c1,
+                    MPU6050::Address::ADDRESS,
+                    MPU6050::GyroRange::GYRO_FS_250,
+                    MPU6050::AccelRange::ACCEL_FS_2,
+                    MPU6050::SAMPLING_RATE_HZ};
 
     auto kalman{make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
 
