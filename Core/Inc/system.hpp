@@ -30,18 +30,18 @@ namespace InvertedSway {
 
         ~System() noexcept;
 
-        void balance_sway(Value const angle, Value const dt = MPU6050::SAMPLING_TIME_S) noexcept;
-        void operator()(Value const angle, Value const dt = MPU6050::SAMPLING_TIME_S) noexcept;
+        void balance_sway(Value const angle, Value const dt) noexcept;
+        void operator()(Value const angle, Value const dt) noexcept;
 
     private:
         static Value voltage_to_angle(Value const voltage) noexcept;
         static Value angle_to_voltage(Value const angle) noexcept;
 
-        static constexpr Value MOTOR_RESISTANCE{0};
-        static constexpr Value EARTH_ACCELERATION{9.81};
-        static constexpr Value SWAY_MASS_KG{0};
-        static constexpr Value MOTOR_VELOCITY_CONSTANT{0};
-        static constexpr Value MOTOR_START_THRESHOLD_V{2};
+        static constexpr Value MOTOR_RESISTANCE{10.0f};
+        static constexpr Value EARTH_ACCELERATION{9.81f};
+        static constexpr Value SWAY_MASS_KG{0.1f};
+        static constexpr Value MOTOR_VELOCITY_CONSTANT{1.0f};
+        static constexpr Value MOTOR_START_THRESHOLD_V{2.0f};
         static constexpr Value MIN_CONTROL_SIGNAL_V{Motor::MIN_VOLTAGE_V};
         static constexpr Value MAX_CONTROL_SIGNAL_V{Motor::MAX_VOLTAGE_V};
 
@@ -59,7 +59,7 @@ namespace InvertedSway {
 
         void set_angle(Value const angle) noexcept;
 
-        Value dt_{MPU6050::SAMPLING_TIME_S};
+        Value dt_{};
         Value gx_{};
         Value roll_{};
         Value error_signal_{};

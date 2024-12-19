@@ -22,8 +22,9 @@ static void balance_sway()
     using namespace Regulators;
     using namespace Filters;
 
-    float const angle{0.0f};
-    float const sampling_time{MPU6050::SAMPLING_TIME_S};
+    auto const sampling_rate_hz{8000U};
+    auto const sampling_time{1.0f / static_cast<float>(sampling_rate_hz)};
+    auto const angle{0.0f};
 
     L298N l298n{L298N::MotorChannels{
         L298N::make_motor_channel(L298N::Channel::CHANNEL1, &htim2, TIM_CHANNEL_1, GPIOB, IN1_Pin, IN3_Pin),
@@ -34,7 +35,7 @@ static void balance_sway()
                     MPU6050::Address::ADDRESS,
                     MPU6050::GyroRange::GYRO_FS_250,
                     MPU6050::AccelRange::ACCEL_FS_2,
-                    MPU6050::SAMPLING_RATE_HZ};
+                    sampling_rate_hz};
 
     auto kalman{make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
 

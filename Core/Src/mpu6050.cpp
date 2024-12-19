@@ -64,7 +64,7 @@ namespace InvertedSway {
         }
     }
 
-    MPU6050::MPU6050(I2cHandle i2c,
+    MPU6050::MPU6050(I2CHandle i2c,
                      Address const address,
                      GyroRange const gyro_range,
                      AccelRange const accel_range,
@@ -131,7 +131,7 @@ namespace InvertedSway {
                           I2C_TIMEOUT);
     }
 
-    void MPU6050::set_address_pin(GpioHandle gpio, std::uint16_t const address_pin) const noexcept
+    void MPU6050::set_address_pin(GPIOHandle gpio, std::uint16_t const address_pin) const noexcept
     {
         if (this->address_ == std::to_underlying(Address::ADDRESS2)) {
             HAL_GPIO_WritePin(gpio, address_pin, GPIO_PinState::GPIO_PIN_RESET);
@@ -152,7 +152,7 @@ namespace InvertedSway {
                           I2C_TIMEOUT);
     }
 
-    std::uint32_t MPU6050::get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept
+    std::uint8_t MPU6050::get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept
     {
         if (dlpf == DLPF::BW_256) {
             return (GYRO_OUTPUT_RATE_DLPF_DIS_HZ / rate) - 1U;

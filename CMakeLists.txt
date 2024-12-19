@@ -41,6 +41,12 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Inc/kalman.hpp"
     "Core/Src/encoder.cpp"
     "Core/Src/tests.cpp"
+    "Core/Src/gpio.c"
+    "Core/Src/i2c.c"
+    "Core/Src/tim.c"
+    "Core/Src/usart.c"
+    "Core/Src/stm32l4xx_it.c"
+    "Core/Src/stm32l4xx_hal_msp.c"
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
