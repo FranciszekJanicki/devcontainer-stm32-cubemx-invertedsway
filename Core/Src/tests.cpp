@@ -18,12 +18,10 @@ namespace Tests {
         using Direction = Motor::Direction;
 
         motor.set_compare_min();
-        motor.set_direction(Direction::FAST_STOP);
-
-        auto voltages = {0.0f, 3.0f, 6.0f, 3.0f, 0.0f, -3.0f, -6.0f, -3.0f};
+        motor.set_fast_stop();
 
         while (true) {
-            for (auto const voltage : voltages) {
+            for (auto const voltage : {0.0f, 3.0f, 6.0f, 3.0f, 0.0f, -3.0f, -6.0f, -3.0f}) {
                 if (voltage > 0.0f) {
                     printf("setting direction forward\n\r");
                     motor.set_direction(Direction::FORWARD);
@@ -42,7 +40,43 @@ namespace Tests {
         }
 
         motor.set_compare_min();
-        motor.set_direction(Direction::FAST_STOP);
+        motor.set_fast_stop();
+    }
+
+    void MOTOR_TEST_STARTING(Motor motor, float const motor_start_threshold) noexcept
+    {
+        motor.set_compare_min();
+        motor.set_fast_stop();
+
+        while (true) {
+            auto last_voltage{0.0f};
+            for (auto const voltage : {0.0f, 3.0f, 6.0f, 3.0f, 0.0f, -3.0f, -6.0f, -3.0f}) {
+                if (voltage > 0.0f) {
+                    printf("setting direction forward\n\r");
+                    motor.set_direction(Direction::FORWARD);
+                } else if (voltage < 0.0f) {
+                    printf("setting direction backward\n\r");
+                    motor.set_direction(Direction::BACKWARD);
+                } else {
+                    printf("setting direction fast stop\n\r");
+                    motor.set_direction(Direction::FAST_STOP);
+                }
+
+                if (std::abs(voltage) >= motor_start_threshold && std::abs(previous_voltage) < motor_start_threshold) {
+                    motor.set_compare_max();
+                    HAL_Delay(10);
+                } else {
+                    printf("setting compare %f\n\r", std::abs(voltage));
+                    motor.set_compare_voltage(std::abs(voltage));
+                }
+
+                previous_voltage = voltage;
+                HAL_Delay(1000);
+            }
+        }
+
+        motor.set_compare_min();
+        motor.set_fast_stop();
     }
 
     void KALMAN_TEST(MPU6050 mpu6050, Kalman kalman, float dt) noexcept
@@ -62,7 +96,7 @@ namespace Tests {
         using Direction = Motor::Direction;
 
         motor.set_compare_min();
-        motor.set_direction(Direction::FAST_STOP);
+        motor.set_fast_stop();
 
         while (true) {
             float const angle = encoder.get_angle();
@@ -78,7 +112,7 @@ namespace Tests {
         }
 
         motor.set_compare_min();
-        motor.set_direction(Direction::FAST_STOP);
+        motor.set_fast_stop();
     }
 
     void DUTKIEWICZ_TEST() noexcept

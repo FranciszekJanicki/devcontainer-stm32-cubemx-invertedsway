@@ -15,26 +15,26 @@ namespace InvertedSway {
 
     struct System {
     public:
-        using Value = MPU6050::Scaled;
+        using Value = std::double_t;
         using Kalman = Filters::Kalman<Value>;
         using Regulator = Regulators::Regulator<Value>;
 
         System(MPU6050&& mpu6050, L298N&& l298n, Kalman&& kalman, Regulator&& regulator, Encoder&& encoder) noexcept;
 
-        System(const System& other) = delete;
+        System(System const& other) = delete;
         System(System&& other) noexcept = default;
 
-        System& operator=(const System& other) = delete;
+        System& operator=(System const& other) = delete;
         System& operator=(System&& other) noexcept = default;
 
         ~System() noexcept;
 
-        void balance_sway(const Value angle, const Value dt = MPU6050::SAMPLING_TIME_S) noexcept;
-        void operator()(const Value angle, const Value dt = MPU6050::SAMPLING_TIME_S) noexcept;
+        void balance_sway(Value const angle, Value const dt = MPU6050::SAMPLING_TIME_S) noexcept;
+        void operator()(Value const angle, Value const dt = MPU6050::SAMPLING_TIME_S) noexcept;
 
     private:
-        static Value voltage_to_angle(const Value voltage) noexcept;
-        static Value angle_to_voltage(const Value angle) noexcept;
+        static Value voltage_to_angle(Value const voltage) noexcept;
+        static Value angle_to_voltage(Value const angle) noexcept;
 
         static constexpr Value MOTOR_RESISTANCE{0};
         static constexpr Value EARTH_ACCELERATION{9.81};
@@ -44,8 +44,8 @@ namespace InvertedSway {
         static constexpr Value MIN_CONTROL_SIGNAL_V{Motor::MIN_VOLTAGE_V};
         static constexpr Value MAX_CONTROL_SIGNAL_V{Motor::MAX_VOLTAGE_V};
 
-        void update_dt(const Value dt) noexcept;
-        void update_input_signal(const Value input_signal) noexcept;
+        void update_dt(Value const dt) noexcept;
+        void update_input_signal(Value const input_signal) noexcept;
         void update_output_signal() noexcept;
         void update_error_signal() noexcept;
         void update_control_signal() noexcept;
@@ -56,7 +56,7 @@ namespace InvertedSway {
         void deinitialize() noexcept;
         void initialize() noexcept;
 
-        void set_angle(const Value angle) noexcept;
+        void set_angle(Value const angle) noexcept;
 
         Value dt_{MPU6050::SAMPLING_TIME_S};
         Value gx_{};

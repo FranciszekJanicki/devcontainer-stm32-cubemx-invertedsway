@@ -60,15 +60,15 @@ namespace InvertedSway {
 
         ~Motor() noexcept;
 
-        [[nodiscard]] Error set_compare_raw(const Raw raw) const noexcept;
-        [[nodiscard]] Error set_compare_voltage(const Voltage voltage) const noexcept;
-        [[nodiscard]] Error set_compare_speed(const Speed speed) const noexcept;
+        [[nodiscard]] Error set_compare_raw(Raw const raw) const noexcept;
+        [[nodiscard]] Error set_compare_voltage(Voltage const voltage) const noexcept;
+        [[nodiscard]] Error set_compare_speed(Speed const speed) const noexcept;
 
         [[nodiscard]] ExpectedRaw get_compare_raw() const noexcept;
         [[nodiscard]] ExpectedVoltage get_compare_voltage() const noexcept;
         [[nodiscard]] ExpectedSpeed get_compare_speed() const noexcept;
 
-        [[nodiscard]] Error set_direction(const Direction direction) const noexcept;
+        [[nodiscard]] Error set_direction(Direction const direction) const noexcept;
         [[nodiscard]] Error set_forward() const noexcept;
         [[nodiscard]] Error set_backward() const noexcept;
         [[nodiscard]] Error set_soft_stop() const noexcept;
@@ -77,11 +77,11 @@ namespace InvertedSway {
         [[nodiscard]] Error set_compare_min() const noexcept;
 
     private:
-        static Speed raw_to_speed(const Raw raw) noexcept;
-        static Voltage raw_to_voltage(const Raw raw) noexcept;
+        static Speed raw_to_speed(Raw const raw) noexcept;
+        static Voltage raw_to_voltage(Raw const raw) noexcept;
 
-        static Raw speed_to_raw(const Speed speed) noexcept;
-        static Raw voltage_to_raw(const Voltage voltage) noexcept;
+        static Raw speed_to_raw(Speed const speed) noexcept;
+        static Raw voltage_to_raw(Voltage const voltage) noexcept;
 
         Error initialize() noexcept;
         Error deinitialize() noexcept;

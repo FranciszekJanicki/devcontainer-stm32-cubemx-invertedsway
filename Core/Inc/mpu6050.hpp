@@ -14,15 +14,6 @@ namespace InvertedSway {
 
     struct MPU6050 {
     public:
-        enum struct Error {
-            OK,
-            INIT,
-            GYRO,
-            ACCEL,
-            TEMP,
-            DEINIT,
-        };
-
         enum Address : std::uint8_t {
             ADDRESS = 0xD0,  // AD0 low
             ADDRESS2 = 0xD1, // AD0 high
@@ -52,22 +43,20 @@ namespace InvertedSway {
         using AccelRaw = Linalg::Vector3D<Raw>;
         using TempRaw = std::int16_t;
 
-        [[nodiscard]] static const char* error_to_string(const Error error) noexcept;
-
         static constexpr std::uint32_t SAMPLING_RATE_HZ{8000};
-        static constexpr float SAMPLING_TIME_S{1.f / static_cast<float>(SAMPLING_RATE_HZ)};
+        static constexpr float SAMPLING_TIME_S{1.0f / static_cast<float>(SAMPLING_RATE_HZ)};
 
         MPU6050() noexcept = default;
         MPU6050(I2cHandle i2c,
-                const Address addres,
-                const GyroRange gyro_range,
-                const AccelRange accel_range,
-                const std::uint32_t sampling_rate) noexcept;
+                Address const addres,
+                GyroRange const gyro_range,
+                AccelRange const accel_range,
+                std::uint32_t const sampling_rate) noexcept;
 
-        MPU6050(const MPU6050& other) noexcept = delete;
+        MPU6050(MPU6050 const& other) noexcept = delete;
         MPU6050(MPU6050&& other) noexcept = default;
 
-        MPU6050& operator=(const MPU6050& other) noexcept = delete;
+        MPU6050& operator=(MPU6050 const& other) noexcept = delete;
         MPU6050& operator=(MPU6050&& other) noexcept = default;
 
         ~MPU6050() noexcept;
@@ -463,39 +452,46 @@ namespace InvertedSway {
             WHO_AM_I_LENGTH = 6,
         };
 
-        static Scaled gyro_range_to_scale(const GyroRange gyro_range) noexcept;
-        static Scaled accel_range_to_scale(const AccelRange accel_range) noexcept;
+        enum Enable : std::uint8_t {
+            ENABLE = 1U,
+            DISABLE = 0U,
+        };
 
-        static constexpr Scaled M_PI{3.14};
+        static Scaled gyro_range_to_scale(GyroRange const gyro_range) noexcept;
+        static Scaled accel_range_to_scale(AccelRange const accel_range) noexcept;
+
+        static std::uint32_t get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept;
+
+        static constexpr Scaled M_PI{3.14f};
         static constexpr std::uint32_t I2C_TIMEOUT{100};
         static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_EN_HZ{1000};
         static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_DIS_HZ{8000};
         static constexpr std::uint32_t ACCEL_OUTPUT_RATE_HZ{1000};
 
+        void device_reset() const noexcept;
         void initialize(const std::uint32_t sampling_rate) noexcept;
         void deinitialize() noexcept;
 
         std::uint8_t get_device_id() const noexcept;
 
-        void device_reset() const noexcept;
-        void set_address_pin(GpioHandle gpio, const std::uint16_t address_pin) const noexcept;
-        void set_sampling_rate_and_dlpf(const std::uint32_t rate, const std::uint8_t dlpf) const noexcept;
-        void set_dlpf(const std::uint8_t value) const noexcept;
-        void set_clock_source(const std::uint8_t source) const noexcept;
-        void set_sleep_enabled(const std::uint8_t enable) const noexcept;
-        void set_cycle_enabled(const std::uint8_t enable) const noexcept;
-        void set_temperature_sensor_disabled(const std::uint8_t disable) const noexcept;
-        void set_low_power_wake_up_frequency(const std::uint8_t frequency) const noexcept;
+        void set_address_pin(GpioHandle gpio, std::uint16_t const address_pin) const noexcept;
+        void set_sampling_divider(std::uint8_t const divider) const noexcept;
+        void set_dlpf(DLPF const value) const noexcept;
+        void set_clock_source(Clock const source) const noexcept;
+        void set_sleep_enabled(Enable const enable) const noexcept;
+        void set_cycle_enabled(Enable const enable) const noexcept;
+        void set_temperature_sensor_enabled(Enable const enable) const noexcept;
+        void set_low_power_wake_up_frequency(WakeFreq const frequency) const noexcept;
 
-        void accelerometer_axis_standby(const std::uint8_t x_accel_standby,
-                                        const std::uint8_t y_accel_standby,
-                                        const std::uint8_t z_accel_standby) const noexcept;
-        void gyroscope_axis_standby(const std::uint8_t x_gyro_standby,
-                                    const std::uint8_t y_gyro_standby,
-                                    const std::uint8_t z_gyro_standby) const noexcept;
+        void accelerometer_axis_standby(std::uint8_t const x_accel_standby,
+                                        std::uint8_t const y_accel_standby,
+                                        std::uint8_t const z_accel_standby) const noexcept;
+        void gyroscope_axis_standby(std::uint8_t const x_gyro_standby,
+                                    std::uint8_t const y_gyro_standby,
+                                    std::uint8_t const z_gyro_standby) const noexcept;
 
-        void set_full_scale_gyro_range(const GyroRange range) const noexcept;
-        void set_full_scale_accel_range(const AccelRange range) const noexcept;
+        void set_full_scale_gyro_range(GyroRange const range) const noexcept;
+        void set_full_scale_accel_range(AccelRange const range) const noexcept;
 
         Raw get_temperature_raw() const noexcept;
 
@@ -510,29 +506,29 @@ namespace InvertedSway {
         GyroRaw get_gyroscope_raw() const noexcept;
 
         void set_interrupt() const noexcept;
-        void set_interrupt_mode(const std::uint8_t mode) const noexcept;
-        void set_interrupt_drive(const std::uint8_t drive) const noexcept;
-        void set_interrupt_latch(const std::uint8_t latch) const noexcept;
-        void set_interrupt_latch_clear(const std::uint8_t clear) const noexcept;
-        void set_int_enable_register(std::uint8_t value) const noexcept;
-        void set_int_data_ready_enabled(const std::uint8_t enable) const noexcept;
+        void set_interrupt_mode(IntrMode const mode) const noexcept;
+        void set_interrupt_drive(IntrDrive const drive) const noexcept;
+        void set_interrupt_latch(IntrLatch const latch) const noexcept;
+        void set_interrupt_latch_clear(IntrClear const clear) const noexcept;
+        void set_int_enable_register(Enable const value) const noexcept;
+        void set_int_data_ready_enabled(Enable const enable) const noexcept;
 
         std::uint8_t get_int_status_register() const noexcept;
         std::uint8_t get_motion_status_register() const noexcept;
 
-        void set_dhpf_mode(const std::uint8_t dhpf) const noexcept;
-        void set_int_zero_motion_enabled(const std::uint8_t enable) const noexcept;
-        void set_int_motion_enabled(const std::uint8_t enable) const noexcept;
-        void set_int_free_fall_enabled(const std::uint8_t enable) const noexcept;
+        void set_dhpf_mode(DHPF const dhpf) const noexcept;
+        void set_int_zero_motion_enabled(Enable const enable) const noexcept;
+        void set_int_motion_enabled(Enable const enable) const noexcept;
+        void set_int_free_fall_enabled(Enable const enable) const noexcept;
 
-        void set_motion_detection_threshold(std::uint8_t threshold) const noexcept;
-        void set_motion_detection_duration(std::uint8_t duration) const noexcept;
+        void set_motion_detection_threshold(std::uint8_t const threshold) const noexcept;
+        void set_motion_detection_duration(std::uint8_t const duration) const noexcept;
 
-        void set_zero_motion_detection_threshold(std::uint8_t threshold) const noexcept;
-        void set_zero_motion_detection_duration(std::uint8_t duration) const noexcept;
+        void set_zero_motion_detection_threshold(std::uint8_t const threshold) const noexcept;
+        void set_zero_motion_detection_duration(std::uint8_t const duration) const noexcept;
 
-        void set_free_fall_detection_threshold(std::uint8_t threshold) const noexcept;
-        void set_free_fall_detection_duration(std::uint8_t duration) const noexcept;
+        void set_free_fall_detection_threshold(std::uint8_t const threshold) const noexcept;
+        void set_free_fall_detection_duration(std::uint8_t const duration) const noexcept;
 
         bool initialized_{false};
 
