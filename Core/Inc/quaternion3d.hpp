@@ -83,19 +83,19 @@ namespace Linalg {
     };
 
     template <Arithmetic Value>
-    constexpr auto operator+(Quaternion3D const<Value>& left, Quaternion3D const<Value>& right) noexcept
+    constexpr auto operator+(Quaternion3D<Value> const& left, Quaternion3D<Value> const& right) noexcept
     {
         return Quaternion3D<Value>{left.w + right.w, left.x + right.x, left.y + right.y, left.z + right.z};
     }
 
     template <Arithmetic Value>
-    constexpr auto operator-(Quaternion3D const<Value>& left, Quaternion3D const<Value>& right) noexcept
+    constexpr auto operator-(Quaternion3D<Value> const& left, Quaternion3D<Value> const& right) noexcept
     {
         return Quaternion3D<Value>{left.w - right.w, left.x - right.x, left.y - right.y, left.z + right.z};
     }
 
     template <Arithmetic Value>
-    constexpr auto operator*(Quaternion3D const<Value>& left, Quaternion3D const<Value>& other) noexcept
+    constexpr auto operator*(Quaternion3D<Value> const& left, Quaternion3D<Value> const& other) noexcept
     {
         const auto& [left_w, left_x, left_y, left_z] = std::forward_as_tuple(left.w, left.x, left.y, left.z);
         const auto& [right_w, right_x, right_y, right_z] = std::forward_as_tuple(other.w, other.x, other.y, other.z);

@@ -28,6 +28,15 @@ void test_motor()
     MOTOR_TEST(Motor{&htim2, TIM_CHANNEL_1, GPIOB, IN1_Pin, IN3_Pin});
 }
 
+void test_motor_boost_start()
+{
+    MX_GPIO_Init();
+    MX_USART2_UART_Init();
+    MX_TIM2_Init();
+
+    MOTOR_BOOST_TEST(Motor{&htim2, TIM_CHANNEL_1, GPIOB, IN1_Pin, IN3_Pin}, 2.0f);
+}
+
 void test_encoder()
 {
     MX_GPIO_Init();
@@ -40,11 +49,8 @@ void test_encoder()
 
 void test_kalman()
 {
-    MX_GPIO_Init();
     MX_I2C1_Init();
     MX_USART2_UART_Init();
-    MX_TIM1_Init();
-    MX_TIM2_Init();
 
     KALMAN_TEST(MPU6050{&hi2c1, MPU6050::ADDRESS, MPU6050::GYRO_FS_250, MPU6050::ACCEL_FS_2, MPU6050::SAMPLING_RATE_HZ},
                 make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f),
@@ -63,6 +69,7 @@ int main()
     HAL_Init();
     SystemClock_Config();
 
+    /* most important test */
     test_dutkiewicz();
 
     return 0;

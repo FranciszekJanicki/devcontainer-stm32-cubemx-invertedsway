@@ -13,7 +13,7 @@ namespace Tests {
 
     void MOTOR_TEST(Motor motor) noexcept;
 
-    void MOTOR_TEST_STARTING(Motor motor) noexcept;
+    void MOTOR_BOOST_TEST(Motor motor, float const voltage_start_threshold) noexcept;
 
     void KALMAN_TEST(MPU6050 mpu6050, Kalman kalman, float const dt) noexcept;
 

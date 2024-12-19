@@ -43,8 +43,10 @@ namespace Tests {
         motor.set_fast_stop();
     }
 
-    void MOTOR_TEST_STARTING(Motor motor, float const motor_start_threshold) noexcept
+    void MOTOR_BOOST_TEST(Motor motor, float const voltage_start_threshold) noexcept
     {
+        using Direction = Motor::Direction;
+
         motor.set_compare_min();
         motor.set_fast_stop();
 
@@ -62,7 +64,7 @@ namespace Tests {
                     motor.set_direction(Direction::FAST_STOP);
                 }
 
-                if (std::abs(voltage) >= motor_start_threshold && std::abs(previous_voltage) < motor_start_threshold) {
+                if (std::abs(voltage) >= voltage_start_threshold && std::abs(last_voltage) < voltage_start_threshold) {
                     motor.set_compare_max();
                     HAL_Delay(10);
                 } else {
@@ -70,7 +72,7 @@ namespace Tests {
                     motor.set_compare_voltage(std::abs(voltage));
                 }
 
-                previous_voltage = voltage;
+                last_voltage = voltage;
                 HAL_Delay(1000);
             }
         }
@@ -118,7 +120,7 @@ namespace Tests {
     void DUTKIEWICZ_TEST() noexcept
     {
         while (true) {
-            printf("DUTKIEWICZ\n\r");
+            printf("DUTKIEWICZ :D\n\r");
         }
     }
 

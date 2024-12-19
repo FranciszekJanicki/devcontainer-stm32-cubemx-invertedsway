@@ -22,7 +22,7 @@ namespace Linalg {
             return std::sqrt(std::pow(x, 2) + std::pow(y, 2) + std::pow(z, 2));
         }
 
-        [[nodiscard]] constexpr Vector3D rotated(Quaternion3D const<Value>& quaternion) const noexcept
+        [[nodiscard]] constexpr Vector3D rotated(Quaternion3D<Value> const& quaternion) const noexcept
         {
             Quaternion3D p(0, x, y, z);
             p *= quaternion;
@@ -30,7 +30,7 @@ namespace Linalg {
             return Vector3D{p.x, p.y, p.z};
         }
 
-        constexpr void rotate(Quaternion3D const<Value>& q) noexcept
+        constexpr void rotate(Quaternion3D<Value> const& q) noexcept
         {
             Quaternion3D p(0, x, y, z);
             p *= q;
@@ -108,40 +108,40 @@ namespace Linalg {
     };
 
     template <Arithmetic Value>
-    constexpr auto operator+(Vector3D const<Value>& left, Vector3D const<Value>& right) noexcept
+    constexpr auto operator+(Vector3D<Value> const& left, Vector3D<Value> const& right) noexcept
     {
         return Vector3D<Value>{left.x + right.x, left.y + right.y, left.z + right.z};
     }
 
     template <Arithmetic Value>
-    constexpr auto operator-(Vector3D const<Value>& left, Vector3D const<Value>& right) noexcept
+    constexpr auto operator-(Vector3D<Value> const& left, Vector3D<Value> const& right) noexcept
     {
         return Vector3D<Value>{left.x - right.x, left.y - right.y, left.z - right.z};
     }
 
     template <Arithmetic Value>
-    constexpr auto operator*(Vector3D const<Value>& left, Vector3D const<Value>& right) noexcept
+    constexpr auto operator*(Vector3D<Value> const& left, Vector3D<Value> const& right) noexcept
     {
         return Vector3D<Value>{left.x * right.x, left.y * right.y, left.z * right.z};
     }
     template <Arithmetic Value>
-    constexpr auto operator*(Value const factor, Vector3D const<Value>& vector) noexcept
+    constexpr auto operator*(Value const factor, Vector3D<Value> const& vector) noexcept
     {
         return Vector3D<Value>{vector.x * factor, vector.y * factor, vector.z * factor};
     }
     template <Arithmetic Value>
-    constexpr auto operator*(Vector3D const<Value>& vector, Value const factor) noexcept
+    constexpr auto operator*(Vector3D<Value> const& vector, Value const factor) noexcept
     {
         return Vector3D<Value>{vector.x * factor, vector.y * factor, vector.z * factor};
     }
 
     template <Arithmetic Value>
-    constexpr auto operator/(Vector3D const<Value>& left, Vector3D const<Value>& right) noexcept
+    constexpr auto operator/(Vector3D<Value> const& left, Vector3D<Value> const& right) noexcept
     {
         return Vector3D<Value>{left.x / right.x, left.y / right.y, left.z / right.z};
     }
     template <Arithmetic Value>
-    constexpr auto operator/(Vector3D const<Value>& vector, Value const factor) noexcept
+    constexpr auto operator/(Vector3D<Value> const& vector, Value const factor) noexcept
     {
         return Vector3D<Value>{vector.x / factor, vector.y / factor, vector.z / factor};
     }
