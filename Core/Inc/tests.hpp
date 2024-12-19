@@ -8,6 +8,8 @@ namespace Tests {
 
     void MOTOR_TEST(Motor motor) noexcept;
 
+    void MOTOR_TEST_STARTING(Motor motor) noexcept;
+
     void KALMAN_TEST(MPU6050 mpu6050, Kalman kalman, float const dt) noexcept;
 
     void ENCODER_TEST(Encoder encoder, Motor motor) noexcept;

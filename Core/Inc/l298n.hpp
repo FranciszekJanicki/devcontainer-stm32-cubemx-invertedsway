@@ -32,7 +32,7 @@ namespace InvertedSway {
         using MotorChannels = std::array<MotorChannel, 2>;
 
         template <typename... MotorArgs>
-        static MotorChannel make_motor_channel(const Channel channel, MotorArgs... motor_args) noexcept
+        static MotorChannel make_motor_channel(Channel const channel, MotorArgs... motor_args) noexcept
         {
             return MotorChannel{std::piecewise_construct,
                                 std::forward_as_tuple(channel),
@@ -42,40 +42,37 @@ namespace InvertedSway {
         L298N() noexcept = default;
         L298N(MotorChannels&& motor_channels) noexcept;
 
-        L298N(const L298N& other) noexcept = delete;
+        L298N(L298N const& other) noexcept = delete;
         L298N(L298N&& other) noexcept = default;
 
-        L298N& operator=(const L298N& other) noexcept = delete;
+        L298N& operator=(L298N const& other) noexcept = delete;
         L298N& operator=(L298N&& other) noexcept = default;
 
         ~L298N() noexcept;
 
-        const MotorChannels& motor_channels() const& noexcept;
         MotorChannels&& motor_channels() && noexcept;
-
-        void motor_channels(const MotorChannels& motors) noexcept;
         void motor_channels(MotorChannels&& motors) noexcept;
 
-        [[nodiscard]] Error set_compare_raw(const Channel channel, const Raw raw) const noexcept;
-        [[nodiscard]] Error set_compare_voltage(const Channel channel, const Voltage voltage) const noexcept;
-        [[nodiscard]] Error set_compare_speed(const Channel channel, const Speed speed) const noexcept;
+        [[nodiscard]] Error set_compare_raw(Channel const channel, Raw const raw) const noexcept;
+        [[nodiscard]] Error set_compare_voltage(Channel const channel, const Voltage voltage) const noexcept;
+        [[nodiscard]] Error set_compare_speed(Channel const channel, const Speed speed) const noexcept;
 
-        [[nodiscard]] ExpectedRaw get_compare_raw(const Channel channel) const noexcept;
-        [[nodiscard]] ExpectedVoltage get_compare_voltage(const Channel channel) const noexcept;
-        [[nodiscard]] ExpectedSpeed get_compare_speed(const Channel channel) const noexcept;
+        [[nodiscard]] ExpectedRaw get_compare_raw(Channel const channel) const noexcept;
+        [[nodiscard]] ExpectedVoltage get_compare_voltage(Channel const channel) const noexcept;
+        [[nodiscard]] ExpectedSpeed get_compare_speed(Channel const channel) const noexcept;
 
-        [[nodiscard]] Error set_direction(const Channel channel, const Direction direction) const noexcept;
-        [[nodiscard]] Error set_forward(const Channel channel) const noexcept;
-        [[nodiscard]] Error set_backward(const Channel channel) const noexcept;
-        [[nodiscard]] Error set_soft_stop(const Channel channel) const noexcept;
-        [[nodiscard]] Error set_fast_stop(const Channel channel) const noexcept;
+        [[nodiscard]] Error set_direction(Channel const channel, Direction const direction) const noexcept;
+        [[nodiscard]] Error set_forward(Channel const channel) const noexcept;
+        [[nodiscard]] Error set_backward(Channel const channel) const noexcept;
+        [[nodiscard]] Error set_soft_stop(Channel const channel) const noexcept;
+        [[nodiscard]] Error set_fast_stop(Channel const channel) const noexcept;
 
     private:
         Error initialize() noexcept;
         Error deinitialize() noexcept;
 
-        const Motor& get_motor(const Channel channel) const noexcept;
-        Motor& get_motor(const Channel channel) noexcept;
+        const Motor& get_motor(Channel const channel) const noexcept;
+        Motor& get_motor(Channel const channel) noexcept;
 
         MotorChannels motor_channels_{};
     };

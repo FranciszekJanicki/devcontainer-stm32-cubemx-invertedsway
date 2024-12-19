@@ -14,15 +14,15 @@ namespace InvertedSway {
     struct Encoder {
     public:
         using Count = std::uint16_t;
-        using Angle = float;
+        using Angle = std::float_t;
 
         Encoder() noexcept = default;
         Encoder(TimerHandle timer) noexcept;
 
-        Encoder(const Encoder& other) noexcept = default;
+        Encoder(Encoder const& other) noexcept = delete;
         Encoder(Encoder&& other) noexcept = default;
 
-        Encoder& operator=(const Encoder& other) noexcept = default;
+        Encoder& operator=(Encoder const& other) noexcept = delete;
         Encoder& operator=(Encoder&& other) noexcept = default;
 
         ~Encoder() noexcept;
@@ -30,7 +30,7 @@ namespace InvertedSway {
         [[nodiscard]] Angle get_angle() noexcept;
 
     private:
-        static Angle count_to_angle(const Count count) noexcept;
+        static Angle count_to_angle(Count const count) noexcept;
 
         void initialize() noexcept;
         void deinitialize() noexcept;

@@ -35,7 +35,7 @@ namespace InvertedSway {
             : public Base<Value>
 #endif
         {
-            Value operator()(const Value error, const Value dt) noexcept
+            Value operator()(Value const error, Value const dt) noexcept
             {
                 this->sum += (error + this->previous_error) / 2 * dt;
                 this->sum = std::clamp(this->sum, -this->windup, this->windup);
@@ -58,7 +58,7 @@ namespace InvertedSway {
             : public Base<Value>
 #endif
         {
-            Value operator()(const Value error, const Value) noexcept
+            Value operator()(Value const error, Value const) noexcept
             {
                 // implement lqr algorithm here
                 return error;
@@ -71,7 +71,7 @@ namespace InvertedSway {
             : public Base<Value>
 #endif
         {
-            Value operator()(const Value error, const Value) noexcept
+            Value operator()(Value const error, Value const) noexcept
             {
                 // implement adrc algorithm here
                 return error;
@@ -89,12 +89,12 @@ namespace InvertedSway {
                 ZERO,
             };
 
-            Value operator()(const Value error, const Value dt) noexcept
+            Value operator()(Value const error, Value const dt) noexcept
             {
                 return error;
             }
 
-            State operator()(const Value error) noexcept
+            State operator()(Value const error) noexcept
             {
                 switch (this->state) {
                     case State::POSITIVE:
@@ -135,12 +135,12 @@ namespace InvertedSway {
                 ZERO,
             };
 
-            Value operator()(const Value error, const Value dt) noexcept
+            Value operator()(Value const error, Value const dt) noexcept
             {
                 return error;
             }
 
-            State operator()(const Value error) noexcept
+            State operator()(Value const error) noexcept
             {
                 switch (this->state) {
                     case State::POSITIVE:
@@ -215,22 +215,22 @@ namespace InvertedSway {
 
             if constexpr (algorithm == Algorithm::PID) {
                 return
-                    [pid = PID<Value>{args...}](const Value error, const Value dt) mutable { return pid(error, dt); };
+                    [pid = PID<Value>{args...}](Value const error, Value const dt) mutable { return pid(error, dt); };
             }
             if constexpr (algorithm == Algorithm::LQR) {
                 return
-                    [lqr = LQR<Value>{args...}](const Value error, const Value dt) mutable { return lqr(error, dt); };
+                    [lqr = LQR<Value>{args...}](Value const error, Value const dt) mutable { return lqr(error, dt); };
             }
             if constexpr (algorithm == Algorithm::ADRC) {
-                return [adrc = ADRC<Value>{args...}](const Value error, const Value dt) mutable {
+                return [adrc = ADRC<Value>{args...}](Value const error, Value const dt) mutable {
                     return adrc(error, dt);
                 };
             }
             if constexpr (algorithm == Algorithm::BINARY) {
-                return [binary = Binary<Value>{args...}](const Value error) mutable { return binary(error); };
+                return [binary = Binary<Value>{args...}](Value const error) mutable { return binary(error); };
             }
             if constexpr (algorithm == Algorithm::TERNARY) {
-                return [ternary = Ternary<Value>{args...}](const Value error) mutable { return ternary(error); };
+                return [ternary = Ternary<Value>{args...}](Value const error) mutable { return ternary(error); };
             }
         }
     }

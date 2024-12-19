@@ -33,7 +33,7 @@ namespace InvertedSway {
         this->deinitialize();
     }
 
-    void System::balance_sway(const Value angle, const Value dt) noexcept
+    void System::balance_sway(Value const angle, Value const dt) noexcept
     {
         this->update_dt(dt);
         this->update_input_signal(angle);
@@ -44,18 +44,18 @@ namespace InvertedSway {
         this->update_compare();
     }
 
-    void System::operator()(const Value angle, const Value dt) noexcept
+    void System::operator()(Value const angle, Value const dt) noexcept
     {
         this->balance_sway(angle, dt);
     }
 
-    void System::update_dt(const Value dt) noexcept
+    void System::update_dt(Value const dt) noexcept
     {
         this->dt_ = dt;
         printf("sampling time: %f", this->dt_);
     }
 
-    void System::update_input_signal(const Value input_signal) noexcept
+    void System::update_input_signal(Value const input_signal) noexcept
     {
         this->input_signal_ = input_signal;
         printf("input angle: %f\n\r", this->input_signal_);
@@ -104,12 +104,12 @@ namespace InvertedSway {
         printf("regulated angle: %f\n\r", this->control_signal_);
     }
 
-    Value System::angle_to_voltage(const Value angle) noexcept
+    Value System::angle_to_voltage(Value const angle) noexcept
     {
         return SWAY_MASS_KG * EARTH_ACCELERATION * MOTOR_RESISTANCE * std::sin(angle) / MOTOR_VELOCITY_CONSTANT;
     }
 
-    Value System::voltage_to_angle(const Value voltage) noexcept
+    Value System::voltage_to_angle(Value const voltage) noexcept
     {
         return std::asin((voltage * MOTOR_VELOCITY_CONSTANT) / (SWAY_MASS_KG * EARTH_ACCELERATION * MOTOR_RESISTANCE));
     }
@@ -130,12 +130,13 @@ namespace InvertedSway {
 
     void System::update_compare() noexcept
     {
-        if (this->last_control_signal_ < voltage_to_angle(MOTOR_START_THRESHOLD_V) &&
-            angle_to_voltage(this->control_signal_) > voltage_to_angle(MOTOR_START_THRESHOLD_V)) {
+        if (std::exchange(this->last_control_signal_, this->control_signal_) <
+                voltage_to_angle(MOTOR_START_THRESHOLD_V) &&
+            this->control_signal_ >= voltage_to_angle(MOTOR_START_THRESHOLD_V)) {
             this->set_angle(voltage_to_angle(MAX_CONTROL_SIGNAL_V));
+            HAL_Delay(10);
         }
         this->set_angle(this->control_signal_);
-        this->last_control_signal_ = this->control_signal_;
     }
 
     void System::initialize() noexcept
@@ -148,7 +149,7 @@ namespace InvertedSway {
         this->set_angle(0.0);
     }
 
-    void System::set_angle(const Value angle) noexcept
+    void System::set_angle(Value const angle) noexcept
     {
         this->l298n_.set_compare_voltage(L298N::Channel::CHANNEL1, angle_to_voltage(angle));
     }

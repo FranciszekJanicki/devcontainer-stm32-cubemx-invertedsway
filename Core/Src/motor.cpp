@@ -18,7 +18,7 @@ using Unexpected = Motor::Unexpected;
 
 namespace InvertedSway {
 
-    const char* Motor::error_to_string(const Error error) noexcept
+    const char* Motor::error_to_string(Error const error) noexcept
     {
         switch (error) {
             case Error::OK:
@@ -34,26 +34,26 @@ namespace InvertedSway {
         }
     }
 
-    Speed Motor::raw_to_speed(const Raw raw) noexcept
+    Speed Motor::raw_to_speed(Raw const raw) noexcept
     {
         return (std::clamp(raw, MIN_RAW, MAX_RAW) - MIN_RAW) * (MAX_SPEED_RPM - MIN_SPEED_RPM) / (MAX_RAW - MIN_RAW) +
                MAX_SPEED_RPM;
     }
 
-    Raw Motor::speed_to_raw(const Speed speed) noexcept
+    Raw Motor::speed_to_raw(Speed const speed) noexcept
     {
         return (std::clamp(speed, MIN_SPEED_RPM, MAX_SPEED_RPM) - MIN_SPEED_RPM) * (MAX_RAW - MIN_RAW) /
                    (MAX_SPEED_RPM - MIN_SPEED_RPM) +
                MIN_RAW;
     }
 
-    Voltage Motor::raw_to_voltage(const Raw raw) noexcept
+    Voltage Motor::raw_to_voltage(Raw const raw) noexcept
     {
         return (std::clamp(raw, MIN_RAW, MAX_RAW) - MIN_RAW) * (MAX_VOLTAGE_V - MIN_VOLTAGE_V) / (MAX_RAW - MIN_RAW) +
                MIN_VOLTAGE_V;
     }
 
-    Raw Motor::voltage_to_raw(const Voltage voltage) noexcept
+    Raw Motor::voltage_to_raw(Voltage const voltage) noexcept
     {
         return (std::clamp(voltage, MIN_VOLTAGE_V, MAX_VOLTAGE_V) - MIN_VOLTAGE_V) * (MAX_RAW - MIN_RAW) /
                    (MAX_VOLTAGE_V - MIN_VOLTAGE_V) +
@@ -107,7 +107,7 @@ namespace InvertedSway {
         return ExpectedRaw{__HAL_TIM_GetCompare(this->timer_, this->timer_channel_)};
     }
 
-    Error Motor::set_compare_raw(const Raw raw) const noexcept
+    Error Motor::set_compare_raw(Raw const raw) const noexcept
     {
         if (!this->initialized_) {
             return Error::FAIL;
@@ -128,7 +128,7 @@ namespace InvertedSway {
         }
     }
 
-    Error Motor::set_compare_voltage(const Voltage voltage) const noexcept
+    Error Motor::set_compare_voltage(Voltage const voltage) const noexcept
     {
         if (voltage >= MAX_VOLTAGE_V || voltage <= MIN_VOLTAGE_V) {
             return Error::FAIL;
@@ -145,7 +145,7 @@ namespace InvertedSway {
         }
     }
 
-    Error Motor::set_compare_speed(const Speed speed) const noexcept
+    Error Motor::set_compare_speed(Speed const speed) const noexcept
     {
         if (speed >= MAX_SPEED_RPM || speed <= MIN_SPEED_RPM) {
             return Error::FAIL;
@@ -153,7 +153,7 @@ namespace InvertedSway {
         return this->set_compare_raw(speed_to_raw(speed));
     }
 
-    Error Motor::set_direction(const Direction direction) const noexcept
+    Error Motor::set_direction(Direction const direction) const noexcept
     {
         if (!this->initialized_) {
             return Error::FAIL;

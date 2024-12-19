@@ -6,7 +6,7 @@ using Angle = Encoder::Angle;
 
 namespace InvertedSway {
 
-    Angle Encoder::count_to_angle(const Count count) noexcept
+    Angle Encoder::count_to_angle(Count const count) noexcept
     {
         return std::clamp(count, Count{0}, COUNTS_PER_REVOLUTION) * (MAX_ANGLE_DEG - MIN_ANGLE_DEG) /
                    COUNTS_PER_REVOLUTION +

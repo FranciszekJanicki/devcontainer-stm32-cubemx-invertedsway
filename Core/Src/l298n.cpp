@@ -44,57 +44,57 @@ namespace InvertedSway {
         this->motor_channels_ = std::forward<MotorChannels>(motor_channels);
     }
 
-    ExpectedRaw L298N::get_compare_raw(const Channel channel) const noexcept
+    ExpectedRaw L298N::get_compare_raw(Channel const channel) const noexcept
     {
         return this->get_motor(channel).get_compare_raw();
     }
 
-    Error L298N::set_compare_raw(const Channel channel, const Raw raw) const noexcept
+    Error L298N::set_compare_raw(Channel const channel, Raw const raw) const noexcept
     {
         return this->get_motor(channel).set_compare_raw(raw);
     }
 
-    ExpectedVoltage L298N::get_compare_voltage(const Channel channel) const noexcept
+    ExpectedVoltage L298N::get_compare_voltage(Channel const channel) const noexcept
     {
         return this->get_motor(channel).get_compare_voltage();
     }
 
-    Error L298N::set_compare_voltage(const Channel channel, const Voltage voltage) const noexcept
+    Error L298N::set_compare_voltage(Channel const channel, const Voltage voltage) const noexcept
     {
         return this->get_motor(channel).set_compare_voltage(voltage);
     }
 
-    ExpectedSpeed L298N::get_compare_speed(const Channel channel) const noexcept
+    ExpectedSpeed L298N::get_compare_speed(Channel const channel) const noexcept
     {
         return this->get_motor(channel).get_compare_speed();
     }
 
-    Error L298N::set_compare_speed(const Channel channel, const Speed speed) const noexcept
+    Error L298N::set_compare_speed(Channel const channel, const Speed speed) const noexcept
     {
         return this->get_motor(channel).set_compare_speed(speed);
     }
 
-    Error L298N::set_direction(const Channel channel, const Direction direction) const noexcept
+    Error L298N::set_direction(Channel const channel, Direction const direction) const noexcept
     {
         return this->get_motor(channel).set_direction(direction);
     }
 
-    Error L298N::set_forward(const Channel channel) const noexcept
+    Error L298N::set_forward(Channel const channel) const noexcept
     {
         return this->get_motor(channel).set_direction(Direction::FORWARD);
     }
 
-    Error L298N::set_backward(const Channel channel) const noexcept
+    Error L298N::set_backward(Channel const channel) const noexcept
     {
         return this->get_motor(channel).set_direction(Direction::BACKWARD);
     }
 
-    Error L298N::set_soft_stop(const Channel channel) const noexcept
+    Error L298N::set_soft_stop(Channel const channel) const noexcept
     {
         return this->get_motor(channel).set_direction(Direction::SOFT_STOP);
     }
 
-    Error L298N::set_fast_stop(const Channel channel) const noexcept
+    Error L298N::set_fast_stop(Channel const channel) const noexcept
     {
         return this->get_motor(channel).set_direction(Direction::FAST_STOP);
     }
@@ -117,7 +117,7 @@ namespace InvertedSway {
         });
     }
 
-    const Motor& L298N::get_motor(const Channel channel) const noexcept
+    const Motor& L298N::get_motor(Channel const channel) const noexcept
     {
         if (const auto motor_channel{
                 std::ranges::find_if(std::as_const(this->motor_channels_),
@@ -128,7 +128,7 @@ namespace InvertedSway {
         std::unreachable();
     }
 
-    Motor& L298N::get_motor(const Channel channel) noexcept
+    Motor& L298N::get_motor(Channel const channel) noexcept
     {
         if (auto motor_channel{std::ranges::find_if(this->motor_channels_,
                                                     [channel](const auto& item) { return item.first == channel; })};
