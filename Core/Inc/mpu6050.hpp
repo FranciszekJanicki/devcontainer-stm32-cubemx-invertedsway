@@ -11,9 +11,9 @@ namespace InvertedSway {
 
     struct MPU6050 {
     public:
-        enum struct Address : std::uint16_t {
-            ADDRESS = 0xD0,  // AD0 low
-            ADDRESS2 = 0xD1, // AD0 high
+        enum struct DeviceAddress : std::uint16_t {
+            AD0_LOW = 0x68,
+            AD0_HIGH = 0x69,
         };
 
         enum struct GyroRange : std::uint8_t {
@@ -415,8 +415,9 @@ namespace InvertedSway {
         using TempRaw = std::int16_t;
 
         MPU6050() noexcept = default;
-        MPU6050(I2CHandle i2c,
-                Address const addres,
+
+        MPU6050(I2CHandle const i2c_bus,
+                DeviceAddress const device_address,
                 GyroRange const gyro_range,
                 AccelRange const accel_range,
                 std::uint32_t const sampling_rate) noexcept;
@@ -462,13 +463,17 @@ namespace InvertedSway {
         static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_DIS_HZ{8000};
         static constexpr std::uint32_t ACCEL_OUTPUT_RATE_HZ{1000};
 
+        HAL_StatusTypeDef i2c_write_byte(std::uint8_t const reg_address, std::uint8_t const data) const noexcept;
+
+        HAL_StatusTypeDef
+        i2c_read_bytes(std::uint8_t const reg_address, std::uint8_t* data, std::size_t const bytes) const noexcept;
+
         void device_reset() const noexcept;
         void initialize(const std::uint32_t sampling_rate) noexcept;
         void deinitialize() noexcept;
 
         std::uint8_t get_device_id() const noexcept;
 
-        void set_address_pin(GPIOHandle gpio, std::uint16_t const address_pin) const noexcept;
         void set_sampling_divider(std::uint8_t const divider) const noexcept;
         void set_dlpf(DLPF const value) const noexcept;
         void set_clock_source(Clock const source) const noexcept;
@@ -526,9 +531,9 @@ namespace InvertedSway {
 
         bool initialized_{false};
 
-        I2CHandle i2c_{nullptr};
+        I2CHandle i2c_bus_{nullptr};
+        DeviceAddress device_address_{};
 
-        std::uint16_t address_{};
         GyroRange gyro_range_{};
         AccelRange accel_range_{};
     };
