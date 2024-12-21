@@ -109,11 +109,11 @@ namespace InvertedSway {
             HAL_Delay(50);
             this->set_sleep_enabled(Enable::OFF);
             HAL_Delay(50);
-            this->set_clock_source(Clock::INTERNAL);
+            // this->set_clock_source(Clock::INTERNAL);
+            // HAL_Delay(50);
+            this->set_sampling_divider(get_sampling_divider(sampling_rate, DLPF::BW_256));
             HAL_Delay(50);
             this->set_dlpf(DLPF::BW_256);
-            HAL_Delay(50);
-            this->set_sampling_divider(get_sampling_divider(sampling_rate, DLPF::BW_256));
             HAL_Delay(50);
             this->set_full_scale_gyro_range(this->gyro_range_);
             HAL_Delay(50);
@@ -439,7 +439,6 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         const auto accel_scaled{get_accelerometer_scaled()};
 
         return std::atan2(accel_scaled.y, accel_scaled.z) * 180.0f / PI;
@@ -475,7 +474,7 @@ namespace InvertedSway {
         this->set_interrupt_mode(IntrMode::ACTIVEHIGH);
         // this->set_interrupt_drive(IntrDrive::PUSHPULL);
         this->set_interrupt_latch(IntrLatch::PULSE50US);
-        this->set_interrupt_latch_clear(IntrClear::STATUSREAD);
+        this->set_interrupt_latch_clear(IntrClear::ANYREAD);
         this->set_int_enable_register(Enable::ON);
 
         // Enable Motion interrputs

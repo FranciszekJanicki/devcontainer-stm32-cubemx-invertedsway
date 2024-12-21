@@ -63,7 +63,7 @@ namespace InvertedSway {
 
     void System::update_output_signal() noexcept
     {
-        if (HAL_GPIO_ReadPin(INTR_GPIO_Port, INTR_Pin) == GPIO_PinState::GPIO_PIN_SET) {
+        if (HAL_GPIO_ReadPin(MPU6050_INTR_GPIO_Port, MPU6050_INTR_Pin) == GPIO_PinState::GPIO_PIN_SET) {
             this->roll_ = this->mpu6050_.get_roll();
             this->gx_ = this->mpu6050_.get_rotation_x_scaled();
         }
