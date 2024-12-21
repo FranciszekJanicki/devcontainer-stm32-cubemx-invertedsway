@@ -457,7 +457,7 @@ namespace InvertedSway {
 
         static std::uint8_t get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept;
 
-        static constexpr Scaled M_PI{3.14f};
+        static constexpr Scaled PI{3.1415f};
         static constexpr std::uint32_t I2C_TIMEOUT{100};
         static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_EN_HZ{1000};
         static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_DIS_HZ{8000};

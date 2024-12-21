@@ -145,9 +145,9 @@ namespace InvertedSway {
     std::uint8_t MPU6050::get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept
     {
         if (dlpf == DLPF::BW_256) {
-            return (GYRO_OUTPUT_RATE_DLPF_DIS_HZ / rate) - 1U;
+            return static_cast<std::uint8_t>((GYRO_OUTPUT_RATE_DLPF_DIS_HZ / rate) - 1U);
         } else {
-            return (GYRO_OUTPUT_RATE_DLPF_EN_HZ / rate) - 1U;
+            return static_cast<std::uint8_t>((GYRO_OUTPUT_RATE_DLPF_EN_HZ / rate) - 1U);
         }
     }
 
@@ -308,9 +308,9 @@ namespace InvertedSway {
         std::uint8_t buffer[6];
         this->i2c_read_bytes(std::to_underlying(RA::ACCEL_XOUT_H), buffer, sizeof(buffer));
 
-        return AccelRaw{((static_cast<Raw>(buffer[0])) << 8) | buffer[1],
-                        ((static_cast<Raw>(buffer[2])) << 8) | buffer[3],
-                        ((static_cast<Raw>(buffer[4])) << 8) | buffer[5]};
+        return AccelRaw{static_cast<Raw>((static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1])),
+                        static_cast<Raw>((static_cast<Raw>(buffer[2]) << 8) | static_cast<Raw>(buffer[3])),
+                        static_cast<Raw>((static_cast<Raw>(buffer[4]) << 8) | static_cast<Raw>(buffer[5]))};
     }
 
     AccelScaled MPU6050::get_accelerometer_scaled() const noexcept
@@ -399,9 +399,9 @@ namespace InvertedSway {
         std::uint8_t buffer[6];
         this->i2c_read_bytes(std::to_underlying(RA::GYRO_XOUT_H), buffer, sizeof(buffer));
 
-        return GyroRaw{((static_cast<Raw>(buffer[0])) << 8) | buffer[1],
-                       ((static_cast<Raw>(buffer[2])) << 8) | buffer[3],
-                       ((static_cast<Raw>(buffer[4])) << 8) | buffer[5]};
+        return GyroRaw{static_cast<Raw>((static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1])),
+                       static_cast<Raw>((static_cast<Raw>(buffer[2]) << 8) | static_cast<Raw>(buffer[3])),
+                       static_cast<Raw>((static_cast<Raw>(buffer[4]) << 8) | static_cast<Raw>(buffer[5]))};
     }
 
     GyroScaled MPU6050::get_gyroscope_scaled() const noexcept
@@ -427,10 +427,10 @@ namespace InvertedSway {
         const auto accel_scaled{get_accelerometer_scaled()};
 
         return RollPitchYaw{
-            std::atan2(accel_scaled.y, accel_scaled.z) * 180.0 / M_PI,
+            std::atan2(accel_scaled.y, accel_scaled.z) * 180.0f / PI,
             -(std::atan2(accel_scaled.x, std::sqrt(accel_scaled.y * accel_scaled.y + accel_scaled.z * accel_scaled.z)) *
               180.0) /
-                M_PI,
+                PI,
             {}};
     }
 
@@ -442,7 +442,7 @@ namespace InvertedSway {
 
         const auto accel_scaled{get_accelerometer_scaled()};
 
-        return std::atan2(accel_scaled.y, accel_scaled.z) * 180.0 / M_PI;
+        return std::atan2(accel_scaled.y, accel_scaled.z) * 180.0f / PI;
     }
 
     Scaled MPU6050::get_pitch() const noexcept
@@ -455,8 +455,8 @@ namespace InvertedSway {
 
         return -(std::atan2(accel_scaled.x,
                             std::sqrt(accel_scaled.y * accel_scaled.y + accel_scaled.z * accel_scaled.z)) *
-                 180.0) /
-               M_PI;
+                 180.0f) /
+               PI;
     }
 
     Scaled MPU6050::get_yaw() const noexcept
