@@ -61,18 +61,18 @@ void Error_Handler(void);
 #define USART_TX_GPIO_Port GPIOA
 #define USART_RX_Pin GPIO_PIN_3
 #define USART_RX_GPIO_Port GPIOA
-#define IN1_Pin GPIO_PIN_12
-#define IN1_GPIO_Port GPIOB
-#define IN3_Pin GPIO_PIN_13
-#define IN3_GPIO_Port GPIOB
-#define OUT1_Pin GPIO_PIN_14
-#define OUT1_GPIO_Port GPIOB
-#define OUT3_Pin GPIO_PIN_15
-#define OUT3_GPIO_Port GPIOB
-#define INTR_Pin GPIO_PIN_5
-#define INTR_GPIO_Port GPIOB
-#define AD0_GPIO_Port GPIOB
-#define AD0_Pin GPIO_PIN_8
+#define L298N_IN1_Pin GPIO_PIN_5
+#define L298N_IN1_GPIO_Port GPIOA
+#define ENCODER_B_Pin GPIO_PIN_6
+#define ENCODER_B_GPIO_Port GPIOA
+#define L298N_IN3_Pin GPIO_PIN_7
+#define L298N_IN3_GPIO_Port GPIOA
+#define ENCODER_BC7_Pin GPIO_PIN_7
+#define ENCODER_BC7_GPIO_Port GPIOC
+#define MPU6050_INTR_Pin GPIO_PIN_9
+#define MPU6050_INTR_GPIO_Port GPIOA
+#define L298N_ENA_Pin GPIO_PIN_6
+#define L298N_ENA_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

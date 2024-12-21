@@ -25,7 +25,7 @@ void test_motor()
     MX_USART2_UART_Init();
     MX_TIM2_Init();
 
-    MOTOR_TEST(Motor{&htim2, TIM_CHANNEL_1, GPIOB, IN1_Pin, IN3_Pin});
+    MOTOR_TEST(Motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin});
 }
 
 void test_motor_boost()
@@ -34,7 +34,7 @@ void test_motor_boost()
     MX_USART2_UART_Init();
     MX_TIM2_Init();
 
-    MOTOR_BOOST_TEST(Motor{&htim2, TIM_CHANNEL_1, GPIOB, IN1_Pin, IN3_Pin}, 2.0f);
+    MOTOR_BOOST_TEST(Motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin}, 2.0f);
 }
 
 void test_encoder()
@@ -44,7 +44,7 @@ void test_encoder()
     MX_TIM1_Init();
     MX_TIM2_Init();
 
-    ENCODER_TEST(Encoder{&htim1}, Motor{&htim2, TIM_CHANNEL_1, GPIOB, IN1_Pin, IN3_Pin});
+    ENCODER_TEST(Encoder{&htim3}, Motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin});
 }
 
 void test_kalman()
