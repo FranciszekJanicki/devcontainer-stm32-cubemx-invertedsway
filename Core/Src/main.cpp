@@ -14,59 +14,48 @@
 #include <cstdio>
 #include <utility>
 
-using namespace InvertedSway;
-using namespace Regulators;
-using namespace Filters;
-using namespace Tests;
+static bool sampling_timer_elapsed{false};
 
-void test_motor()
+static void balance_sway()
 {
-    MX_GPIO_Init();
-    MX_USART2_UART_Init();
-    MX_TIM4_Init();
+    using namespace InvertedSway;
+    using namespace Regulators;
+    using namespace Filters;
 
-    MOTOR_TEST(Motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin});
-}
+    auto const sampling_rate_hz{8000U};
+    auto const sampling_time{1.0f / static_cast<float>(sampling_rate_hz)};
+    auto const angle{0.0f};
 
-void test_motor_boost()
-{
-    MX_GPIO_Init();
-    MX_USART2_UART_Init();
-    MX_TIM4_Init();
+    L298N l298n{L298N::MotorChannels{L298N::make_motor_channel(L298N::Channel::CHANNEL1,
+                                                               &htim4,
+                                                               TIM_CHANNEL_1,
+                                                               L298N_IN1_GPIO_Port,
+                                                               L298N_IN1_Pin,
+                                                               L298N_IN3_Pin),
+                                     L298N::make_motor_channel(L298N::Channel::CHANNEL2)}};
 
-    MOTOR_BOOST_TEST(Motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin}, 2.0f);
-}
+    MPU6050 mpu6050{&hi2c1,
+                    MPU6050::DeviceAddress::AD0_LOW,
+                    MPU6050::GyroRange::GYRO_FS_250,
+                    MPU6050::AccelRange::ACCEL_FS_2,
+                    sampling_rate_hz};
 
-void test_encoder()
-{
-    MX_GPIO_Init();
-    MX_USART2_UART_Init();
-    MX_TIM3_Init();
-    MX_TIM4_Init();
+    auto kalman{make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
 
-    ENCODER_TEST(Encoder{&htim3}, Motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin});
-}
+    auto regulator{make_regulator<Algorithm::PID>(0.0f, 0.0f, 0.0f, 0.0f)};
 
-void test_kalman()
-{
-    MX_GPIO_Init();
-    MX_USART2_UART_Init();
-    MX_I2C1_Init();
+    Encoder encoder{&htim3};
 
-    KALMAN_TEST(MPU6050{&hi2c1,
-                        MPU6050::DeviceAddress::AD0_LOW,
-                        MPU6050::GyroRange::GYRO_FS_250,
-                        MPU6050::AccelRange::ACCEL_FS_2,
-                        8000U},
-                make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f),
-                1.0f / static_cast<float>(8000U));
-}
+    System system{std::move(mpu6050), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
 
-void test_dutkiewicz()
-{
-    MX_USART2_UART_Init();
+    HAL_TIM_Base_Start_IT(&htim2);
 
-    DUTKIEWICZ_TEST();
+    while (true) {
+        if (sampling_timer_elapsed) {
+            system(angle, sampling_time);
+            sampling_timer_elapsed = false;
+        }
+    }
 }
 
 int main()
@@ -74,10 +63,24 @@ int main()
     HAL_Init();
     SystemClock_Config();
 
-    /* most important test */
-    test_kalman();
+    MX_GPIO_Init();
+    MX_USART2_UART_Init();
+    MX_I2C1_Init();
+    MX_TIM2_Init();
+    MX_TIM3_Init();
+    MX_TIM4_Init();
+
+    balance_sway();
 
     return 0;
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+{
+    if (htim->Instance == TIM3) {
+        sampling_timer_elapsed = true;
+    }
+    HAL_TIM_Base_Start_IT(htim);
 }
 
 void Error_Handler()
