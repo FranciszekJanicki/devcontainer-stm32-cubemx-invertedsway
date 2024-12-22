@@ -130,7 +130,7 @@ namespace InvertedSway {
 
     Error Motor::set_compare_voltage(Voltage const voltage) const noexcept
     {
-        if (voltage >= MAX_VOLTAGE_V || voltage <= MIN_VOLTAGE_V) {
+        if (voltage > MAX_VOLTAGE_V || voltage < MIN_VOLTAGE_V) {
             return Error::FAIL;
         }
         return this->set_compare_raw(voltage_to_raw(voltage));
