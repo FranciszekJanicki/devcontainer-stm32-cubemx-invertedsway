@@ -54,8 +54,8 @@ namespace InvertedSway {
         void motor_channels(MotorChannels&& motors) noexcept;
 
         [[nodiscard]] Error set_compare_raw(Channel const channel, Raw const raw) const noexcept;
-        [[nodiscard]] Error set_compare_voltage(Channel const channel, const Voltage voltage) const noexcept;
-        [[nodiscard]] Error set_compare_speed(Channel const channel, const Speed speed) const noexcept;
+        [[nodiscard]] Error set_compare_voltage(Channel const channel, Voltage const voltage) const noexcept;
+        [[nodiscard]] Error set_compare_speed(Channel const channel, Speed const speed) const noexcept;
 
         [[nodiscard]] ExpectedRaw get_compare_raw(Channel const channel) const noexcept;
         [[nodiscard]] ExpectedVoltage get_compare_voltage(Channel const channel) const noexcept;
@@ -68,8 +68,8 @@ namespace InvertedSway {
         [[nodiscard]] Error set_fast_stop(Channel const channel) const noexcept;
 
     private:
-        Error initialize() noexcept;
-        Error deinitialize() noexcept;
+        void initialize() noexcept;
+        void deinitialize() noexcept;
 
         const Motor& get_motor(Channel const channel) const noexcept;
         Motor& get_motor(Channel const channel) noexcept;

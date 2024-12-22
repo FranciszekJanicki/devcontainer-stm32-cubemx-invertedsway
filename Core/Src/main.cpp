@@ -59,7 +59,7 @@ void test_kalman()
                         MPU6050::AccelRange::ACCEL_FS_2,
                         8000U},
                 make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f),
-                1.0f / static_cast<float>(8000U));
+                8000U);
 }
 
 void test_dutkiewicz()
@@ -75,7 +75,7 @@ int main()
     SystemClock_Config();
 
     /* most important test */
-    test_kalman();
+    test_dutkiewicz();
 
     return 0;
 }

@@ -46,9 +46,10 @@ namespace InvertedSway {
         static constexpr Speed MAX_SPEED_RPM{1000};
 
         Motor() noexcept = default;
-        Motor(TimerHandle timer,
+
+        Motor(TimerHandle const timer,
               std::uint32_t const timer_channel,
-              GPIOHandle gpio,
+              GPIOHandle const gpio,
               std::uint16_t const pin_in1,
               std::uint16_t const pin_in2) noexcept;
 

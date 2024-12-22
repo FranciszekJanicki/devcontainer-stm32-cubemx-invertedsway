@@ -13,7 +13,7 @@ namespace InvertedSway {
                MIN_ANGLE_DEG;
     }
 
-    Encoder::Encoder(TimerHandle timer) noexcept : timer_{timer}
+    Encoder::Encoder(TimerHandle const timer) noexcept : timer_{timer}
     {
         this->initialize();
     }
