@@ -17,7 +17,8 @@ namespace InvertedSway {
         using Angle = std::float_t;
 
         Encoder() noexcept = default;
-        Encoder(TimerHandle timer) noexcept;
+
+        Encoder(TimerHandle const timer) noexcept;
 
         Encoder(Encoder const& other) noexcept = delete;
         Encoder(Encoder&& other) noexcept = default;

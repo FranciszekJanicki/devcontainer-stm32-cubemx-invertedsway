@@ -60,9 +60,9 @@ namespace InvertedSway {
                MIN_RAW;
     }
 
-    Motor::Motor(TimerHandle timer,
+    Motor::Motor(TimerHandle const timer,
                  std::uint32_t const timer_channel,
-                 GPIOHandle gpio,
+                 GPIOHandle const gpio,
                  std::uint16_t const pin_in1,
                  std::uint16_t const pin_in2) noexcept :
         timer_{timer}, timer_channel_{timer_channel}, gpio_{gpio}, pin_in1_{pin_in1}, pin_in2_{pin_in2}
@@ -147,7 +147,7 @@ namespace InvertedSway {
 
     Error Motor::set_compare_speed(Speed const speed) const noexcept
     {
-        if (speed >= MAX_SPEED_RPM || speed <= MIN_SPEED_RPM) {
+        if (speed > MAX_SPEED_RPM || speed < MIN_SPEED_RPM) {
             return Error::FAIL;
         }
         return this->set_compare_raw(speed_to_raw(speed));
@@ -228,4 +228,5 @@ namespace InvertedSway {
         }
         return this->set_compare_raw(MIN_RAW);
     }
+
 }; // namespace InvertedSway

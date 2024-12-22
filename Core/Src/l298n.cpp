@@ -59,7 +59,7 @@ namespace InvertedSway {
         return this->get_motor(channel).get_compare_voltage();
     }
 
-    Error L298N::set_compare_voltage(Channel const channel, const Voltage voltage) const noexcept
+    Error L298N::set_compare_voltage(Channel const channel, Voltage const voltage) const noexcept
     {
         return this->get_motor(channel).set_compare_voltage(voltage);
     }
@@ -69,7 +69,7 @@ namespace InvertedSway {
         return this->get_motor(channel).get_compare_speed();
     }
 
-    Error L298N::set_compare_speed(Channel const channel, const Speed speed) const noexcept
+    Error L298N::set_compare_speed(Channel const channel, Speed const speed) const noexcept
     {
         return this->get_motor(channel).set_compare_speed(speed);
     }
@@ -99,7 +99,7 @@ namespace InvertedSway {
         return this->get_motor(channel).set_direction(Direction::FAST_STOP);
     }
 
-    Error L298N::initialize() noexcept
+    void L298N::initialize() noexcept
     {
         std::ranges::for_each(this->motor_channels_, [](auto& motor_channel) {
             auto& motor{motor_channel.second};
@@ -108,7 +108,7 @@ namespace InvertedSway {
         });
     }
 
-    Error L298N::deinitialize() noexcept
+    void L298N::deinitialize() noexcept
     {
         std::ranges::for_each(this->motor_channels_, [](auto& motor_channel) {
             auto& motor{motor_channel.second};
