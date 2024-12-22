@@ -38,7 +38,7 @@ namespace InvertedSway {
         static constexpr Voltage MAX_VOLTAGE_V{6};
         static constexpr Voltage MIN_VOLTAGE_V{0};
 
-        static constexpr Raw COUNTER_PERIOD{62499};
+        static constexpr Raw COUNTER_PERIOD{39999};
         static constexpr Raw MAX_RAW{COUNTER_PERIOD};
         static constexpr Raw MIN_RAW{0};
 
