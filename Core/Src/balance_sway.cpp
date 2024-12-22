@@ -33,13 +33,10 @@ namespace InvertedSway {
         auto const sampling_time{1.0f / static_cast<float>(sampling_rate_hz)};
         auto const angle{0.0f};
 
-        L298N l298n{L298N::MotorChannels{L298N::make_motor_channel(L298N::Channel::CHANNEL1,
-                                                                   &htim4,
-                                                                   TIM_CHANNEL_1,
-                                                                   L298N_IN1_GPIO_Port,
-                                                                   L298N_IN1_Pin,
-                                                                   L298N_IN3_Pin),
-                                         L298N::make_motor_channel(L298N::Channel::CHANNEL2)}};
+        L298N l298n{L298N::MotorChannels{
+            L298N::MotorChannel{L298N::Channel::CHANNEL1,
+                                Motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin}},
+            L298N::MotorChannel{L298N::Channel::CHANNEL2, Motor{}}}};
 
         MPU6050 mpu6050{&hi2c1,
                         MPU6050::DeviceAddress::AD0_LOW,
