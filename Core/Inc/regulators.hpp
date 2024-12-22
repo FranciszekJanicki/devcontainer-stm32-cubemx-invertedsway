@@ -58,7 +58,7 @@ namespace InvertedSway {
             : public Base<Value>
 #endif
         {
-            Value operator()(Value const error, Value const) noexcept
+            Value operator()(Value const error, [[maybe_unused]] Value const dt) noexcept
             {
                 // implement lqr algorithm here
                 return error;
@@ -71,7 +71,7 @@ namespace InvertedSway {
             : public Base<Value>
 #endif
         {
-            Value operator()(Value const error, Value const) noexcept
+            Value operator()(Value const error, [[maybe_unused]] Value const dt) noexcept
             {
                 // implement adrc algorithm here
                 return error;
@@ -89,7 +89,7 @@ namespace InvertedSway {
                 ZERO,
             };
 
-            Value operator()(Value const error, Value const dt) noexcept
+            Value operator()(Value const error, [[maybe_unused]] Value const dt) noexcept
             {
                 return error;
             }
@@ -135,7 +135,7 @@ namespace InvertedSway {
                 ZERO,
             };
 
-            Value operator()(Value const error, Value const dt) noexcept
+            Value operator()(Value const error, [[maybe_unused]] Value const dt) noexcept
             {
                 return error;
             }

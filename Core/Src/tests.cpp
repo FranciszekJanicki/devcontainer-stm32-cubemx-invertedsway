@@ -101,7 +101,7 @@ namespace Tests {
         motor.set_fast_stop();
 
         while (true) {
-            float const angle = encoder.get_angle();
+            float const angle = encoder.get_angle().value();
 
             if (angle >= 350.0f) {
                 motor.set_direction(Direction::BACKWARD);

@@ -74,6 +74,7 @@ namespace InvertedSway {
         Regulator regulator_{};
         Encoder encoder_{};
     };
+
 }; // namespace InvertedSway
 
 #endif // SYSTEM_HPP

@@ -72,7 +72,7 @@ namespace InvertedSway {
         this->output_signal_ = this->kalman_(this->gx_, this->roll_, this->dt_);
         printf("kalman angle: %f\n\r", this->output_signal_);
 
-        printf("encoder angle: %f\n\r", this->encoder_.get_angle());
+        printf("encoder angle: %f\n\r", this->encoder_.get_angle().value());
     }
 
     void System::update_error_signal() noexcept
