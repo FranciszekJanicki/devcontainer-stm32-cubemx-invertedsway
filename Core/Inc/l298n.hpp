@@ -19,6 +19,11 @@ namespace InvertedSway {
             CHANNEL2,
         };
 
+        struct MotorChannel {
+            Channel channel{};
+            Motor motor{};
+        };
+
         using Raw = Motor::Raw;
         using Speed = std::double_t;
         using Voltage = std::double_t;
@@ -28,19 +33,10 @@ namespace InvertedSway {
         using ExpectedSpeed = Motor::ExpectedSpeed;
         using Direction = Motor::Direction;
         using Unexpected = Motor::Unexpected;
-        using MotorChannel = std::pair<Channel, Motor>;
         using MotorChannels = std::array<MotorChannel, 2>;
 
-        template <typename... MotorArgs>
-        static MotorChannel make_motor_channel(Channel const channel, MotorArgs... motor_args) noexcept
-        {
-            return MotorChannel{std::piecewise_construct,
-                                std::forward_as_tuple(channel),
-                                std::forward_as_tuple(motor_args...)};
-        }
-
         L298N() noexcept = default;
-        L298N(MotorChannels&& motor_channels) noexcept;
+        L298N(MotorChannel&& motor_channel1, MotorChannel&& motor_channel2) noexcept;
 
         L298N(L298N const& other) noexcept = delete;
         L298N(L298N&& other) noexcept = default;

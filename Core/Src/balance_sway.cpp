@@ -35,8 +35,8 @@ namespace InvertedSway {
 
         Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
 
-        L298N l298n{L298N::MotorChannels{L298N::MotorChannel{L298N::Channel::CHANNEL1, std::move(motor)},
-                                         L298N::MotorChannel{L298N::Channel::CHANNEL2, Motor{}}}};
+        L298N l298n{L298N::MotorChannel{L298N::Channel::CHANNEL1, std::move(motor)},
+                    L298N::MotorChannel{L298N::Channel::CHANNEL2}};
 
         MPU6050 mpu6050{&hi2c1,
                         MPU6050::DeviceAddress::AD0_LOW,
@@ -65,5 +65,4 @@ namespace InvertedSway {
             }
         }
     }
-
 }; // namespace InvertedSway

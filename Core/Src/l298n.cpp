@@ -24,7 +24,8 @@ using Unexpected = L298N::Unexpected;
 
 namespace InvertedSway {
 
-    L298N::L298N(MotorChannels&& motor_channels) noexcept : motor_channels_{std::forward<MotorChannels>(motor_channels)}
+    L298N::L298N(MotorChannel&& motor_channel1, MotorChannel&& motor_channel2) noexcept :
+        motor_channels_{std::forward<MotorChannel>(motor_channel1), std::forward<MotorChannel>(motor_channel2)}
     {
         this->initialize();
     }
