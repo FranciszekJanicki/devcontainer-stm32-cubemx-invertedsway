@@ -16,6 +16,14 @@
 
 static bool sampling_timer_elapsed{false};
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+{
+    if (htim->Instance == TIM2) {
+        sampling_timer_elapsed = true;
+    }
+    HAL_TIM_Base_Start_IT(htim);
+}
+
 static void balance_sway()
 {
     using namespace InvertedSway;
@@ -73,14 +81,6 @@ int main()
     balance_sway();
 
     return 0;
-}
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
-{
-    if (htim->Instance == TIM3) {
-        sampling_timer_elapsed = true;
-    }
-    HAL_TIM_Base_Start_IT(htim);
 }
 
 void Error_Handler()
