@@ -22,47 +22,43 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
     HAL_TIM_Base_Start_IT(htim);
 }
 
-namespace InvertedSway {
+void balance_sway()
+{
+    using namespace InvertedSway;
+    using namespace Regulators;
+    using namespace Filters;
 
-    void balance_sway()
-    {
-        using namespace Regulators;
-        using namespace Filters;
+    auto const sampling_rate_hz{8000U};
+    auto const sampling_time{1.0f / static_cast<float>(sampling_rate_hz)};
+    auto const angle{0.0f};
 
-        auto const sampling_rate_hz{8000U};
-        auto const sampling_time{1.0f / static_cast<float>(sampling_rate_hz)};
-        auto const angle{0.0f};
+    L298N::MotorChannels motor_channels{
+        L298N::MotorChannel{L298N::Channel::CHANNEL1,
+                            Motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin}},
+        L298N::MotorChannel{L298N::Channel::CHANNEL2}};
 
-        Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
+    L298N l298n{std::move(motor_channels)};
 
-        L298N l298n{L298N::MotorChannel{L298N::Channel::CHANNEL1, std::move(motor)},
-                    L298N::MotorChannel{L298N::Channel::CHANNEL2}};
+    MPU6050 mpu6050{&hi2c1,
+                    MPU6050::DeviceAddress::AD0_LOW,
+                    MPU6050::GyroRange::GYRO_FS_250,
+                    MPU6050::AccelRange::ACCEL_FS_2,
+                    sampling_rate_hz};
 
-        MPU6050 mpu6050{&hi2c1,
-                        MPU6050::DeviceAddress::AD0_LOW,
-                        MPU6050::GyroRange::GYRO_FS_250,
-                        MPU6050::AccelRange::ACCEL_FS_2,
-                        sampling_rate_hz};
+    auto kalman{make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
 
-        auto kalman{make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
+    auto regulator{make_regulator<Algorithm::PID>(0.0f, 0.0f, 0.0f, 0.0f)};
 
-        auto regulator{make_regulator<Algorithm::PID>(0.0f, 0.0f, 0.0f, 0.0f)};
+    Encoder encoder{&htim3};
 
-        Encoder encoder{&htim3};
+    System system{std::move(mpu6050), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
 
-        System system{std::move(mpu6050),
-                      std::move(l298n),
-                      std::move(kalman),
-                      std::move(regulator),
-                      std::move(encoder)};
+    HAL_TIM_Base_Start_IT(&htim2);
 
-        HAL_TIM_Base_Start_IT(&htim2);
-
-        while (true) {
-            if (sampling_timer_elapsed) {
-                system(angle, sampling_time);
-                sampling_timer_elapsed = false;
-            }
+    while (true) {
+        if (sampling_timer_elapsed) {
+            system(angle, sampling_time);
+            sampling_timer_elapsed = false;
         }
     }
-}; // namespace InvertedSway
+}

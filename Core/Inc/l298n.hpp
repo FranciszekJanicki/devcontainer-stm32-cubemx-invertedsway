@@ -36,7 +36,8 @@ namespace InvertedSway {
         using MotorChannels = std::array<MotorChannel, 2>;
 
         L298N() noexcept = default;
-        L298N(MotorChannel&& motor_channel1, MotorChannel&& motor_channel2) noexcept;
+
+        L298N(MotorChannels&& motor_channels) noexcept;
 
         L298N(L298N const& other) noexcept = delete;
         L298N(L298N&& other) noexcept = default;

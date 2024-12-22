@@ -24,15 +24,14 @@ using Unexpected = L298N::Unexpected;
 
 namespace InvertedSway {
 
-    L298N::L298N(MotorChannel&& motor_channel1, MotorChannel&& motor_channel2) noexcept :
-        motor_channels_{std::forward<MotorChannel>(motor_channel1), std::forward<MotorChannel>(motor_channel2)}
+    L298N::L298N(MotorChannels&& motor_channels) noexcept : motor_channels_{std::forward<MotorChannels>(motor_channels)}
     {
-        this->initialize();
+        // this->initialize();
     }
 
     L298N::~L298N() noexcept
     {
-        this->deinitialize();
+        // this->deinitialize();
     }
 
     MotorChannels&& L298N::motor_channels() && noexcept
@@ -103,38 +102,37 @@ namespace InvertedSway {
     void L298N::initialize() noexcept
     {
         std::ranges::for_each(this->motor_channels_, [](auto& motor_channel) {
-            auto& motor{motor_channel.second};
-            motor.set_soft_stop();
-            motor.set_compare_min();
+            motor_channel.motor.set_fast_stop();
+            motor_channel.motor.set_compare_min();
         });
     }
 
     void L298N::deinitialize() noexcept
     {
         std::ranges::for_each(this->motor_channels_, [](auto& motor_channel) {
-            auto& motor{motor_channel.second};
-            motor.set_fast_stop();
-            motor.set_compare_min();
+            motor_channel.motor.set_fast_stop();
+            motor_channel.motor.set_compare_min();
         });
     }
 
     const Motor& L298N::get_motor(Channel const channel) const noexcept
     {
-        if (const auto motor_channel{
-                std::ranges::find_if(std::as_const(this->motor_channels_),
-                                     [channel](const auto& item) { return item.first == channel; })};
+        if (const auto motor_channel{std::ranges::find_if(
+                std::as_const(this->motor_channels_),
+                [channel](auto const& motor_channel) { return motor_channel.channel == channel; })};
             motor_channel != this->motor_channels_.cend()) {
-            return motor_channel->second;
+            return motor_channel->motor;
         }
         std::unreachable();
     }
 
     Motor& L298N::get_motor(Channel const channel) noexcept
     {
-        if (auto motor_channel{std::ranges::find_if(this->motor_channels_,
-                                                    [channel](const auto& item) { return item.first == channel; })};
+        if (auto motor_channel{std::ranges::find_if(
+                this->motor_channels_,
+                [channel](auto const& motor_channel) { return motor_channel.channel == channel; })};
             motor_channel != this->motor_channels_.cend()) {
-            return motor_channel->second;
+            return motor_channel->motor;
         }
         std::unreachable();
     }

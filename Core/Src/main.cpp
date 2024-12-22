@@ -17,7 +17,7 @@ int main()
     MX_TIM3_Init();
     MX_TIM4_Init();
 
-    InvertedSway::balance_sway();
+    balance_sway();
 
     return 0;
 }
