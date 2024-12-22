@@ -47,6 +47,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Src/usart.c"
     "Core/Src/stm32l4xx_it.c"
     "Core/Src/stm32l4xx_hal_msp.c"
+    "Core/Src/balance_sway.cpp"
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
