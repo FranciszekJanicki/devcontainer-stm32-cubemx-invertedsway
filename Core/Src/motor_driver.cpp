@@ -9,6 +9,7 @@
 
 using namespace InvertedSway;
 using Value = MotorDriver::Value;
+using Direction = MotorDriver::Direction;
 using Regulator = MotorDriver::Regulator;
 
 namespace InvertedSway {
@@ -25,7 +26,21 @@ namespace InvertedSway {
                MIN_VOLTAGE_V;
     }
 
-    MotorDriver::MotorDriver(Regulator&& regulator, Motor&& motor, Encoder&& encoder) noexcept
+    Direction MotorDriver::speed_to_direction(Value const speed) noexcept
+    {
+        if (speed > 0.0f) {
+            return Direction::FORWARD;
+        } else if (speed < 0.0f) {
+            return Direction::BACKWARD;
+        } else {
+            return Direction::SOFT_STOP;
+        }
+    }
+
+    MotorDriver::MotorDriver(Regulator&& regulator, Motor&& motor, Encoder&& encoder) noexcept :
+        regulator_{std::forward<Regulator>(regulator)},
+        motor_{std::forward<Motor>(motor)},
+        encoder_{std::forward<Encoder>(encoder)}
     {
         this->initialize();
     }
@@ -48,12 +63,7 @@ namespace InvertedSway {
 
     void MotorDriver::set_direction(Value const control_speed) const noexcept
     {
-        if (control_speed > 0.0f) {
-            this->motor_.set_forward();
-        } else if (control_speed < 0.0f) {
-            this->motor_.set_backward();
-        }
-        this->motor_.set_soft_stop();
+        this->motor_.set_direction(speed_to_direction(control_speed));
     }
 
     void MotorDriver::set_voltage(Value const control_speed) const noexcept
@@ -71,12 +81,24 @@ namespace InvertedSway {
 
     Value MotorDriver::get_control_speed(Value const error_speed, Value const dt) noexcept
     {
-        if (!this->regulator_.valueless_by_exception()) {
-            return std::visit(
-                [error_speed, dt]<typename Regulator>(Regulator& regulator) { return regulator(error_speed, dt); },
-                this->regulator_);
+#if defined(REGULATOR_PTR)
+        if (this->regulator_ != nullptr) {
+            return std::invoke(*this->regulator_, this->error_signal_, this->dt_);
         }
         std::unreachable();
+#elif defined(REGULATOR_VARIANT)
+        if (!this->regulator_.valueless_by_exception()) {
+            return std::visit([error_angle, dt]<typename Regulator>(
+                                  Regulator&& regulator) { return std::invoke(regulator, error_angle, dt); },
+                              this->regulator_);
+        }
+        std::unreachable();
+#elif defined(REGULATOR_LAMBDA)
+        if (this->regulator_) {
+            return std::invoke(this->regulator_, error_angle, dt);
+        }
+        std::unreachable();
+#endif
     }
 
     Value MotorDriver::get_error_speed(Value const input_speed, Value const dt) noexcept

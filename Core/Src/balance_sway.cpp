@@ -7,7 +7,7 @@
 #include "main.h"
 #include "mpu6050.hpp"
 #include "regulators.hpp"
-#include "system.hpp"
+#include "sway.hpp"
 #include "tim.h"
 #include "usart.h"
 #include <utility>
@@ -48,11 +48,11 @@ void balance_sway()
 
     Encoder encoder{&htim3};
 
-    System system{std::move(mpu6050), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
+    Sway sway{std::move(mpu6050), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
 
     while (true) {
         if (sampling_timer_elapsed) {
-            system(angle, sampling_time);
+            sway(angle, sampling_time);
             sampling_timer_elapsed = false;
         }
     }

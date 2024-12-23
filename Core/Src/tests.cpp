@@ -3,9 +3,9 @@
 #include "encoder.hpp"
 #include "kalman.hpp"
 #include "motor.hpp"
+#include "motor_driver.hpp"
 #include "mpu6050.hpp"
 #include "regulators.hpp"
-#include "system.hpp"
 #include <cmath>
 #include <cstdio>
 
@@ -80,6 +80,26 @@ namespace Tests {
 
         motor.set_compare_min();
         motor.set_fast_stop();
+    }
+
+    void MOTOR_DRIVER_TEST(MotorDriver motor_driver) noexcept
+    {
+        constexpr auto MAX_SPEED{MotorDriver::MAX_SPEED_RPM};
+        constexpr auto MIN_SPEED{MotorDriver::MIN_SPEED_RPM};
+
+        while (true) {
+            for (auto const speed : {MIN_SPEED,
+                                     MAX_SPEED / 2,
+                                     MAX_SPEED,
+                                     MAX_SPEED / 2,
+                                     MIN_SPEED,
+                                     -MAX_SPEED / 2,
+                                     -MAX_SPEED,
+                                     -MAX_SPEED / 2}) {
+                motor_driver(speed, 1);
+                HAL_Delay(1000);
+            }
+        }
     }
 
     void KALMAN_TEST(MPU6050 mpu6050, Kalman kalman, std::uint32_t const sampling_rate) noexcept
