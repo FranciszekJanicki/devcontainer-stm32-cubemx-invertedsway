@@ -32,7 +32,7 @@ namespace InvertedSway {
 
         ~MotorDriver() noexcept;
 
-        [[nodiscard]] void operator()(Value const input_speed, Value const dt) noexcept;
+        void operator()(Value const input_speed, Value const dt) noexcept;
 
     private:
         static Value speed_to_voltage(Value const speed) noexcept;
