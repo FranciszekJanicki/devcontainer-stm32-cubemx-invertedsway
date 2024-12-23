@@ -47,7 +47,7 @@ void balance_sway()
 
     auto kalman{make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
 
-    auto regulator{make_regulator<Algorithm::PID>(0.0f, 0.0f, 0.0f, 0.0f)};
+    auto regulator{make_regulator<Algorithm::PID>(0.1f, 0.0f, 0.0f, 0.0f)};
 
     Encoder encoder{&htim3};
 
