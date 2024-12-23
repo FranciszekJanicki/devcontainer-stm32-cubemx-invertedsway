@@ -44,21 +44,6 @@ namespace InvertedSway {
         return std::clamp(voltage, MIN_VOLTAGE_V, MAX_VOLTAGE_V);
     }
 
-    Speed Motor::clamp_speed(Speed const speed) noexcept
-    {
-        return std::clamp(speed, MIN_SPEED_RPM, MAX_SPEED_RPM);
-    }
-
-    Speed Motor::raw_to_speed(Raw const raw) noexcept
-    {
-        return (clamp_raw(raw) - MIN_RAW) * (MAX_SPEED_RPM - MIN_SPEED_RPM) / (MAX_RAW - MIN_RAW) + MAX_SPEED_RPM;
-    }
-
-    Raw Motor::speed_to_raw(Speed const speed) noexcept
-    {
-        return (clamp_speed(speed) - MIN_SPEED_RPM) * (MAX_RAW - MIN_RAW) / (MAX_SPEED_RPM - MIN_SPEED_RPM) + MIN_RAW;
-    }
-
     Voltage Motor::raw_to_voltage(Raw const raw) noexcept
     {
         return (clamp_raw(raw) - MIN_RAW) * (MAX_VOLTAGE_V - MIN_VOLTAGE_V) / (MAX_RAW - MIN_RAW) + MIN_VOLTAGE_V;
@@ -139,20 +124,6 @@ namespace InvertedSway {
     Error Motor::set_compare_voltage(Voltage const voltage) const noexcept
     {
         return this->set_compare_raw(voltage_to_raw(voltage));
-    }
-
-    ExpectedSpeed Motor::get_compare_speed() const noexcept
-    {
-        if (auto raw{this->get_compare_raw()}; !raw.has_value()) {
-            return Unexpected{raw.error()};
-        } else {
-            return ExpectedSpeed{raw_to_speed(raw.value())};
-        }
-    }
-
-    Error Motor::set_compare_speed(Speed const speed) const noexcept
-    {
-        return this->set_compare_raw(speed_to_raw(speed));
     }
 
     Error Motor::set_direction(Direction const direction) const noexcept

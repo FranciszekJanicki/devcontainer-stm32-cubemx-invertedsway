@@ -20,6 +20,7 @@ namespace InvertedSway {
         using Regulator = Regulators::Regulator<Value>;
 
         System() = delete;
+
         System(MPU6050&& mpu6050, L298N&& l298n, Kalman&& kalman, Regulator&& regulator, Encoder&& encoder) noexcept;
 
         System(System const& other) = delete;
@@ -30,8 +31,7 @@ namespace InvertedSway {
 
         ~System() noexcept;
 
-        void balance_sway(Value const angle, Value const dt) noexcept;
-        void operator()(Value const angle, Value const dt) noexcept;
+        void operator()(Value const input_angle, Value const dt) noexcept;
 
     private:
         static Value voltage_to_angle(Value const voltage) noexcept;
@@ -45,28 +45,21 @@ namespace InvertedSway {
         static constexpr Value MIN_CONTROL_SIGNAL_V{Motor::MIN_VOLTAGE_V};
         static constexpr Value MAX_CONTROL_SIGNAL_V{Motor::MAX_VOLTAGE_V};
 
-        void update_dt(Value const dt) noexcept;
-        void update_input_signal(Value const input_signal) noexcept;
-        void update_output_signal() noexcept;
-        void update_error_signal() noexcept;
-        void update_control_signal() noexcept;
+        Value get_measured_angle(Value const dt) noexcept;
+        Value get_control_angle(Value const error_angle, Value const dt) noexcept;
+        Value get_error_angle(Value const input_angle, Value const dt) noexcept;
 
-        void update_direction() noexcept;
-        void update_compare() noexcept;
+        void set_angle(Value const control_angle) noexcept;
+        void set_direction(Value const control_angle) const noexcept;
+        void set_voltage(Value const control_angle) const noexcept;
+        void try_motor_boost(Value const control_angle) noexcept;
 
         void deinitialize() noexcept;
         void initialize() noexcept;
 
-        void set_angle(Value const angle) noexcept;
-
-        Value dt_{};
         Value gx_{};
         Value roll_{};
-        Value error_signal_{};
-        Value input_signal_{};
-        Value output_signal_{};
-        Value control_signal_{};
-        Value last_control_signal_{};
+        Value last_control_voltage_{};
 
         MPU6050 mpu6050_{};
         L298N l298n_{};
