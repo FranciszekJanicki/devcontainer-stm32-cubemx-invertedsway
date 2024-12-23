@@ -112,10 +112,9 @@ namespace InvertedSway {
         if (!this->initialized_) {
             return Error::FAIL;
         }
-        if (raw > MAX_RAW || raw < MIN_RAW) {
-            return Error::FAIL;
-        }
-        __HAL_TIM_SetCompare(this->timer_, this->timer_channel_, raw);
+
+        // printf("Raw: %d\n\r", raw);
+        __HAL_TIM_SetCompare(this->timer_, this->timer_channel_, std::clamp(raw, MIN_RAW, MAX_RAW));
         return Error::OK;
     }
 
@@ -130,10 +129,7 @@ namespace InvertedSway {
 
     Error Motor::set_compare_voltage(Voltage const voltage) const noexcept
     {
-        if (voltage > MAX_VOLTAGE_V || voltage < MIN_VOLTAGE_V) {
-            return Error::FAIL;
-        }
-        return this->set_compare_raw(voltage_to_raw(voltage));
+        return this->set_compare_raw(voltage_to_raw(std::clamp(voltage, MIN_VOLTAGE_V, MAX_VOLTAGE_V)));
     }
 
     ExpectedSpeed Motor::get_compare_speed() const noexcept
