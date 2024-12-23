@@ -83,19 +83,19 @@ namespace InvertedSway {
     {
 #if defined(REGULATOR_PTR)
         if (this->regulator_ != nullptr) {
-            return std::invoke(*this->regulator_, this->error_signal_, this->dt_);
+            return std::invoke(*this->regulator_, error_speed, dt);
         }
         std::unreachable();
 #elif defined(REGULATOR_VARIANT)
         if (!this->regulator_.valueless_by_exception()) {
-            return std::visit([error_angle, dt]<typename Regulator>(
-                                  Regulator&& regulator) { return std::invoke(regulator, error_angle, dt); },
+            return std::visit([error_speed, dt]<typename Regulator>(
+                                  Regulator&& regulator) { return std::invoke(regulator, error_speed, dt); },
                               this->regulator_);
         }
         std::unreachable();
 #elif defined(REGULATOR_LAMBDA)
         if (this->regulator_) {
-            return std::invoke(this->regulator_, error_angle, dt);
+            return std::invoke(this->regulator_, error_speed, dt);
         }
         std::unreachable();
 #endif
