@@ -78,6 +78,10 @@ namespace InvertedSway {
         [[nodiscard]] Error set_compare_min() const noexcept;
 
     private:
+        static Raw clamp_raw(Raw const raw) noexcept;
+        static Voltage clamp_voltage(Voltage const voltage) noexcept;
+        static Speed clamp_speed(Speed const speed) noexcept;
+
         static Speed raw_to_speed(Raw const raw) noexcept;
         static Voltage raw_to_voltage(Raw const raw) noexcept;
 
