@@ -52,13 +52,13 @@ namespace InvertedSway {
     void System::update_dt(Value const dt) noexcept
     {
         this->dt_ = dt;
-        printf("sampling time: %f", this->dt_);
+        // printf("sampling time: %f", this->dt_);
     }
 
     void System::update_input_signal(Value const input_signal) noexcept
     {
         this->input_signal_ = input_signal;
-        printf("input angle: %f\n\r", this->input_signal_);
+        // printf("input angle: %f\n\r", this->input_signal_);
     }
 
     void System::update_output_signal() noexcept
@@ -67,18 +67,18 @@ namespace InvertedSway {
             this->roll_ = this->mpu6050_.get_roll();
             this->gx_ = this->mpu6050_.get_rotation_x_scaled();
         }
-        printf("mpu angle: %f, %f\n\r", this->gx_, this->roll_);
+        // printf("mpu angle: %f, %f\n\r", this->gx_, this->roll_);
 
         this->output_signal_ = this->kalman_(this->gx_, this->roll_, this->dt_);
-        printf("kalman angle: %f\n\r", this->output_signal_);
+        // printf("kalman angle: %f\n\r", this->output_signal_);
 
-        printf("encoder angle: %f\n\r", this->encoder_.get_angle().value());
+        // printf("encoder angle: %f\n\r", this->encoder_.get_angle().value());
     }
 
     void System::update_error_signal() noexcept
     {
         this->error_signal_ = this->input_signal_ - this->output_signal_;
-        printf("error angle: %f\n\r", this->error_signal_);
+        // printf("error angle: %f\n\r", this->error_signal_);
     }
 
     void System::update_control_signal() noexcept
@@ -101,7 +101,7 @@ namespace InvertedSway {
             this->control_signal_ = std::invoke(this->regulator_, this->error_signal_, this->dt_);
         }
 #endif
-        printf("regulated angle: %f\n\r", this->control_signal_);
+        // printf("regulated angle: %f\n\r", this->control_signal_);
     }
 
     Value System::angle_to_voltage(Value const angle) noexcept
@@ -118,13 +118,13 @@ namespace InvertedSway {
     {
         if (this->error_signal_ >= 0) {
             this->l298n_.set_forward(L298N::Channel::CHANNEL1);
-            printf("setting motor forward\n\r");
+            // printf("setting motor forward\n\r");
         } else if (this->error_signal_ <= 0) {
             this->l298n_.set_backward(L298N::Channel::CHANNEL1);
-            printf("setting motor backward\n\r");
+            // printf("setting motor backward\n\r");
         } else {
             this->l298n_.set_fast_stop(L298N::Channel::CHANNEL1);
-            printf("setting motor stop\n\r");
+            // printf("setting motor stop\n\r");
         }
     }
 
@@ -151,7 +151,7 @@ namespace InvertedSway {
 
     void System::set_angle(Value const angle) noexcept
     {
-        this->l298n_.set_compare_voltage(L298N::Channel::CHANNEL1, angle_to_voltage(angle));
+        this->l298n_.set_compare_voltage(L298N::Channel::CHANNEL1, angle_to_voltage(std::abs(angle)));
     }
 
 }; // namespace InvertedSway
