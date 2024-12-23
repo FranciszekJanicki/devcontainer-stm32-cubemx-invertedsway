@@ -14,6 +14,12 @@ namespace InvertedSway {
         using Direction = Motor::Direction;
         using Regulator = Regulators::Regulator<Value>;
 
+        static constexpr Value MAX_VOLTAGE_V{Motor::MAX_VOLTAGE_V};
+        static constexpr Value MIN_VOLTAGE_V{Motor::MIN_VOLTAGE_V};
+
+        static constexpr Value MIN_SPEED_RPM{0};
+        static constexpr Value MAX_SPEED_RPM{1000};
+
         MotorDriver() noexcept = default;
 
         MotorDriver(Regulator&& regulator, Motor&& motor, Encoder&& encoder) noexcept;
@@ -32,12 +38,6 @@ namespace InvertedSway {
         static Value speed_to_voltage(Value const speed) noexcept;
         static Value clamp_speed(Value const speed) noexcept;
         static Direction speed_to_direction(Value const speed) noexcept;
-
-        static constexpr Value MAX_VOLTAGE_V{Motor::MAX_VOLTAGE_V};
-        static constexpr Value MIN_VOLTAGE_V{Motor::MIN_VOLTAGE_V};
-
-        static constexpr Value MIN_SPEED_RPM{0};
-        static constexpr Value MAX_SPEED_RPM{1000};
 
         void set_voltage(Value const control_speed) const noexcept;
         void set_speed(Value const control_speed) const noexcept;

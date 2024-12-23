@@ -80,7 +80,7 @@ namespace InvertedSway {
     {
 #if defined(REGULATOR_PTR)
         if (this->regulator_ != nullptr) {
-            return std::invoke(*this->regulator_, this->error_signal_, this->dt_);
+            return std::invoke(*this->regulator_, error_angle, dt);
         }
         std::unreachable();
 #elif defined(REGULATOR_VARIANT)
