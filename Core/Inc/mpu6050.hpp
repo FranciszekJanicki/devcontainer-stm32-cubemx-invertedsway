@@ -30,7 +30,7 @@ namespace InvertedSway {
             ACCEL_FS_16 = 0x03,
         };
 
-        enum struct RA : std::uint8_t {
+        enum struct RegAddress : std::uint8_t {
             SELT_TEST_X = 0x0D,
             SELT_TEST_Y = 0x0E,
             SELT_TEST_Z = 0x0F,
@@ -463,10 +463,11 @@ namespace InvertedSway {
         static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_DIS_HZ{8000};
         static constexpr std::uint32_t ACCEL_OUTPUT_RATE_HZ{1000};
 
-        HAL_StatusTypeDef i2c_write_byte(std::uint8_t const reg_address, std::uint8_t const data) const noexcept;
+        void i2c_write_bytes(RegAddress const reg_address, std::uint8_t* data, std::size_t const bytes) const noexcept;
+        void i2c_write_byte(RegAddress const reg_address, std::uint8_t data) const noexcept;
 
-        HAL_StatusTypeDef
-        i2c_read_bytes(std::uint8_t const reg_address, std::uint8_t* data, std::size_t const bytes) const noexcept;
+        void i2c_read_bytes(RegAddress const reg_address, std::uint8_t* data, std::size_t const bytes) const noexcept;
+        std::uint8_t i2c_read_byte(RegAddress const reg_address) const noexcept;
 
         void device_reset() const noexcept;
         void initialize(const std::uint32_t sampling_rate) noexcept;
@@ -475,6 +476,8 @@ namespace InvertedSway {
         std::uint8_t get_device_id() const noexcept;
 
         void set_sampling_divider(std::uint8_t const divider) const noexcept;
+        void set_external_frame_sync(std::uint8_t const frame_sync) const noexcept;
+
         void set_dlpf(DLPF const value) const noexcept;
         void set_clock_source(Clock const source) const noexcept;
         void set_sleep_enabled(Enable const enable) const noexcept;
@@ -511,6 +514,7 @@ namespace InvertedSway {
         void set_interrupt_latch_clear(IntrClear const clear) const noexcept;
         void set_int_enable_register(Enable const value) const noexcept;
         void set_int_data_ready_enabled(Enable const enable) const noexcept;
+        void set_digital_motion_processing() const noexcept;
 
         std::uint8_t get_int_status_register() const noexcept;
         std::uint8_t get_motion_status_register() const noexcept;
