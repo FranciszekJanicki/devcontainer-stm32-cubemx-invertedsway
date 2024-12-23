@@ -11,6 +11,7 @@ namespace InvertedSway {
     struct MotorDriver {
     public:
         using Value = Motor::Voltage;
+        using Direction = Motor::Direction;
         using Regulator = Regulators::Regulator<Value>;
 
         MotorDriver() noexcept = default;
@@ -30,6 +31,7 @@ namespace InvertedSway {
     private:
         static Value speed_to_voltage(Value const speed) noexcept;
         static Value clamp_speed(Value const speed) noexcept;
+        static Direction speed_to_direction(Value const speed) noexcept;
 
         static constexpr Value MAX_VOLTAGE_V{Motor::MAX_VOLTAGE_V};
         static constexpr Value MIN_VOLTAGE_V{Motor::MIN_VOLTAGE_V};

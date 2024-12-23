@@ -1,5 +1,5 @@
-#ifndef SYSTEM_HPP
-#define SYSTEM_HPP
+#ifndef SWAY_HPP
+#define SWAY_HPP
 
 #include "encoder.hpp"
 #include "kalman.hpp"
@@ -13,29 +13,32 @@
 
 namespace InvertedSway {
 
-    struct System {
+    struct Sway {
     public:
         using Value = std::float_t;
+        using Direction = L298N::Direction;
         using Kalman = Filters::Kalman<Value>;
+
         using Regulator = Regulators::Regulator<Value>;
 
-        System() = delete;
+        Sway() = delete;
 
-        System(MPU6050&& mpu6050, L298N&& l298n, Kalman&& kalman, Regulator&& regulator, Encoder&& encoder) noexcept;
+        Sway(MPU6050&& mpu6050, L298N&& l298n, Kalman&& kalman, Regulator&& regulator, Encoder&& encoder) noexcept;
 
-        System(System const& other) = delete;
-        System(System&& other) noexcept = default;
+        Sway(Sway const& other) = delete;
+        Sway(Sway&& other) noexcept = default;
 
-        System& operator=(System const& other) = delete;
-        System& operator=(System&& other) noexcept = default;
+        Sway& operator=(Sway const& other) = delete;
+        Sway& operator=(Sway&& other) noexcept = default;
 
-        ~System() noexcept;
+        ~Sway() noexcept;
 
         void operator()(Value const input_angle, Value const dt) noexcept;
 
     private:
         static Value voltage_to_angle(Value const voltage) noexcept;
         static Value angle_to_voltage(Value const angle) noexcept;
+        static Direction angle_to_direction(Value const angle) noexcept;
 
         static constexpr Value MOTOR_RESISTANCE{10.0f};
         static constexpr Value EARTH_ACCELERATION{9.81f};
@@ -70,4 +73,4 @@ namespace InvertedSway {
 
 }; // namespace InvertedSway
 
-#endif // SYSTEM_HPP
+#endif // SWAY_HPP
