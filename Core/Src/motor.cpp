@@ -34,29 +34,39 @@ namespace InvertedSway {
         }
     }
 
+    Raw Motor::clamp_raw(Raw const raw) noexcept
+    {
+        return std::clamp(raw, MIN_RAW, MAX_RAW);
+    }
+
+    Voltage Motor::clamp_voltage(Voltage const voltage) noexcept
+    {
+        return std::clamp(voltage, MIN_VOLTAGE_V, MAX_VOLTAGE_V);
+    }
+
+    Speed Motor::clamp_speed(Speed const speed) noexcept
+    {
+        return std::clamp(speed, MIN_SPEED_RPM, MAX_SPEED_RPM);
+    }
+
     Speed Motor::raw_to_speed(Raw const raw) noexcept
     {
-        return (std::clamp(raw, MIN_RAW, MAX_RAW) - MIN_RAW) * (MAX_SPEED_RPM - MIN_SPEED_RPM) / (MAX_RAW - MIN_RAW) +
-               MAX_SPEED_RPM;
+        return (clamp_raw(raw) - MIN_RAW) * (MAX_SPEED_RPM - MIN_SPEED_RPM) / (MAX_RAW - MIN_RAW) + MAX_SPEED_RPM;
     }
 
     Raw Motor::speed_to_raw(Speed const speed) noexcept
     {
-        return (std::clamp(speed, MIN_SPEED_RPM, MAX_SPEED_RPM) - MIN_SPEED_RPM) * (MAX_RAW - MIN_RAW) /
-                   (MAX_SPEED_RPM - MIN_SPEED_RPM) +
-               MIN_RAW;
+        return (clamp_speed(speed) - MIN_SPEED_RPM) * (MAX_RAW - MIN_RAW) / (MAX_SPEED_RPM - MIN_SPEED_RPM) + MIN_RAW;
     }
 
     Voltage Motor::raw_to_voltage(Raw const raw) noexcept
     {
-        return (std::clamp(raw, MIN_RAW, MAX_RAW) - MIN_RAW) * (MAX_VOLTAGE_V - MIN_VOLTAGE_V) / (MAX_RAW - MIN_RAW) +
-               MIN_VOLTAGE_V;
+        return (clamp_raw(raw) - MIN_RAW) * (MAX_VOLTAGE_V - MIN_VOLTAGE_V) / (MAX_RAW - MIN_RAW) + MIN_VOLTAGE_V;
     }
 
     Raw Motor::voltage_to_raw(Voltage const voltage) noexcept
     {
-        return (std::clamp(voltage, MIN_VOLTAGE_V, MAX_VOLTAGE_V) - MIN_VOLTAGE_V) * (MAX_RAW - MIN_RAW) /
-                   (MAX_VOLTAGE_V - MIN_VOLTAGE_V) +
+        return (clamp_voltage(voltage) - MIN_VOLTAGE_V) * (MAX_RAW - MIN_RAW) / (MAX_VOLTAGE_V - MIN_VOLTAGE_V) +
                MIN_RAW;
     }
 
@@ -113,39 +123,35 @@ namespace InvertedSway {
             return Error::FAIL;
         }
 
-        // printf("Raw: %d\n\r", raw);
-        __HAL_TIM_SetCompare(this->timer_, this->timer_channel_, std::clamp(raw, MIN_RAW, MAX_RAW));
+        __HAL_TIM_SetCompare(this->timer_, this->timer_channel_, clamp_raw(raw));
         return Error::OK;
     }
 
     ExpectedVoltage Motor::get_compare_voltage() const noexcept
     {
         if (auto raw{this->get_compare_raw()}; !raw.has_value()) {
-            return Unexpected{std::move(raw).error()};
+            return Unexpected{raw.error()};
         } else {
-            return ExpectedVoltage{raw_to_voltage(std::move(raw).value())};
+            return ExpectedVoltage{raw_to_voltage(raw.value())};
         }
     }
 
     Error Motor::set_compare_voltage(Voltage const voltage) const noexcept
     {
-        return this->set_compare_raw(voltage_to_raw(std::clamp(voltage, MIN_VOLTAGE_V, MAX_VOLTAGE_V)));
+        return this->set_compare_raw(voltage_to_raw(voltage));
     }
 
     ExpectedSpeed Motor::get_compare_speed() const noexcept
     {
         if (auto raw{this->get_compare_raw()}; !raw.has_value()) {
-            return Unexpected{std::move(raw).error()};
+            return Unexpected{raw.error()};
         } else {
-            return ExpectedSpeed{raw_to_speed(std::move(raw).value())};
+            return ExpectedSpeed{raw_to_speed(raw.value())};
         }
     }
 
     Error Motor::set_compare_speed(Speed const speed) const noexcept
     {
-        if (speed > MAX_SPEED_RPM || speed < MIN_SPEED_RPM) {
-            return Error::FAIL;
-        }
         return this->set_compare_raw(speed_to_raw(speed));
     }
 
