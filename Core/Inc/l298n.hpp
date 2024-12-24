@@ -25,12 +25,10 @@ namespace InvertedSway {
         };
 
         using Raw = Motor::Raw;
-        using Speed = std::double_t;
-        using Voltage = std::double_t;
+        using Voltage = Motor::Voltage;
         using Error = Motor::Error;
         using ExpectedRaw = Motor::ExpectedRaw;
         using ExpectedVoltage = Motor::ExpectedVoltage;
-        using ExpectedSpeed = Motor::ExpectedSpeed;
         using Direction = Motor::Direction;
         using Unexpected = Motor::Unexpected;
         using MotorChannels = std::array<MotorChannel, 2>;
@@ -52,17 +50,17 @@ namespace InvertedSway {
 
         [[nodiscard]] Error set_compare_raw(Channel const channel, Raw const raw) const noexcept;
         [[nodiscard]] Error set_compare_voltage(Channel const channel, Voltage const voltage) const noexcept;
-        [[nodiscard]] Error set_compare_speed(Channel const channel, Speed const speed) const noexcept;
 
         [[nodiscard]] ExpectedRaw get_compare_raw(Channel const channel) const noexcept;
         [[nodiscard]] ExpectedVoltage get_compare_voltage(Channel const channel) const noexcept;
-        [[nodiscard]] ExpectedSpeed get_compare_speed(Channel const channel) const noexcept;
 
         [[nodiscard]] Error set_direction(Channel const channel, Direction const direction) const noexcept;
         [[nodiscard]] Error set_forward(Channel const channel) const noexcept;
         [[nodiscard]] Error set_backward(Channel const channel) const noexcept;
         [[nodiscard]] Error set_soft_stop(Channel const channel) const noexcept;
         [[nodiscard]] Error set_fast_stop(Channel const channel) const noexcept;
+        [[nodiscard]] Error set_compare_max(Channel const channel) const noexcept;
+        [[nodiscard]] Error set_compare_min(Channel const channel) const noexcept;
 
     private:
         void initialize() noexcept;

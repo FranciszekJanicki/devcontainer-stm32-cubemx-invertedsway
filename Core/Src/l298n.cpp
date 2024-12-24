@@ -14,12 +14,10 @@ using Channel = L298N::Channel;
 using MotorChannel = L298N::MotorChannel;
 using MotorChannels = L298N::MotorChannels;
 using Raw = L298N::Raw;
-using Speed = L298N::Speed;
 using Voltage = L298N::Voltage;
 using Direction = L298N::Direction;
 using ExpectedRaw = L298N::ExpectedRaw;
 using ExpectedVoltage = L298N::ExpectedVoltage;
-using ExpectedSpeed = L298N::ExpectedSpeed;
 using Unexpected = L298N::Unexpected;
 
 namespace InvertedSway {
@@ -64,16 +62,6 @@ namespace InvertedSway {
         return this->get_motor(channel).set_compare_voltage(voltage);
     }
 
-    ExpectedSpeed L298N::get_compare_speed(Channel const channel) const noexcept
-    {
-        return this->get_motor(channel).get_compare_speed();
-    }
-
-    Error L298N::set_compare_speed(Channel const channel, Speed const speed) const noexcept
-    {
-        return this->get_motor(channel).set_compare_speed(speed);
-    }
-
     Error L298N::set_direction(Channel const channel, Direction const direction) const noexcept
     {
         return this->get_motor(channel).set_direction(direction);
@@ -97,6 +85,16 @@ namespace InvertedSway {
     Error L298N::set_fast_stop(Channel const channel) const noexcept
     {
         return this->get_motor(channel).set_direction(Direction::FAST_STOP);
+    }
+
+    Error L298N::set_compare_max(Channel const channel) const noexcept
+    {
+        return this->get_motor(channel).set_compare_max();
+    }
+
+    Error L298N::set_compare_min(Channel const channel) const noexcept
+    {
+        return this->get_motor(channel).set_compare_min();
     }
 
     void L298N::initialize() noexcept

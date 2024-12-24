@@ -4,6 +4,7 @@ SOURCE_DIR := ${PROJECT_DIR}/Core
 DRIVERS_DIR := ${PROJECT_DIR}/Drivers
 REQUIREMENTS_DIR := ${PROJECT_DIR}/requirements
 STM32CUBEMX_DIR := ${PROJECT_DIR}/cmake/stm32cubemx
+export PATH := $(PATH)
 
 .PHONY: build
 build: 

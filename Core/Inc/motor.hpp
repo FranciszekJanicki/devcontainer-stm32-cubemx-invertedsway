@@ -42,9 +42,6 @@ namespace InvertedSway {
         static constexpr Raw MAX_RAW{COUNTER_PERIOD};
         static constexpr Raw MIN_RAW{0};
 
-        static constexpr Speed MIN_SPEED_RPM{0};
-        static constexpr Speed MAX_SPEED_RPM{1000};
-
         Motor() noexcept = default;
 
         Motor(TimerHandle const timer,
@@ -63,11 +60,9 @@ namespace InvertedSway {
 
         [[nodiscard]] Error set_compare_raw(Raw const raw) const noexcept;
         [[nodiscard]] Error set_compare_voltage(Voltage const voltage) const noexcept;
-        [[nodiscard]] Error set_compare_speed(Speed const speed) const noexcept;
 
         [[nodiscard]] ExpectedRaw get_compare_raw() const noexcept;
         [[nodiscard]] ExpectedVoltage get_compare_voltage() const noexcept;
-        [[nodiscard]] ExpectedSpeed get_compare_speed() const noexcept;
 
         [[nodiscard]] Error set_direction(Direction const direction) const noexcept;
         [[nodiscard]] Error set_forward() const noexcept;
@@ -78,6 +73,10 @@ namespace InvertedSway {
         [[nodiscard]] Error set_compare_min() const noexcept;
 
     private:
+        static Raw clamp_raw(Raw const raw) noexcept;
+        static Voltage clamp_voltage(Voltage const voltage) noexcept;
+        static Speed clamp_speed(Speed const speed) noexcept;
+
         static Speed raw_to_speed(Raw const raw) noexcept;
         static Voltage raw_to_voltage(Raw const raw) noexcept;
 

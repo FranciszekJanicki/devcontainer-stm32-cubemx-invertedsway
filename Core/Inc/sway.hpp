@@ -1,5 +1,5 @@
-#ifndef SYSTEM_HPP
-#define SYSTEM_HPP
+#ifndef SWAY_HPP
+#define SWAY_HPP
 
 #include "encoder.hpp"
 #include "kalman.hpp"
@@ -13,29 +13,32 @@
 
 namespace InvertedSway {
 
-    struct System {
+    struct Sway {
     public:
         using Value = std::float_t;
+        using Direction = L298N::Direction;
         using Kalman = Filters::Kalman<Value>;
+
         using Regulator = Regulators::Regulator<Value>;
 
-        System() = delete;
-        System(MPU6050&& mpu6050, L298N&& l298n, Kalman&& kalman, Regulator&& regulator, Encoder&& encoder) noexcept;
+        Sway() = delete;
 
-        System(System const& other) = delete;
-        System(System&& other) noexcept = default;
+        Sway(MPU6050&& mpu6050, L298N&& l298n, Kalman&& kalman, Regulator&& regulator, Encoder&& encoder) noexcept;
 
-        System& operator=(System const& other) = delete;
-        System& operator=(System&& other) noexcept = default;
+        Sway(Sway const& other) = delete;
+        Sway(Sway&& other) noexcept = default;
 
-        ~System() noexcept;
+        Sway& operator=(Sway const& other) = delete;
+        Sway& operator=(Sway&& other) noexcept = default;
 
-        void balance_sway(Value const angle, Value const dt) noexcept;
-        void operator()(Value const angle, Value const dt) noexcept;
+        ~Sway() noexcept;
+
+        void operator()(Value const input_angle, Value const dt) noexcept;
 
     private:
         static Value voltage_to_angle(Value const voltage) noexcept;
         static Value angle_to_voltage(Value const angle) noexcept;
+        static Direction angle_to_direction(Value const angle) noexcept;
 
         static constexpr Value MOTOR_RESISTANCE{10.0f};
         static constexpr Value EARTH_ACCELERATION{9.81f};
@@ -45,28 +48,21 @@ namespace InvertedSway {
         static constexpr Value MIN_CONTROL_SIGNAL_V{Motor::MIN_VOLTAGE_V};
         static constexpr Value MAX_CONTROL_SIGNAL_V{Motor::MAX_VOLTAGE_V};
 
-        void update_dt(Value const dt) noexcept;
-        void update_input_signal(Value const input_signal) noexcept;
-        void update_output_signal() noexcept;
-        void update_error_signal() noexcept;
-        void update_control_signal() noexcept;
+        Value get_measured_angle(Value const dt) noexcept;
+        Value get_control_angle(Value const error_angle, Value const dt) noexcept;
+        Value get_error_angle(Value const input_angle, Value const dt) noexcept;
 
-        void update_direction() noexcept;
-        void update_compare() noexcept;
+        void set_angle(Value const control_angle) noexcept;
+        void set_direction(Value const control_angle) const noexcept;
+        void set_voltage(Value const control_angle) const noexcept;
+        void try_motor_boost(Value const control_angle) noexcept;
 
         void deinitialize() noexcept;
         void initialize() noexcept;
 
-        void set_angle(Value const angle) noexcept;
-
-        Value dt_{};
         Value gx_{};
         Value roll_{};
-        Value error_signal_{};
-        Value input_signal_{};
-        Value output_signal_{};
-        Value control_signal_{};
-        Value last_control_signal_{};
+        Value last_control_voltage_{};
 
         MPU6050 mpu6050_{};
         L298N l298n_{};
@@ -77,4 +73,4 @@ namespace InvertedSway {
 
 }; // namespace InvertedSway
 
-#endif // SYSTEM_HPP
+#endif // SWAY_HPP

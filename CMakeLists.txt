@@ -36,7 +36,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Src/mpu6050.cpp"
     "Core/Src/l298n.cpp"
     "Core/Src/motor.cpp"
-    "Core/Src/system.cpp"
+    "Core/Src/sway.cpp"
     "Core/Inc/regulators.hpp"
     "Core/Inc/kalman.hpp"
     "Core/Src/encoder.cpp"
@@ -48,6 +48,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Src/stm32l4xx_it.c"
     "Core/Src/stm32l4xx_hal_msp.c"
     "Core/Src/balance_sway.cpp"
+    "Core/Src/motor_driver.cpp"
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
