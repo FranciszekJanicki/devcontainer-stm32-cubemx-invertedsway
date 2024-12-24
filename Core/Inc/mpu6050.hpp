@@ -196,6 +196,13 @@ namespace InvertedSway {
             BW_5 = 0x06,
         };
 
+        enum struct TC : std::uint8_t {
+            PWR_MODE_BIT = 7,
+            OFFSET_BIT = 6,
+            OFFSET_LENGTH = 6,
+            OTP_BNK_VLD_BIT = 0,
+        };
+
         enum struct GyroConfig : std::uint8_t {
             FS_SEL_BIT = 4,
             FS_SEL_LENGTH = 2,
@@ -547,9 +554,11 @@ namespace InvertedSway {
         void set_zero_motion_detection_threshold(std::uint8_t const threshold) const noexcept;
         void set_zero_motion_detection_duration(std::uint8_t const duration) const noexcept;
 
-        void set_temp_fifo_enabled(bool const temp_fifo) const noexcept;
-        void set_gyro_fifo_enabled(bool const x_fifo, bool const y_fifo, bool const z_fifo) const noexcept;
-        void set_accel_fifo_enabled(bool const x_fifo, bool const y_fifo, bool const z_fifo) const noexcept;
+        void set_temp_fifo_enabled(bool const enabled) const noexcept;
+        void set_gyro_x_fifo_enabled(bool const enabled) const noexcept;
+        void set_gyro_y_fifo_enabled(bool const enabled) const noexcept;
+        void set_gyro_z_fifo_enabled(bool const enabled) const noexcept;
+        void set_accel_fifo_enabled(bool const enabled) const noexcept;
 
         void set_interrupt() const noexcept;
         void set_interrupt_mode(IntrMode const mode) const noexcept;
@@ -558,7 +567,7 @@ namespace InvertedSway {
         void set_interrupt_latch_clear(IntrClear const clear) const noexcept;
 
         void set_motion_interrupt() const noexcept;
-        void set_int_enabled(bool const enabled) const noexcept;
+        void set_int_enabled(std::uint8_t const enabled) const noexcept;
         void set_int_free_fall_enabled(bool const enabled) const noexcept;
         void set_int_motion_enabled(bool const enabled) const noexcept;
         void set_int_zero_motion_enabled(bool const enabled) const noexcept;
@@ -630,16 +639,16 @@ namespace InvertedSway {
 
         std::uint8_t get_device_id() const noexcept;
 
-        std::uint8_t get_otp_bank_valid() const noexcept;
+        bool get_otp_bank_valid() const noexcept;
         void set_otp_bank_valid(bool const enabled) const noexcept;
 
-        void set_gyro_x_offset_tc(std::int8_t const offset) const noexcept;
-        void set_gyro_y_offset_tc(std::int8_t const offset) const noexcept;
-        void set_gyro_z_offset_tc(std::int8_t const offset) const noexcept;
+        void set_gyro_x_offset_tc(std::uint8_t const offset) const noexcept;
+        void set_gyro_y_offset_tc(std::uint8_t const offset) const noexcept;
+        void set_gyro_z_offset_tc(std::uint8_t const offset) const noexcept;
 
-        void set_x_fine_gain(std::int8_t const gain) const noexcept;
-        void set_y_fine_gain(std::int8_t const gain) const noexcept;
-        void set_z_fine_gain(std::int8_t const gain) const noexcept;
+        void set_x_fine_gain(std::uint8_t const gain) const noexcept;
+        void set_y_fine_gain(std::uint8_t const gain) const noexcept;
+        void set_z_fine_gain(std::uint8_t const gain) const noexcept;
 
         void set_accel_x_offset(std::int16_t const offset) const noexcept;
         void set_accel_y_offset(std::int16_t const offset) const noexcept;

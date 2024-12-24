@@ -5,7 +5,7 @@
 
 namespace I2CDriver {
 
-    constexpr auto I2C_TIMEOUT{100};
+    constexpr auto I2C_TIMEOUT{1000};
 
     void write_bytes(I2CHandle const i2c_bus,
                      std::uint16_t const dev_address,
@@ -89,26 +89,20 @@ namespace I2CDriver {
                     std::uint8_t* read_data,
                     std::size_t const read_size) noexcept
     {
-        HAL_I2C_Mem_Write(i2c_bus,
-                          dev_address << 1,
-                          reg_address,
-                          sizeof(reg_address),
-                          read_data,
-                          read_size,
-                          I2C_TIMEOUT);
+        HAL_I2C_Mem_Read(i2c_bus,
+                         dev_address << 1,
+                         reg_address,
+                         sizeof(reg_address),
+                         read_data,
+                         read_size,
+                         I2C_TIMEOUT);
     }
 
     std::uint8_t
     read_byte(I2CHandle const i2c_bus, std::uint16_t const dev_address, std::uint8_t const reg_address) noexcept
     {
         std::uint8_t read;
-        HAL_I2C_Mem_Write(i2c_bus,
-                          dev_address << 1,
-                          reg_address,
-                          sizeof(reg_address),
-                          &read,
-                          sizeof(read),
-                          I2C_TIMEOUT);
+        HAL_I2C_Mem_Read(i2c_bus, dev_address << 1, reg_address, sizeof(reg_address), &read, sizeof(read), I2C_TIMEOUT);
 
         return read;
     }
@@ -119,13 +113,7 @@ namespace I2CDriver {
                   std::uint8_t const read_position) noexcept
     {
         std::uint8_t read;
-        HAL_I2C_Mem_Write(i2c_bus,
-                          dev_address << 1,
-                          reg_address,
-                          sizeof(reg_address),
-                          &read,
-                          sizeof(read),
-                          I2C_TIMEOUT);
+        HAL_I2C_Mem_Read(i2c_bus, dev_address << 1, reg_address, sizeof(reg_address), &read, sizeof(read), I2C_TIMEOUT);
 
         return read & (1 << read_position);
     }
