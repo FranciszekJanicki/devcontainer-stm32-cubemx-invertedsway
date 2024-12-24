@@ -250,7 +250,7 @@ namespace InvertedSway {
             DIV_258 = 0x8,
         };
 
-        enum struct Slave : std::uint8_t {
+        enum struct I2CSlave : std::uint8_t {
             SLV_RW_BIT = 7,
             SLV_ADDR_BIT = 6,
             SLV_ADDR_LENGTH = 7,
@@ -263,7 +263,7 @@ namespace InvertedSway {
             SLV_3_FIFO_EN_BIT = 5,
         };
 
-        enum struct Slave4 : std::uint8_t {
+        enum struct I2CSlave4 : std::uint8_t {
             SLV4_RW_BIT = 7,
             SLV4_ADDR_BIT = 6,
             SLV4_ADDR_LENGTH = 7,
@@ -274,7 +274,7 @@ namespace InvertedSway {
             SLV4_MST_DLY_LENGTH = 5,
         };
 
-        enum struct Master : std::uint8_t {
+        enum struct I2CMaster : std::uint8_t {
             PASS_THROUGH_BIT = 7,
             SLV4_DONE_BIT = 6,
             LOST_ARB_BIT = 5,
@@ -283,6 +283,9 @@ namespace InvertedSway {
             SLV2_NACK_BIT = 2,
             SLV1_NACK_BIT = 1,
             SLV0_NACK_BIT = 0,
+        };
+
+        enum struct I2C : std::uint8_t {
             MULT_MST_EN_BIT = 7,
             MST_CLK_LENGTH = 4,
             MST_P_NSR_BIT = 4,
@@ -290,7 +293,7 @@ namespace InvertedSway {
             WAIT_FOR_ES_BIT = 6,
         };
 
-        enum struct IntCfg : std::uint8_t {
+        enum struct IntrCfg : std::uint8_t {
             INT_LEVEL_BIT = 7,
             INT_OPEN_BIT = 6,
             LATCH_INT_EN_BIT = 5,
@@ -300,22 +303,22 @@ namespace InvertedSway {
             I2C_BYPASS_EN_BIT = 1,
         };
 
-        enum struct IntMode : std::uint8_t {
+        enum struct IntrMode : std::uint8_t {
             ACTIVEHIGH = 0x00,
             ACTIVELOW = 0x01,
         };
 
-        enum struct IntDrive : std::uint8_t {
+        enum struct IntrDrive : std::uint8_t {
             PUSHPULL = 0x00,
             OPENDRAIN = 0x01,
         };
 
-        enum struct IntLatch : std::uint8_t {
+        enum struct IntrLatch : std::uint8_t {
             PULSE50US = 0x00,
             WAITCLEAR = 0x01,
         };
 
-        enum struct IntClear : std::uint8_t {
+        enum struct IntrClear : std::uint8_t {
             STATUSREAD = 0x00,
             ANYREAD = 0x01,
         };
@@ -495,11 +498,16 @@ namespace InvertedSway {
         static constexpr std::size_t DMP_MEMORY_CHUNK_SIZE{16};
         static constexpr auto FIFO_DEFAULT_TIMEOUT{11000};
 
+        void initialize(std::uint32_t const sampling_rate) noexcept;
+        void deinitialize() noexcept;
+
+        void i2c_write_bit(RegAddress const reg_address, std::uint8_t const bit) const noexcept;
         void i2c_write_bytes(RegAddress const reg_address, std::uint8_t* data, std::size_t const bytes) const noexcept;
         void i2c_write_byte(RegAddress const reg_address, std::uint8_t data) const noexcept;
 
         void i2c_read_bytes(RegAddress const reg_address, std::uint8_t* data, std::size_t const bytes) const noexcept;
         std::uint8_t i2c_read_byte(RegAddress const reg_address) const noexcept;
+        bool i2c_read_bit(RegAddress const reg_address, std::uint8_t const bit) const noexcept;
 
         /* SMPLRD_DIV REGISTER */
         void set_sampling_divider(std::uint8_t const divider) const noexcept;
@@ -540,10 +548,10 @@ namespace InvertedSway {
 
         /* INT_PIN_CFG REGISTER */
         void set_interrupt() const noexcept;
-        void set_interrupt_mode(IntMode const mode) const noexcept;
-        void set_interrupt_drive(IntDrive const drive) const noexcept;
-        void set_interrupt_latch(IntLatch const latch) const noexcept;
-        void set_interrupt_latch_clear(IntClear const clear) const noexcept;
+        void set_interrupt_mode(IntrMode const mode) const noexcept;
+        void set_interrupt_drive(IntrDrive const drive) const noexcept;
+        void set_interrupt_latch(IntrLatch const latch) const noexcept;
+        void set_interrupt_latch_clear(IntrClear const clear) const noexcept;
 
         /* INT_ENABLE REGISTER */
         void set_motion_interrupt() const noexcept;
@@ -565,19 +573,19 @@ namespace InvertedSway {
         std::uint8_t get_int_data_ready_status() const noexcept;
 
         /* ACCEL_OUT REGISTERS */
+        AccelRaw get_acceleration_raw() const noexcept;
         Raw get_acceleration_x_raw() const noexcept;
         Raw get_acceleration_y_raw() const noexcept;
         Raw get_acceleration_z_raw() const noexcept;
-        AccelRaw get_acceleration_raw() const noexcept;
 
         /* TEMP_OUT REGISTERS */
         Raw get_temperature_raw() const noexcept;
 
         /* GYRO_OUT REGISTERS */
+        GyroRaw get_rotation_raw() const noexcept;
         Raw get_rotation_x_raw() const noexcept;
         Raw get_rotation_y_raw() const noexcept;
         Raw get_rotation_z_raw() const noexcept;
-        GyroRaw get_rotation_raw() const noexcept;
 
         /* MOT_DETECT_STATUS REGISTER */
         std::uint8_t get_motion_status() const noexcept;
@@ -626,7 +634,6 @@ namespace InvertedSway {
         void get_fifo_bytes(std::uint8_t* data, std::size_t const bytes) const noexcept;
         void set_fifo_byte(std::uint8_t const data) const noexcept;
         void set_fifo_bytes(std::uint8_t* data, std::size_t const bytes) const noexcept;
-        void set_fifo_timeout(std::uint32_t const timeout) const noexcept;
 
         /* WHO_AM_I REGISTER */
         std::uint8_t get_device_id() const noexcept;
@@ -717,9 +724,6 @@ namespace InvertedSway {
 
         /* DMP_CFG_2 REGISTER */
         void set_dmp_config2(std::uint8_t const config) const noexcept;
-
-        void initialize(std::uint32_t const sampling_rate) noexcept;
-        void deinitialize() noexcept;
 
         bool initialized_{false};
 

@@ -70,7 +70,7 @@ int main()
     SystemClock_Config();
 
     /* most important test */
-    test_dutkiewicz();
+    test_kalman();
 
     return 0;
 }
