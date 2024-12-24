@@ -1,4 +1,5 @@
 #ifndef MPU6050_HPP
+#define MPU6050_HPP
 
 #include "common.hpp"
 #include "stm32l4xx_hal.h"
@@ -535,7 +536,7 @@ namespace InvertedSway {
         void i2c_write_bits(RegAddress const reg_address,
                             std::uint8_t const write_data,
                             std::uint8_t const write_position,
-                            std::uint8_t const write_size = 1) const noexcept;
+                            std::uint8_t const write_size) const noexcept;
 
         void i2c_read_words(RegAddress const reg_address,
                             std::uint16_t* read_data,
@@ -553,7 +554,7 @@ namespace InvertedSway {
 
         std::uint8_t i2c_read_bits(RegAddress const reg_address,
                                    std::uint8_t const read_position,
-                                   std::uint8_t const read_size = 1) const noexcept;
+                                   std::uint8_t const read_size) const noexcept;
 
         void set_sampling_divider(std::uint8_t const divider) const noexcept;
 

@@ -42,7 +42,7 @@ namespace I2CDriver {
                     std::uint8_t const reg_address,
                     std::uint8_t const write_data,
                     std::uint8_t const write_position,
-                    std::uint8_t const write_size = 1) noexcept;
+                    std::uint8_t const write_size) noexcept;
 
     void read_words(I2CHandle const i2c_bus,
                     std::uint16_t const dev_address,
@@ -71,7 +71,7 @@ namespace I2CDriver {
                            std::uint16_t const dev_address,
                            std::uint8_t const reg_address,
                            std::uint8_t const read_position,
-                           std::uint8_t const read_size = 1) noexcept;
+                           std::uint8_t const read_size) noexcept;
 
 }; // namespace I2CDriver
 

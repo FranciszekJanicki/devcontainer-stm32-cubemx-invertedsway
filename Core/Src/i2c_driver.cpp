@@ -19,7 +19,7 @@ namespace I2CDriver {
                     std::uint8_t const reg_address,
                     std::uint16_t write_data) noexcept
     {
-        write_words(i2c_bus, dev_address, reg_address, &write_data, 1);
+        write_words(i2c_bus, dev_address, reg_address, &write_data, sizeof(write_data));
     }
 
     void write_bytes(I2CHandle const i2c_bus,
@@ -29,7 +29,13 @@ namespace I2CDriver {
                      std::uint8_t const write_size) noexcept
 
     {
-        HAL_I2C_Mem_Write(i2c_bus, dev_address << 1, reg_address, 1, write_data, write_size, I2C_TIMEOUT);
+        HAL_I2C_Mem_Write(i2c_bus,
+                          dev_address << 1,
+                          reg_address,
+                          sizeof(reg_address),
+                          write_data,
+                          write_size,
+                          I2C_TIMEOUT);
     }
 
     void write_byte(I2CHandle const i2c_bus,
@@ -37,7 +43,7 @@ namespace I2CDriver {
                     std::uint8_t const reg_address,
                     std::uint8_t write_data) noexcept
     {
-        write_bytes(i2c_bus, dev_address, reg_address, 1, &write_data, 1);
+        write_bytes(i2c_bus, dev_address, reg_address, &write_data, sizeof(write_data));
     }
 
     void write_bit(I2CHandle const i2c_bus,
@@ -81,14 +87,20 @@ namespace I2CDriver {
                     std::uint8_t const read_size) noexcept
     {
         /* TO DO- IMPLEMENT PROPER WORD READING */
-        HAL_I2C_Mem_Read(i2c_bus, dev_address << 1, reg_address, 1, read_data, read_size, I2C_TIMEOUT);
+        HAL_I2C_Mem_Read(i2c_bus,
+                         dev_address << 1,
+                         reg_address,
+                         sizeof(reg_address),
+                         (uint8_t*)read_data,
+                         read_size,
+                         I2C_TIMEOUT);
     }
 
     std::uint16_t
     read_word(I2CHandle const i2c_bus, std::uint16_t const dev_address, std::uint8_t const reg_address) noexcept
     {
         std::uint16_t read;
-        read_words(i2c_bus, dev_address, reg_address, &read, 1);
+        read_words(i2c_bus, dev_address, reg_address, &read, sizeof(read));
 
         return read;
     }
@@ -99,7 +111,13 @@ namespace I2CDriver {
                     std::uint8_t* read_data,
                     std::uint8_t const read_size) noexcept
     {
-        HAL_I2C_Mem_Read(i2c_bus, dev_address << 1, reg_address, 1, read_data, read_size, I2C_TIMEOUT);
+        HAL_I2C_Mem_Read(i2c_bus,
+                         dev_address << 1,
+                         reg_address,
+                         sizeof(reg_address),
+                         read_data,
+                         read_size,
+                         I2C_TIMEOUT);
     }
 
     std::uint8_t
