@@ -1095,7 +1095,6 @@ namespace InvertedSway {
             this->i2c_read_bytes(RegAddress::MEM_R_W, read_data + i, chunk_size);
 
             i += chunk_size;
-
             address += chunk_size;
 
             if (i < read_size) {
@@ -1115,7 +1114,6 @@ namespace InvertedSway {
         this->set_memory_bank(bank);
         this->set_memory_start_address(address);
 
-        std::uint8_t* prog_buffer = nullptr;
         std::uint16_t i;
         std::uint8_t j;
 
@@ -1128,12 +1126,10 @@ namespace InvertedSway {
             if (chunk_size > 256 - address)
                 chunk_size = 256 - address;
 
-            prog_buffer = (uint8_t*)write_data + i;
-
+            std::uint8_t* prog_buffer = (uint8_t*)write_data + i;
             this->i2c_write_bytes(RegAddress::MEM_R_W, prog_buffer, chunk_size);
 
             i += chunk_size;
-
             address += chunk_size;
 
             if (i < write_size) {
@@ -1147,25 +1143,21 @@ namespace InvertedSway {
 
     void MPU6050::write_dmp_configuration_set(std::uint8_t* write_data, std::size_t const write_size) const noexcept
     {
-        std::uint8_t* prog_buffer = nullptr;
-        std::uint8_t special;
         std::uint16_t i, j;
-
         uint8_t bank, offset, length;
+
         for (i = 0; i < write_size;) {
             bank = write_data[i++];
             offset = write_data[i++];
             length = write_data[i++];
 
             if (length > 0) {
-                prog_buffer = (uint8_t*)write_data + i;
+                std::uint8_t* prog_buffer = (uint8_t*)write_data + i;
 
                 this->write_memory_block(prog_buffer, length, bank, offset);
                 i += length;
             } else {
-                special = write_data[i++];
-
-                if (special == 0x01) {
+                if (write_data[i++] == 0x01) {
                     this->i2c_write_byte(RegAddress::INT_ENABLE, 0x32);
                 }
             }
