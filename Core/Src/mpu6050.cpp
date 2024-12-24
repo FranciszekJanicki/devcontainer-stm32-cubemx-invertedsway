@@ -1089,7 +1089,6 @@ namespace InvertedSway {
             if (i + chunk_size > read_size) {
                 chunk_size = read_size - i;
             }
-
             if (chunk_size > 256 - address) {
                 chunk_size = 256 - address;
             }
@@ -1103,7 +1102,6 @@ namespace InvertedSway {
                 if (address == 0) {
                     bank++;
                 }
-
                 this->set_memory_bank(bank);
                 this->set_memory_start_address(address);
             }
@@ -1124,7 +1122,6 @@ namespace InvertedSway {
             if (i + chunk_size > write_size) {
                 chunk_size = write_size - i;
             }
-
             if (chunk_size > 256 - address) {
                 chunk_size = 256 - address;
             }
@@ -1139,7 +1136,6 @@ namespace InvertedSway {
                 if (address == 0) {
                     bank++;
                 }
-
                 this->set_memory_bank(bank);
                 this->set_memory_start_address(address);
             }
@@ -1148,13 +1144,10 @@ namespace InvertedSway {
 
     void MPU6050::write_dmp_configuration_set(std::uint8_t* write_data, std::size_t const write_size) const noexcept
     {
-        std::uint16_t i, j;
-        uint8_t bank, offset, length;
-
-        for (i = 0; i < write_size;) {
-            bank = write_data[i++];
-            offset = write_data[i++];
-            length = write_data[i++];
+        for (std::uint16_t i = 0; i < write_size;) {
+            std::uint8_t bank = write_data[i++];
+            std::uint8_t offset = write_data[i++];
+            std::uint8_t length = write_data[i++];
 
             if (length > 0) {
                 std::uint8_t* prog_buffer = (uint8_t*)write_data + i;
