@@ -501,59 +501,62 @@ namespace InvertedSway {
         void initialize(std::uint32_t const sampling_rate) noexcept;
         void deinitialize() noexcept;
 
-        void i2c_write_bit(RegAddress const reg_address, std::uint8_t const bit) const noexcept;
-        void i2c_write_bytes(RegAddress const reg_address, std::uint8_t* data, std::size_t const bytes) const noexcept;
-        void i2c_write_byte(RegAddress const reg_address, std::uint8_t data) const noexcept;
+        void i2c_write_bytes(RegAddress const reg_address,
+                             std::uint8_t* write_data,
+                             std::size_t const write_size) const noexcept;
 
-        void i2c_read_bytes(RegAddress const reg_address, std::uint8_t* data, std::size_t const bytes) const noexcept;
+        void i2c_write_byte(RegAddress const reg_address, std::uint8_t write_data) const noexcept;
+
+        void i2c_write_bit(RegAddress const reg_address,
+                           bool const write_data,
+                           std::uint8_t const write_position) const noexcept;
+
+        void i2c_write_bits(RegAddress const reg_address,
+                            std::uint8_t const write_data,
+                            std::uint8_t const write_position,
+                            std::uint8_t const write_size) const noexcept;
+
+        void i2c_read_bytes(RegAddress const reg_address,
+                            std::uint8_t* read_data,
+                            std::size_t const read_size) const noexcept;
+
         std::uint8_t i2c_read_byte(RegAddress const reg_address) const noexcept;
-        bool i2c_read_bit(RegAddress const reg_address, std::uint8_t const bit) const noexcept;
 
-        /* SMPLRD_DIV REGISTER */
+        bool i2c_read_bit(RegAddress const reg_address, std::uint8_t const read_position) const noexcept;
+
+        std::uint8_t i2c_read_bits(RegAddress const reg_address,
+                                   std::uint8_t const read_position,
+                                   std::uint8_t const read_size) const noexcept;
+
         void set_sampling_divider(std::uint8_t const divider) const noexcept;
 
-        /* CONFIG REGISTER */
         void set_external_frame_sync(std::uint8_t const frame_sync) const noexcept;
         void set_dlpf_mode(DLPF const dlpf) const noexcept;
 
-        /* GYRO_CONFIG REGISTER */
         void set_full_scale_gyro_range(GyroRange const range) const noexcept;
 
-        /* ACCEL_CONFIG REGISTER */
         void set_full_scale_accel_range(AccelRange const range) const noexcept;
         void set_dhpf_mode(DHPF const dhpf) const noexcept;
 
-        /* FF_THR REGISTER */
         void set_free_fall_detection_threshold(std::uint8_t const threshold) const noexcept;
-
-        /* FF_DUR REGISTER */
         void set_free_fall_detection_duration(std::uint8_t const duration) const noexcept;
 
-        /* MOT_THR REGISTER */
         void set_motion_detection_threshold(std::uint8_t const threshold) const noexcept;
-
-        /* MOT_DUR REGISTER */
         void set_motion_detection_duration(std::uint8_t const duration) const noexcept;
 
-        /* ZRMOT_THR REGISTER */
         void set_zero_motion_detection_threshold(std::uint8_t const threshold) const noexcept;
-
-        /* ZRMOT_DUR REGISTER */
         void set_zero_motion_detection_duration(std::uint8_t const duration) const noexcept;
 
-        /* FIFO_EN REGISTER */
         void set_temp_fifo_enabled(bool const temp_fifo) const noexcept;
         void set_gyro_fifo_enabled(bool const x_fifo, bool const y_fifo, bool const z_fifo) const noexcept;
         void set_accel_fifo_enabled(bool const x_fifo, bool const y_fifo, bool const z_fifo) const noexcept;
 
-        /* INT_PIN_CFG REGISTER */
         void set_interrupt() const noexcept;
         void set_interrupt_mode(IntrMode const mode) const noexcept;
         void set_interrupt_drive(IntrDrive const drive) const noexcept;
         void set_interrupt_latch(IntrLatch const latch) const noexcept;
         void set_interrupt_latch_clear(IntrClear const clear) const noexcept;
 
-        /* INT_ENABLE REGISTER */
         void set_motion_interrupt() const noexcept;
         void set_int_enabled(bool const enabled) const noexcept;
         void set_int_free_fall_enabled(bool const enabled) const noexcept;
@@ -563,31 +566,26 @@ namespace InvertedSway {
         void set_int_i2c_master_enabled(bool const enabled) const noexcept;
         void set_int_data_ready_enabled(bool const enabled) const noexcept;
 
-        /* INT_STATUS REGISTER */
         std::uint8_t get_int_status() const noexcept;
-        std::uint8_t get_int_free_fall_status() const noexcept;
-        std::uint8_t get_int_motion_status() const noexcept;
-        std::uint8_t get_int_zero_motion_status() const noexcept;
-        std::uint8_t get_int_fifo_overflow_status() const noexcept;
-        std::uint8_t get_int_i2c_master_status() const noexcept;
-        std::uint8_t get_int_data_ready_status() const noexcept;
+        bool get_int_free_fall_status() const noexcept;
+        bool get_int_motion_status() const noexcept;
+        bool get_int_zero_motion_status() const noexcept;
+        bool get_int_fifo_overflow_status() const noexcept;
+        bool get_int_i2c_master_status() const noexcept;
+        bool get_int_data_ready_status() const noexcept;
 
-        /* ACCEL_OUT REGISTERS */
         AccelRaw get_acceleration_raw() const noexcept;
         Raw get_acceleration_x_raw() const noexcept;
         Raw get_acceleration_y_raw() const noexcept;
         Raw get_acceleration_z_raw() const noexcept;
 
-        /* TEMP_OUT REGISTERS */
         Raw get_temperature_raw() const noexcept;
 
-        /* GYRO_OUT REGISTERS */
         GyroRaw get_rotation_raw() const noexcept;
         Raw get_rotation_x_raw() const noexcept;
         Raw get_rotation_y_raw() const noexcept;
         Raw get_rotation_z_raw() const noexcept;
 
-        /* MOT_DETECT_STATUS REGISTER */
         std::uint8_t get_motion_status() const noexcept;
         bool get_x_neg_motion_detected() const noexcept;
         bool get_x_pos_motion_detected() const noexcept;
@@ -596,17 +594,14 @@ namespace InvertedSway {
         bool get_z_neg_motion_detected() const noexcept;
         bool get_z_pos_motion_detected() const noexcept;
 
-        /* SIGNAL_PATH_RESET REGISTER */
         void reset_gyro_path() const noexcept;
         void reset_accel_path() const noexcept;
         void reset_temperature_path() const noexcept;
 
-        /* MOT_DETECT_CTRL REGISTER */
         void set_accel_power_on_delay(Delay const delay) const noexcept;
         void set_free_fall_detection_counter_decrement(DetectDecrement const decrement) const noexcept;
         void set_motion_detection_counter_decrement(DetectDecrement const decrement) const noexcept;
 
-        /* USER_CTRL REGISTER */
         void set_fifo_enabled(bool const enabled) const noexcept;
         void set_i2c_master_mode_enabled(bool const enabled) const noexcept;
         void set_spi_enabled(bool const enabled) const noexcept;
@@ -614,73 +609,54 @@ namespace InvertedSway {
         void reset_i2c_master() const noexcept;
         void reset_sensors() const noexcept;
 
-        /* PWR_MGMT_1 REGISTER */
         void device_reset() const noexcept;
         void set_clock_source(Clock const source) const noexcept;
         void set_sleep_enabled(bool const enabled) const noexcept;
         void set_wake_cycle_enabled(bool const enabled) const noexcept;
         void set_temperature_sensor_enabled(bool const enabled) const noexcept;
 
-        /* PWR_MGMT_2 REGISTER */
         void set_wake_up_frequency(WakeFreq const frequency) const noexcept;
         void set_accel_axis_standby(bool const x_standby, bool const y_standby, bool const z_standby) const noexcept;
         void set_gyro_axis_standby(bool const x_standby, bool const y_standby, bool const z_standby) const noexcept;
 
-        /* FIFO_COUNT REGISTERS */
         std::uint16_t get_fifo_count() const noexcept;
 
-        /* FIFO_R_W REGISTER */
         std::uint8_t get_fifo_byte() const noexcept;
         void get_fifo_bytes(std::uint8_t* data, std::size_t const bytes) const noexcept;
         void set_fifo_byte(std::uint8_t const data) const noexcept;
         void set_fifo_bytes(std::uint8_t* data, std::size_t const bytes) const noexcept;
 
-        /* WHO_AM_I REGISTER */
         std::uint8_t get_device_id() const noexcept;
 
-        /* XG_OFFS_TC REGISTER */
         std::uint8_t get_otp_bank_valid() const noexcept;
         void set_otp_bank_valid(bool const enabled) const noexcept;
         void set_gyro_x_offset_tc(std::int8_t const offset) const noexcept;
 
-        /* YG_OFFS_TC REGISTER */
         void set_gyro_y_offset_tc(std::int8_t const offset) const noexcept;
 
-        /* ZG_OFFS_TC REGISTER */
         void set_gyro_z_offset_tc(std::int8_t const offset) const noexcept;
 
-        /* X_FINE_GAIN REGISTER */
         void set_x_fine_gain(std::int8_t const gain) const noexcept;
 
-        /* Y_FINE_GAIN REGISTER */
         void set_y_fine_gain(std::int8_t const gain) const noexcept;
 
-        /* Z_FINE_GAIN REGISTER */
         void set_z_fine_gain(std::int8_t const gain) const noexcept;
 
-        /* XA_OFFS REGISTER */
         void set_accel_x_offset(std::int16_t const offset) const noexcept;
 
-        /* YA_OFFS_* REGISTER */
         void set_accel_y_offset(std::int16_t const offset) const noexcept;
 
-        /* ZA_OFFS_* REGISTER */
         void set_accel_z_offset(std::int16_t const offset) const noexcept;
 
-        /* XG_OFFS_USR* REGISTER */
         void set_gyro_x_offset(std::int16_t const offset) const noexcept;
 
-        /* YG_OFFS_USR* REGISTER */
         void set_gyro_y_offset(std::int16_t const offset) const noexcept;
 
-        /* ZG_OFFS_USR* REGISTER */
         void set_gyro_z_offset(std::int16_t const offset) const noexcept;
 
-        /* INT_ENABLE REGISTER (DMP functions) */
         void set_int_pll_ready_enabled(bool const enabled) const noexcept;
         void set_int_dmp_enabled(bool const enabled) const noexcept;
 
-        /* DMP_INT_STATUS REGISTER */
         bool get_dmp_int_5_status() const noexcept;
         bool get_dmp_int_4_status() const noexcept;
         bool get_dmp_int_3_status() const noexcept;
@@ -688,21 +664,16 @@ namespace InvertedSway {
         bool get_dmp_int_1_status() const noexcept;
         bool get_dmp_int_0_status() const noexcept;
 
-        /* INT_STATUS REGISTER (DMP functions) */
         bool get_int_pll_ready_status() const noexcept;
         bool get_int_dmp_status() const noexcept;
 
-        /* USER_CTRL REGISTER (DMP functions) */
         void set_dmp_enabled(bool const enabled) const noexcept;
         void reset_dmp() const noexcept;
 
-        /* BANK_SEL REGISTER */
         void set_memory_bank(std::uint8_t const bank, bool const prefetch_enabled, bool const user_bank) const noexcept;
 
-        /* MEM_START_ADDR REGISTER */
         void set_memory_start_address(std::uint8_t const address) const noexcept;
 
-        /* MEM_R_W REGISTER */
         std::uint8_t read_memory_byte() const noexcept;
         void write_memory_byte(std::uint8_t data) const noexcept;
         void read_memory_block(std::uint8_t* data,
@@ -719,10 +690,8 @@ namespace InvertedSway {
                                          std::size_t const bytes,
                                          bool const use_prog_mem) const noexcept;
 
-        /* DMP_CFG_1 REGISTER */
         void set_dmp_config1(std::uint8_t const config) const noexcept;
 
-        /* DMP_CFG_2 REGISTER */
         void set_dmp_config2(std::uint8_t const config) const noexcept;
 
         bool initialized_{false};

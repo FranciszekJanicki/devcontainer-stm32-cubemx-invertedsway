@@ -90,7 +90,8 @@
         "stm32l4xx_hal_i2c.h": "c",
         "stm32l4xx_hal_tim.h": "c",
         "system_clock.h": "c",
-        "any": "cpp"
+        "any": "cpp",
+        "bitset": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "editor.formatOnSave": true
