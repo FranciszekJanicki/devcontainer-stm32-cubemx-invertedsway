@@ -1086,11 +1086,13 @@ namespace InvertedSway {
         for (std::uint16_t i = 0; i < read_size;) {
             std::uint8_t chunk_size = DMP_MEMORY_CHUNK_SIZE;
 
-            if (i + chunk_size > read_size)
+            if (i + chunk_size > read_size) {
                 chunk_size = read_size - i;
+            }
 
-            if (chunk_size > 256 - address)
+            if (chunk_size > 256 - address) {
                 chunk_size = 256 - address;
+            }
 
             this->i2c_read_bytes(RegAddress::MEM_R_W, read_data + i, chunk_size);
 
@@ -1098,8 +1100,10 @@ namespace InvertedSway {
             address += chunk_size;
 
             if (i < read_size) {
-                if (address == 0)
+                if (address == 0) {
                     bank++;
+                }
+
                 this->set_memory_bank(bank);
                 this->set_memory_start_address(address);
             }
@@ -1114,17 +1118,16 @@ namespace InvertedSway {
         this->set_memory_bank(bank);
         this->set_memory_start_address(address);
 
-        std::uint16_t i;
-        std::uint8_t j;
-
-        for (i = 0; i < write_size;) {
+        for (std::uint16_t i = 0; i < write_size;) {
             std::uint8_t chunk_size = DMP_MEMORY_CHUNK_SIZE;
 
-            if (i + chunk_size > write_size)
+            if (i + chunk_size > write_size) {
                 chunk_size = write_size - i;
+            }
 
-            if (chunk_size > 256 - address)
+            if (chunk_size > 256 - address) {
                 chunk_size = 256 - address;
+            }
 
             std::uint8_t* prog_buffer = (uint8_t*)write_data + i;
             this->i2c_write_bytes(RegAddress::MEM_R_W, prog_buffer, chunk_size);
@@ -1133,8 +1136,10 @@ namespace InvertedSway {
             address += chunk_size;
 
             if (i < write_size) {
-                if (address == 0)
+                if (address == 0) {
                     bank++;
+                }
+
                 this->set_memory_bank(bank);
                 this->set_memory_start_address(address);
             }
