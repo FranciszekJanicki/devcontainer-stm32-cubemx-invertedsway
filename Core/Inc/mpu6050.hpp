@@ -536,11 +536,11 @@ namespace InvertedSway {
         void i2c_write_bits(RegAddress const reg_address,
                             std::uint8_t const write_data,
                             std::uint8_t const write_position,
-                            std::uint8_t const write_size) const noexcept;
+                            std::size_t const write_size) const noexcept;
 
         void i2c_read_words(RegAddress const reg_address,
                             std::uint16_t* read_data,
-                            std::uint8_t const read_size) const noexcept;
+                            std::size_t const read_size) const noexcept;
 
         std::uint16_t i2c_read_word(RegAddress const reg_address) const noexcept;
 
@@ -554,7 +554,7 @@ namespace InvertedSway {
 
         std::uint8_t i2c_read_bits(RegAddress const reg_address,
                                    std::uint8_t const read_position,
-                                   std::uint8_t const read_size) const noexcept;
+                                   std::size_t const read_size) const noexcept;
 
         void set_sampling_divider(std::uint8_t const divider) const noexcept;
 
@@ -654,9 +654,9 @@ namespace InvertedSway {
 
         std::uint16_t get_fifo_count() const noexcept;
         std::uint8_t get_fifo_byte() const noexcept;
-        void get_fifo_bytes(std::uint8_t* read_data, std::uint8_t const read_size) const noexcept;
+        void get_fifo_bytes(std::uint8_t* read_data, std::size_t const read_size) const noexcept;
         void set_fifo_byte(std::uint8_t const write_data) const noexcept;
-        void set_fifo_bytes(std::uint8_t* write_data, std::uint8_t const write_size) const noexcept;
+        void set_fifo_bytes(std::uint8_t* write_data, std::size_t const write_size) const noexcept;
 
         std::uint8_t get_device_id() const noexcept;
 
@@ -705,16 +705,16 @@ namespace InvertedSway {
         void write_memory_byte(std::uint8_t write_data) const noexcept;
 
         void read_memory_block(std::uint8_t* read_data,
-                               std::uint8_t const read_size,
+                               std::size_t const read_size,
                                std::uint8_t bank,
                                std::uint8_t address) const noexcept;
 
         void write_memory_block(std::uint8_t* write_data,
-                                std::uint8_t const write_size,
+                                std::size_t const write_size,
                                 std::uint8_t bank,
                                 std::uint8_t address) const noexcept;
 
-        void write_dmp_configuration_set(std::uint8_t* write_data, std::uint8_t const write_size) const noexcept;
+        void write_dmp_configuration_set(std::uint8_t* write_data, std::size_t const write_size) const noexcept;
 
         void set_dmp_config1(std::uint8_t const config) const noexcept;
 

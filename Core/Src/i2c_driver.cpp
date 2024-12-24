@@ -11,7 +11,7 @@ namespace I2CDriver {
                      std::uint16_t const dev_address,
                      std::uint8_t const reg_address,
                      std::uint16_t* write_data,
-                     std::uint8_t write_size) noexcept
+                     std::size_t const write_size) noexcept
     {}
 
     void write_word(I2CHandle const i2c_bus,
@@ -26,7 +26,7 @@ namespace I2CDriver {
                      std::uint16_t const dev_address,
                      std::uint8_t const reg_address,
                      std::uint8_t* write_data,
-                     std::uint8_t const write_size) noexcept
+                     std::size_t const write_size) noexcept
 
     {
         HAL_I2C_Mem_Write(i2c_bus,
@@ -67,7 +67,7 @@ namespace I2CDriver {
                     std::uint8_t const reg_address,
                     std::uint8_t const write_data,
                     std::uint8_t const write_position,
-                    std::uint8_t const write_size) noexcept
+                    std::size_t const write_size) noexcept
     {
         std::uint8_t write = read_byte(i2c_bus, dev_address, reg_address);
         uint8_t mask = ((1 << write_size) - 1) << (write_position - write_size + 1);
@@ -84,7 +84,7 @@ namespace I2CDriver {
                     std::uint16_t const dev_address,
                     std::uint8_t const reg_address,
                     std::uint16_t* read_data,
-                    std::uint8_t const read_size) noexcept
+                    std::size_t const read_size) noexcept
     {
         /* TO DO- IMPLEMENT PROPER WORD READING */
         HAL_I2C_Mem_Read(i2c_bus,
@@ -109,7 +109,7 @@ namespace I2CDriver {
                     std::uint16_t const dev_address,
                     std::uint8_t const reg_address,
                     std::uint8_t* read_data,
-                    std::uint8_t const read_size) noexcept
+                    std::size_t const read_size) noexcept
     {
         HAL_I2C_Mem_Read(i2c_bus,
                          dev_address << 1,
@@ -141,7 +141,7 @@ namespace I2CDriver {
                            std::uint16_t const dev_address,
                            std::uint8_t const reg_address,
                            std::uint8_t const read_position,
-                           std::uint8_t const read_size) noexcept
+                           std::size_t const read_size) noexcept
     {
         std::uint8_t read = read_byte(i2c_bus, dev_address, reg_address);
         std::uint8_t mask = ((1 << read_size) - 1) << (read_position - read_size + 1);

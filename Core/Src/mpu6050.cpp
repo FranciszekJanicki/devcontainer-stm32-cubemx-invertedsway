@@ -283,7 +283,7 @@ namespace InvertedSway {
     void MPU6050::i2c_write_bits(RegAddress const reg_address,
                                  std::uint8_t const write_data,
                                  std::uint8_t const write_position,
-                                 std::uint8_t const write_size) const noexcept
+                                 std::size_t const write_size) const noexcept
     {
         I2CDriver::write_bits(this->i2c_bus_,
                               std::to_underlying(this->device_address_),
@@ -295,7 +295,7 @@ namespace InvertedSway {
 
     void MPU6050::i2c_read_words(RegAddress const reg_address,
                                  std::uint16_t* read_data,
-                                 std::uint8_t const read_size) const noexcept
+                                 std::size_t const read_size) const noexcept
     {
         I2CDriver::read_words(this->i2c_bus_,
                               std::to_underlying(this->device_address_),
@@ -339,7 +339,7 @@ namespace InvertedSway {
 
     std::uint8_t MPU6050::i2c_read_bits(RegAddress const reg_address,
                                         std::uint8_t const read_position,
-                                        std::uint8_t const read_size) const noexcept
+                                        std::size_t const read_size) const noexcept
     {
         return I2CDriver::read_bits(this->i2c_bus_,
                                     std::to_underlying(this->device_address_),
@@ -890,7 +890,7 @@ namespace InvertedSway {
         return this->i2c_read_byte(RegAddress::FIFO_R_W);
     }
 
-    void MPU6050::get_fifo_bytes(std::uint8_t* read_data, std::uint8_t const read_size) const noexcept
+    void MPU6050::get_fifo_bytes(std::uint8_t* read_data, std::size_t const read_size) const noexcept
     {
         this->i2c_read_bytes(RegAddress::FIFO_R_W, read_data, read_size);
     }
@@ -900,9 +900,9 @@ namespace InvertedSway {
         this->i2c_write_byte(RegAddress::FIFO_R_W, write_data);
     }
 
-    void MPU6050::set_fifo_bytes(std::uint8_t* write_data, std::uint8_t const write__size) const noexcept
+    void MPU6050::set_fifo_bytes(std::uint8_t* write_data, std::size_t const write_size) const noexcept
     {
-        this->i2c_write_bytes(RegAddress::FIFO_R_W, write_data, write__size);
+        this->i2c_write_bytes(RegAddress::FIFO_R_W, write_data, write_size);
     }
 
     std::uint8_t MPU6050::get_device_id() const noexcept
@@ -1076,7 +1076,7 @@ namespace InvertedSway {
     }
 
     void MPU6050::read_memory_block(std::uint8_t* read_data,
-                                    std::uint8_t const read_size,
+                                    std::size_t const read_size,
                                     std::uint8_t bank,
                                     std::uint8_t address) const noexcept
     {
@@ -1108,7 +1108,7 @@ namespace InvertedSway {
     }
 
     void MPU6050::write_memory_block(std::uint8_t* write_data,
-                                     std::uint8_t const write_size,
+                                     std::size_t const write_size,
                                      std::uint8_t bank,
                                      std::uint8_t address) const noexcept
     {
@@ -1145,7 +1145,7 @@ namespace InvertedSway {
         }
     }
 
-    void MPU6050::write_dmp_configuration_set(std::uint8_t* write_data, std::uint8_t const write_size) const noexcept
+    void MPU6050::write_dmp_configuration_set(std::uint8_t* write_data, std::size_t const write_size) const noexcept
     {
         std::uint8_t* prog_buffer = nullptr;
         std::uint8_t special;
