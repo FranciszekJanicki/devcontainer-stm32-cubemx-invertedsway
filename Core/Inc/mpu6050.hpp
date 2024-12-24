@@ -1,5 +1,4 @@
 #ifndef MPU6050_HPP
-#define MPU6050_HPP
 
 #include "common.hpp"
 #include "stm32l4xx_hal.h"
@@ -8,7 +7,6 @@
 #include <cstdint>
 
 namespace InvertedSway {
-
     struct MPU6050 {
     public:
         enum struct DevAddress : std::uint16_t {
@@ -341,6 +339,15 @@ namespace InvertedSway {
             DATA_RDY_BIT = 0,
         };
 
+        enum struct IntrDMP : std::uint8_t {
+            DMPINT_5_BIT = 5,
+            DMPINT_4_BIT = 4,
+            DMPINT_3_BIT = 3,
+            DMPINT_2_BIT = 2,
+            DMPINT_1_BIT = 1,
+            DMPINT_0_BIT = 0,
+        };
+
         enum struct Motion : std::uint8_t {
             MOT_XNEG_BIT = 7,
             MOT_XPOS_BIT = 6,
@@ -395,6 +402,7 @@ namespace InvertedSway {
             I2C_MST_EN_BIT = 5,
             I2C_IF_DIS_BIT = 4,
             FIFO_RESET_BIT = 2,
+            DMP_RESET_BIT = 3,
             I2C_MST_RESET_BIT = 1,
             SIG_COND_RESET_BIT = 0,
         };
@@ -446,10 +454,10 @@ namespace InvertedSway {
         using AccelScaled = Linalg::Vector3D<Scaled>;  // m/s^2
         using RollPitchYaw = Linalg::Vector3D<Scaled>; // degrees
         using TempScaled = float;                      // celsius
-        using Raw = std::int16_t;
+        using Raw = std::uint16_t;
         using GyroRaw = Linalg::Vector3D<Raw>;
         using AccelRaw = Linalg::Vector3D<Raw>;
-        using TempRaw = std::int16_t;
+        using TempRaw = std::uint16_t;
 
         MPU6050() noexcept = default;
 
@@ -508,6 +516,12 @@ namespace InvertedSway {
         void initialize(std::uint32_t const sampling_rate) noexcept;
         void deinitialize() noexcept;
 
+        void i2c_write_words(RegAddress const reg_address,
+                             std::uint16_t* write_data,
+                             std::uint8_t write_size) const noexcept;
+
+        void i2c_write_word(RegAddress const reg_address, std::uint16_t write_data) const noexcept;
+
         void i2c_write_bytes(RegAddress const reg_address,
                              std::uint8_t* write_data,
                              std::size_t const write_size) const noexcept;
@@ -522,6 +536,12 @@ namespace InvertedSway {
                             std::uint8_t const write_data,
                             std::uint8_t const write_position,
                             std::uint8_t const write_size = 1) const noexcept;
+
+        void i2c_read_words(RegAddress const reg_address,
+                            std::uint16_t* read_data,
+                            std::uint8_t const read_size) const noexcept;
+
+        std::uint16_t i2c_read_word(RegAddress const reg_address) const noexcept;
 
         void i2c_read_bytes(RegAddress const reg_address,
                             std::uint8_t* read_data,
@@ -633,9 +653,9 @@ namespace InvertedSway {
 
         std::uint16_t get_fifo_count() const noexcept;
         std::uint8_t get_fifo_byte() const noexcept;
-        void get_fifo_bytes(std::uint8_t* data, std::size_t const bytes) const noexcept;
-        void set_fifo_byte(std::uint8_t const data) const noexcept;
-        void set_fifo_bytes(std::uint8_t* data, std::size_t const bytes) const noexcept;
+        void get_fifo_bytes(std::uint8_t* read_data, std::uint8_t const read_size) const noexcept;
+        void set_fifo_byte(std::uint8_t const write_data) const noexcept;
+        void set_fifo_bytes(std::uint8_t* write_data, std::uint8_t const write_size) const noexcept;
 
         std::uint8_t get_device_id() const noexcept;
 
@@ -650,13 +670,13 @@ namespace InvertedSway {
         void set_y_fine_gain(std::uint8_t const gain) const noexcept;
         void set_z_fine_gain(std::uint8_t const gain) const noexcept;
 
-        void set_accel_x_offset(std::int16_t const offset) const noexcept;
-        void set_accel_y_offset(std::int16_t const offset) const noexcept;
-        void set_accel_z_offset(std::int16_t const offset) const noexcept;
+        void set_accel_x_offset(std::uint16_t const offset) const noexcept;
+        void set_accel_y_offset(std::uint16_t const offset) const noexcept;
+        void set_accel_z_offset(std::uint16_t const offset) const noexcept;
 
-        void set_gyro_x_offset(std::int16_t const offset) const noexcept;
-        void set_gyro_y_offset(std::int16_t const offset) const noexcept;
-        void set_gyro_z_offset(std::int16_t const offset) const noexcept;
+        void set_gyro_x_offset(std::uint16_t const offset) const noexcept;
+        void set_gyro_y_offset(std::uint16_t const offset) const noexcept;
+        void set_gyro_z_offset(std::uint16_t const offset) const noexcept;
 
         void set_int_pll_ready_enabled(bool const enabled) const noexcept;
         void set_int_dmp_enabled(bool const enabled) const noexcept;
@@ -674,24 +694,26 @@ namespace InvertedSway {
         void set_dmp_enabled(bool const enabled) const noexcept;
         void reset_dmp() const noexcept;
 
-        void set_memory_bank(std::uint8_t const bank, bool const prefetch_enabled, bool const user_bank) const noexcept;
+        void set_memory_bank(std::uint8_t const bank,
+                             bool const prefetch_enabled = false,
+                             bool const user_bank = false) const noexcept;
         void set_memory_start_address(std::uint8_t const address) const noexcept;
 
         std::uint8_t read_memory_byte() const noexcept;
-        void write_memory_byte(std::uint8_t data) const noexcept;
-        void read_memory_block(std::uint8_t* data,
-                               std::size_t const bytes,
-                               std::uint8_t const bank,
-                               std::uint8_t const address) const noexcept;
-        void write_memory_block(std::uint8_t* data,
-                                std::size_t const bytes,
-                                std::uint8_t const bank,
-                                std::uint8_t const address,
-                                bool const verify,
-                                bool const use_prog_mem) const noexcept;
-        void write_dmp_configuration_set(std::uint8_t* data,
-                                         std::size_t const bytes,
-                                         bool const use_prog_mem) const noexcept;
+
+        void write_memory_byte(std::uint8_t write_data) const noexcept;
+
+        void read_memory_block(std::uint8_t* read_data,
+                               std::uint8_t const read_size,
+                               std::uint8_t bank,
+                               std::uint8_t address) const noexcept;
+
+        void write_memory_block(std::uint8_t* write_data,
+                                std::uint8_t const write_size,
+                                std::uint8_t bank,
+                                std::uint8_t address) const noexcept;
+
+        void write_dmp_configuration_set(std::uint8_t* write_data, std::uint8_t const write_size) const noexcept;
 
         void set_dmp_config1(std::uint8_t const config) const noexcept;
 
