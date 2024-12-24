@@ -1,8 +1,7 @@
 #include "mpu6050.hpp"
 #include "common.hpp"
+#include "i2c_driver.hpp"
 #include "main.h"
-#include "stm32l4xx_hal.h"
-#include "stm32l4xx_hal_i2c.h"
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
@@ -234,44 +233,30 @@ namespace InvertedSway {
                                   std::uint8_t* write_data,
                                   std::size_t const write_size) const noexcept
     {
-        HAL_I2C_Mem_Write(this->i2c_bus_,
-                          std::to_underlying(this->device_address_) << 1,
-                          std::to_underlying(reg_address),
-                          sizeof(reg_address),
-                          write_data,
-                          write_size,
-                          I2C_TIMEOUT);
+        I2CDriver::write_bytes(this->i2c_bus_,
+                               std::to_underlying(this->device_address_),
+                               std::to_underlying(reg_address),
+                               write_data,
+                               write_size);
     }
 
     void MPU6050::i2c_write_byte(RegAddress const reg_address, std::uint8_t write_data) const noexcept
     {
-        HAL_I2C_Mem_Write(this->i2c_bus_,
-                          std::to_underlying(this->device_address_) << 1,
-                          std::to_underlying(reg_address),
-                          sizeof(reg_address),
-                          &write_data,
-                          sizeof(write_data),
-                          I2C_TIMEOUT);
+        I2CDriver::write_byte(this->i2c_bus_,
+                              std::to_underlying(this->device_address_),
+                              std::to_underlying(reg_address),
+                              write_data);
     }
 
     void MPU6050::i2c_write_bit(RegAddress const reg_address,
                                 bool const write_data,
                                 std::uint8_t const write_position) const noexcept
     {
-        std::uint8_t write = this->i2c_read_byte(reg_address);
-        if (write_data) {
-            write |= (1 << write_position);
-        } else {
-            write &= ~(1 << write_position);
-        }
-
-        HAL_I2C_Mem_Write(this->i2c_bus_,
-                          std::to_underlying(this->device_address_) << 1,
-                          std::to_underlying(reg_address),
-                          sizeof(reg_address),
-                          &write,
-                          sizeof(write),
-                          I2C_TIMEOUT);
+        I2CDriver::write_bit(this->i2c_bus_,
+                             std::to_underlying(this->device_address_),
+                             std::to_underlying(reg_address),
+                             write_data,
+                             write_position);
     }
 
     void MPU6050::i2c_write_bits(RegAddress const reg_address,
@@ -279,73 +264,49 @@ namespace InvertedSway {
                                  std::uint8_t const write_position,
                                  std::uint8_t const write_size) const noexcept
     {
-        std::uint8_t write = this->i2c_read_byte(reg_address);
-        uint8_t mask = ((1 << write_size) - 1) << (write_position - write_size + 1);
-        std::uint8_t temp = write_data;
-        temp <<= (write_position - write_size + 1);
-        temp &= mask;
-        write &= ~(mask);
-        write |= temp;
-
-        HAL_I2C_Mem_Write(this->i2c_bus_,
-                          std::to_underlying(this->device_address_) << 1,
-                          std::to_underlying(reg_address),
-                          sizeof(reg_address),
-                          &write,
-                          sizeof(write),
-                          I2C_TIMEOUT);
+        I2CDriver::write_bits(this->i2c_bus_,
+                              std::to_underlying(this->device_address_),
+                              std::to_underlying(reg_address),
+                              write_data,
+                              write_position,
+                              write_size);
     }
 
     void MPU6050::i2c_read_bytes(RegAddress const reg_address,
                                  std::uint8_t* read_data,
                                  std::size_t const read_size) const noexcept
     {
-        HAL_I2C_Mem_Write(this->i2c_bus_,
-                          std::to_underlying(this->device_address_) << 1,
-                          std::to_underlying(reg_address),
-                          sizeof(reg_address),
-                          read_data,
-                          read_size,
-                          I2C_TIMEOUT);
+        I2CDriver::read_bytes(this->i2c_bus_,
+                              std::to_underlying(this->device_address_),
+                              std::to_underlying(reg_address),
+                              read_data,
+                              read_size);
     }
 
     std::uint8_t MPU6050::i2c_read_byte(RegAddress const reg_address) const noexcept
     {
-        std::uint8_t read;
-        HAL_I2C_Mem_Write(this->i2c_bus_,
-                          std::to_underlying(this->device_address_) << 1,
-                          std::to_underlying(reg_address),
-                          sizeof(reg_address),
-                          &read,
-                          sizeof(read),
-                          I2C_TIMEOUT);
-
-        return read;
+        return I2CDriver::read_byte(this->i2c_bus_,
+                                    std::to_underlying(this->device_address_),
+                                    std::to_underlying(reg_address));
     }
 
     bool MPU6050::i2c_read_bit(RegAddress const reg_address, std::uint8_t const read_position) const noexcept
     {
-        std::uint8_t read;
-        HAL_I2C_Mem_Write(this->i2c_bus_,
-                          std::to_underlying(this->device_address_) << 1,
-                          std::to_underlying(reg_address),
-                          sizeof(reg_address),
-                          &read,
-                          sizeof(read),
-                          I2C_TIMEOUT);
-
-        return read & (1 << read_position);
+        return I2CDriver::read_bit(this->i2c_bus_,
+                                   std::to_underlying(this->device_address_),
+                                   std::to_underlying(reg_address),
+                                   read_position);
     }
 
     std::uint8_t MPU6050::i2c_read_bits(RegAddress const reg_address,
                                         std::uint8_t const read_position,
                                         std::uint8_t const read_size) const noexcept
     {
-        std::uint8_t read = this->i2c_read_byte(reg_address);
-        std::uint8_t mask = ((1 << read_size) - 1) << (read_position - read_size + 1);
-        read &= mask;
-
-        return read >> (read_position - read_size + 1);
+        return I2CDriver::read_bits(this->i2c_bus_,
+                                    std::to_underlying(this->device_address_),
+                                    std::to_underlying(reg_address),
+                                    read_position,
+                                    read_size);
     }
 
     void MPU6050::initialize(std::uint32_t const sampling_rate) noexcept
@@ -710,105 +671,132 @@ namespace InvertedSway {
 
     void MPU6050::reset_gyro_path() const noexcept
     {
-        this->i2c_write_bit(RegAddress::SIGNAL_PATH_RESET, std::to_underlying(PathReset::GYRO_RESET_BIT));
+        this->i2c_write_bit(RegAddress::SIGNAL_PATH_RESET, true, std::to_underlying(PathReset::GYRO_RESET_BIT));
     }
 
     void MPU6050::reset_accel_path() const noexcept
     {
-        this->i2c_write_bit(RegAddress::SIGNAL_PATH_RESET, std::to_underlying(PathReset::ACCEL_RESET_BIT));
+        this->i2c_write_bit(RegAddress::SIGNAL_PATH_RESET, true, std::to_underlying(PathReset::ACCEL_RESET_BIT));
     }
 
     void MPU6050::reset_temperature_path() const noexcept
     {
-        this->i2c_write_bit(RegAddress::SIGNAL_PATH_RESET, std::to_underlying(PathReset::TEMP_RESET_BIT));
+        this->i2c_write_bit(RegAddress::SIGNAL_PATH_RESET, true, std::to_underlying(PathReset::TEMP_RESET_BIT));
     }
 
     void MPU6050::set_accel_power_on_delay(Delay const delay) const noexcept
     {
-        this->i2c_write_byte(RegAddress::MOT_DETECT_CTRL, std::to_underlying(delay));
+        this->i2c_write_bits(RegAddress::MOT_DETECT_CTRL,
+                             std::to_underlying(delay),
+                             std::to_underlying(Detect::ACCEL_ON_DELAY_BIT),
+                             std::to_underlying(Detect::ACCEL_ON_DELAY_LENGTH));
     }
 
     void MPU6050::set_free_fall_detection_counter_decrement(DetectDecrement const decrement) const noexcept
     {
-        this->i2c_write_byte(RegAddress::MOT_DETECT_CTRL, std::to_underlying(decrement));
+        this->i2c_write_bits(RegAddress::MOT_DETECT_CTRL,
+                             std::to_underlying(decrement),
+                             std::to_underlying(Detect::FF_COUNT_BIT),
+                             std::to_underlying(Detect::FF_COUNT_LENGTH));
     }
 
     void MPU6050::set_motion_detection_counter_decrement(DetectDecrement const decrement) const noexcept
     {
-        this->i2c_write_byte(RegAddress::MOT_DETECT_CTRL, std::to_underlying(decrement));
+        this->i2c_write_bits(RegAddress::MOT_DETECT_CTRL,
+                             std::to_underlying(decrement),
+                             std::to_underlying(Detect::MOT_COUNT_BIT),
+                             std::to_underlying(Detect::MOT_COUNT_LENGTH));
     }
 
     void MPU6050::set_i2c_master_mode_enabled(bool const enabled) const noexcept
     {
-        this->i2c_write_byte(RegAddress::USER_CTRL, enabled << std::to_underlying(UserCtrl::I2C_MST_EN_BIT));
+        this->i2c_write_bit(RegAddress::USER_CTRL, enabled, std::to_underlying(UserCtrl::I2C_MST_EN_BIT));
     }
 
     void MPU6050::set_fifo_enabled(bool const enabled) const noexcept
     {
-        this->i2c_write_byte(RegAddress::USER_CTRL, enabled << std::to_underlying(UserCtrl::FIFO_EN_BIT));
+        this->i2c_write_bit(RegAddress::USER_CTRL, enabled, std::to_underlying(UserCtrl::FIFO_EN_BIT));
     }
 
     void MPU6050::reset_fifo() const noexcept
     {
-        this->i2c_write_byte(RegAddress::USER_CTRL, 1U << std::to_underlying(UserCtrl::FIFO_RESET_BIT));
+        this->i2c_write_bit(RegAddress::USER_CTRL, true, std::to_underlying(UserCtrl::FIFO_RESET_BIT));
     }
 
     void MPU6050::reset_i2c_master() const noexcept
     {
-        this->i2c_write_byte(RegAddress::USER_CTRL, 1U << std::to_underlying(UserCtrl::I2C_MST_RESET_BIT));
+        this->i2c_write_bit(RegAddress::USER_CTRL, true, std::to_underlying(UserCtrl::I2C_MST_RESET_BIT));
     }
 
     void MPU6050::reset_sensors() const noexcept
     {
-        this->i2c_write_byte(RegAddress::USER_CTRL, 1U << std::to_underlying(UserCtrl::SIG_COND_RESET_BIT));
+        this->i2c_write_bit(RegAddress::USER_CTRL, true, std::to_underlying(UserCtrl::SIG_COND_RESET_BIT));
     }
 
     void MPU6050::device_reset() const noexcept
     {
-        this->i2c_write_byte(RegAddress::PWR_MGMT_1, 1U << std::to_underlying(Power1::DEVICE_RESET_BIT));
+        this->i2c_write_bit(RegAddress::PWR_MGMT_1, true, std::to_underlying(Power1::DEVICE_RESET_BIT));
     }
 
     void MPU6050::set_sleep_enabled(bool const enabled) const noexcept
     {
-        this->i2c_write_byte(RegAddress::PWR_MGMT_1, enabled << std::to_underlying(Power1::SLEEP_BIT));
+        this->i2c_write_bit(RegAddress::PWR_MGMT_1, enabled, std::to_underlying(Power1::SLEEP_BIT));
     }
 
     void MPU6050::set_wake_cycle_enabled(bool const enabled) const noexcept
     {
-        this->i2c_write_byte(RegAddress::PWR_MGMT_1, enabled << std::to_underlying(Power1::CYCLE_BIT));
+        this->i2c_write_bit(RegAddress::PWR_MGMT_1, enabled, std::to_underlying(Power1::CYCLE_BIT));
     }
 
     void MPU6050::set_temperature_sensor_enabled(bool const enabled) const noexcept
     {
-        this->i2c_write_byte(RegAddress::PWR_MGMT_1, (!enabled) << std::to_underlying(Power1::TEMP_DIS_BIT));
+        this->i2c_write_bit(RegAddress::PWR_MGMT_1, !enabled, std::to_underlying(Power1::TEMP_DIS_BIT));
     }
 
     void MPU6050::set_clock_source(Clock const source) const noexcept
     {
-        this->i2c_write_byte(RegAddress::PWR_MGMT_1, (std::to_underlying(source) & 0x7));
+        this->i2c_write_bits(RegAddress::PWR_MGMT_1,
+                             std::to_underlying(source),
+                             std::to_underlying(Power1::CLKSEL_BIT),
+                             std::to_underlying(Power1::CLKSEL_LENGTH));
     }
 
     void MPU6050::set_wake_up_frequency(WakeFreq const frequency) const noexcept
     {
-        this->i2c_write_byte(RegAddress::PWR_MGMT_2,
-                             (std::to_underlying(frequency) & 0x3) << std::to_underlying(Power2::LP_WAKE_CTRL_BIT));
+        this->i2c_write_bits(RegAddress::PWR_MGMT_2,
+                             std::to_underlying(frequency),
+                             std::to_underlying(Power2::LP_WAKE_CTRL_BIT),
+                             std::to_underlying(Power2::LP_WAKE_CTRL_LENGTH));
     }
 
-    void
-    MPU6050::set_accel_axis_standby(bool const x_standby, bool const y_standby, bool const z_standby) const noexcept
+    void MPU6050::set_accel_x_axis_standby(bool const standby) const noexcept
     {
-        this->i2c_write_byte(RegAddress::PWR_MGMT_2,
-                             (x_standby << std::to_underlying(Power2::STBY_XA_BIT)) |
-                                 (y_standby << std::to_underlying(Power2::STBY_YA_BIT)) |
-                                 (z_standby << std::to_underlying(Power2::STBY_ZA_BIT)));
+        this->i2c_write_bit(RegAddress::PWR_MGMT_2, standby, std::to_underlying(Power2::STBY_XA_BIT));
     }
 
-    void MPU6050::set_gyro_axis_standby(bool const x_standby, bool const y_standby, bool const z_standby) const noexcept
+    void MPU6050::set_accel_y_axis_standby(bool const standby) const noexcept
     {
-        this->i2c_write_byte(RegAddress::PWR_MGMT_2,
-                             (x_standby << std::to_underlying(Power2::STBY_XG_BIT)) |
-                                 (y_standby << std::to_underlying(Power2::STBY_YG_BIT)) |
-                                 (z_standby << std::to_underlying(Power2::STBY_ZG_BIT)));
+        this->i2c_write_bit(RegAddress::PWR_MGMT_2, standby, std::to_underlying(Power2::STBY_YA_BIT));
+    }
+
+    void MPU6050::set_accel_z_axis_standby(bool const standby) const noexcept
+    {
+        this->i2c_write_bit(RegAddress::PWR_MGMT_2, standby, std::to_underlying(Power2::STBY_ZA_BIT));
+    }
+
+    void MPU6050::set_gyro_x_axis_standby(bool const standby) const noexcept
+    {
+        this->i2c_write_bits(RegAddress::PWR_MGMT_2, standby, std::to_underlying(Power2::STBY_XG_BIT));
+    }
+
+    void MPU6050::set_gyro_y_axis_standby(bool const standby) const noexcept
+    {
+        this->i2c_write_bits(RegAddress::PWR_MGMT_2, standby, std::to_underlying(Power2::STBY_YG_BIT));
+    }
+
+    void MPU6050::set_gyro_z_axis_standby(bool const standby) const noexcept
+    {
+        this->i2c_write_bits(RegAddress::PWR_MGMT_2, standby, std::to_underlying(Power2::STBY_ZG_BIT));
     }
 
     std::uint16_t MPU6050::get_fifo_count() const noexcept

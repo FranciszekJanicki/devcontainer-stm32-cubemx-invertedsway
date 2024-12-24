@@ -514,7 +514,7 @@ namespace InvertedSway {
         void i2c_write_bits(RegAddress const reg_address,
                             std::uint8_t const write_data,
                             std::uint8_t const write_position,
-                            std::uint8_t const write_size) const noexcept;
+                            std::uint8_t const write_size = 1) const noexcept;
 
         void i2c_read_bytes(RegAddress const reg_address,
                             std::uint8_t* read_data,
@@ -526,7 +526,7 @@ namespace InvertedSway {
 
         std::uint8_t i2c_read_bits(RegAddress const reg_address,
                                    std::uint8_t const read_position,
-                                   std::uint8_t const read_size) const noexcept;
+                                   std::uint8_t const read_size = 1) const noexcept;
 
         void set_sampling_divider(std::uint8_t const divider) const noexcept;
 
@@ -604,7 +604,6 @@ namespace InvertedSway {
 
         void set_fifo_enabled(bool const enabled) const noexcept;
         void set_i2c_master_mode_enabled(bool const enabled) const noexcept;
-        void set_spi_enabled(bool const enabled) const noexcept;
         void reset_fifo() const noexcept;
         void reset_i2c_master() const noexcept;
         void reset_sensors() const noexcept;
@@ -616,11 +615,14 @@ namespace InvertedSway {
         void set_temperature_sensor_enabled(bool const enabled) const noexcept;
 
         void set_wake_up_frequency(WakeFreq const frequency) const noexcept;
-        void set_accel_axis_standby(bool const x_standby, bool const y_standby, bool const z_standby) const noexcept;
-        void set_gyro_axis_standby(bool const x_standby, bool const y_standby, bool const z_standby) const noexcept;
+        void set_accel_x_axis_standby(bool const standby) const noexcept;
+        void set_accel_y_axis_standby(bool const standby) const noexcept;
+        void set_accel_z_axis_standby(bool const standby) const noexcept;
+        void set_gyro_x_axis_standby(bool const standby) const noexcept;
+        void set_gyro_y_axis_standby(bool const standby) const noexcept;
+        void set_gyro_z_axis_standby(bool const standby) const noexcept;
 
         std::uint16_t get_fifo_count() const noexcept;
-
         std::uint8_t get_fifo_byte() const noexcept;
         void get_fifo_bytes(std::uint8_t* data, std::size_t const bytes) const noexcept;
         void set_fifo_byte(std::uint8_t const data) const noexcept;
@@ -630,28 +632,21 @@ namespace InvertedSway {
 
         std::uint8_t get_otp_bank_valid() const noexcept;
         void set_otp_bank_valid(bool const enabled) const noexcept;
+
         void set_gyro_x_offset_tc(std::int8_t const offset) const noexcept;
-
         void set_gyro_y_offset_tc(std::int8_t const offset) const noexcept;
-
         void set_gyro_z_offset_tc(std::int8_t const offset) const noexcept;
 
         void set_x_fine_gain(std::int8_t const gain) const noexcept;
-
         void set_y_fine_gain(std::int8_t const gain) const noexcept;
-
         void set_z_fine_gain(std::int8_t const gain) const noexcept;
 
         void set_accel_x_offset(std::int16_t const offset) const noexcept;
-
         void set_accel_y_offset(std::int16_t const offset) const noexcept;
-
         void set_accel_z_offset(std::int16_t const offset) const noexcept;
 
         void set_gyro_x_offset(std::int16_t const offset) const noexcept;
-
         void set_gyro_y_offset(std::int16_t const offset) const noexcept;
-
         void set_gyro_z_offset(std::int16_t const offset) const noexcept;
 
         void set_int_pll_ready_enabled(bool const enabled) const noexcept;
@@ -671,7 +666,6 @@ namespace InvertedSway {
         void reset_dmp() const noexcept;
 
         void set_memory_bank(std::uint8_t const bank, bool const prefetch_enabled, bool const user_bank) const noexcept;
-
         void set_memory_start_address(std::uint8_t const address) const noexcept;
 
         std::uint8_t read_memory_byte() const noexcept;
