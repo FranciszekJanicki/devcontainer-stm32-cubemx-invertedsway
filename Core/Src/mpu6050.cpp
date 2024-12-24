@@ -18,17 +18,17 @@ using Raw = MPU6050::Raw;
 using GyroRaw = MPU6050::GyroRaw;
 using AccelRaw = MPU6050::AccelRaw;
 using TempRaw = MPU6050::TempRaw;
-using DeviceAddress = MPU6050::DeviceAddress;
+using DevAddress = MPU6050::DevAddress;
 using RegAddress = MPU6050::RegAddress;
-using PWR1 = MPU6050::PWR1;
-using PWR2 = MPU6050::PWR2;
+using Power1 = MPU6050::Power1;
+using Power2 = MPU6050::Power2;
 using Clock = MPU6050::Clock;
-using Intr = MPU6050::Intr;
-using IntrLatch = MPU6050::IntrLatch;
-using IntrDrive = MPU6050::IntrDrive;
-using IntrMode = MPU6050::IntrMode;
-using IntrCfg = MPU6050::IntrCfg;
-using IntrClear = MPU6050::IntrClear;
+using Interrupt = MPU6050::Interrupt;
+using IntLatch = MPU6050::IntLatch;
+using IntDrive = MPU6050::IntDrive;
+using IntMode = MPU6050::IntMode;
+using IntCfg = MPU6050::IntCfg;
+using IntClear = MPU6050::IntClear;
 
 namespace InvertedSway {
 
@@ -65,7 +65,7 @@ namespace InvertedSway {
     }
 
     MPU6050::MPU6050(I2CHandle const i2c_bus,
-                     DeviceAddress const device_address,
+                     DevAddress const device_address,
                      GyroRange const gyro_range,
                      AccelRange const accel_range,
                      std::uint32_t const sampling_rate) noexcept :
@@ -164,7 +164,7 @@ namespace InvertedSway {
 
     void MPU6050::device_reset() const noexcept
     {
-        this->i2c_write_byte(RegAddress::PWR_MGMT_1, 1U << std::to_underlying(PWR1::DEVICE_RESET_BIT));
+        this->i2c_write_byte(RegAddress::PWR_MGMT_1, 1U << std::to_underlying(Power1::DEVICE_RESET_BIT));
     }
 
     std::uint8_t MPU6050::get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept
@@ -183,17 +183,17 @@ namespace InvertedSway {
 
     void MPU6050::set_sleep_enabled(bool const enabled) const noexcept
     {
-        this->i2c_write_byte(RegAddress::PWR_MGMT_1, enabled << std::to_underlying(PWR1::SLEEP_BIT));
+        this->i2c_write_byte(RegAddress::PWR_MGMT_1, enabled << std::to_underlying(Power1::SLEEP_BIT));
     }
 
     void MPU6050::set_wake_cycle_enabled(bool const enabled) const noexcept
     {
-        this->i2c_write_byte(RegAddress::PWR_MGMT_1, enabled << std::to_underlying(PWR1::CYCLE_BIT));
+        this->i2c_write_byte(RegAddress::PWR_MGMT_1, enabled << std::to_underlying(Power1::CYCLE_BIT));
     }
 
     void MPU6050::set_temperature_sensor_enabled(bool const enabled) const noexcept
     {
-        this->i2c_write_byte(RegAddress::PWR_MGMT_1, (!enabled) << std::to_underlying(PWR1::TEMP_DIS_BIT));
+        this->i2c_write_byte(RegAddress::PWR_MGMT_1, (!enabled) << std::to_underlying(Power1::TEMP_DIS_BIT));
     }
 
     void MPU6050::set_clock_source(Clock const source) const noexcept
@@ -204,24 +204,24 @@ namespace InvertedSway {
     void MPU6050::set_wake_up_frequency(WakeFreq const frequency) const noexcept
     {
         this->i2c_write_byte(RegAddress::PWR_MGMT_2,
-                             (std::to_underlying(frequency) & 0x3) << std::to_underlying(PWR2::LP_WAKE_CTRL_BIT));
+                             (std::to_underlying(frequency) & 0x3) << std::to_underlying(Power2::LP_WAKE_CTRL_BIT));
     }
 
     void
     MPU6050::set_accel_axis_standby(bool const x_standby, bool const y_standby, bool const z_standby) const noexcept
     {
         this->i2c_write_byte(RegAddress::PWR_MGMT_2,
-                             (x_standby << std::to_underlying(PWR2::STBY_XA_BIT)) |
-                                 (y_standby << std::to_underlying(PWR2::STBY_YA_BIT)) |
-                                 (z_standby << std::to_underlying(PWR2::STBY_ZA_BIT)));
+                             (x_standby << std::to_underlying(Power2::STBY_XA_BIT)) |
+                                 (y_standby << std::to_underlying(Power2::STBY_YA_BIT)) |
+                                 (z_standby << std::to_underlying(Power2::STBY_ZA_BIT)));
     }
 
     void MPU6050::set_gyro_axis_standby(bool const x_standby, bool const y_standby, bool const z_standby) const noexcept
     {
         this->i2c_write_byte(RegAddress::PWR_MGMT_2,
-                             (x_standby << std::to_underlying(PWR2::STBY_XG_BIT)) |
-                                 (y_standby << std::to_underlying(PWR2::STBY_YG_BIT)) |
-                                 (z_standby << std::to_underlying(PWR2::STBY_ZG_BIT)));
+                             (x_standby << std::to_underlying(Power2::STBY_XG_BIT)) |
+                                 (y_standby << std::to_underlying(Power2::STBY_YG_BIT)) |
+                                 (z_standby << std::to_underlying(Power2::STBY_ZG_BIT)));
     }
 
     void MPU6050::set_full_scale_gyro_range(GyroRange const range) const noexcept
@@ -490,10 +490,10 @@ namespace InvertedSway {
 
     void MPU6050::set_interrupt() const noexcept
     {
-        this->set_interrupt_mode(IntrMode::ACTIVEHIGH);
-        // this->set_interrupt_drive(IntrDrive::PUSHPULL);
-        this->set_interrupt_latch(IntrLatch::PULSE50US);
-        this->set_interrupt_latch_clear(IntrClear::ANYREAD);
+        this->set_interrupt_mode(IntMode::ACTIVEHIGH);
+        // this->set_interrupt_drive(IntDrive::PUSHPULL);
+        this->set_interrupt_latch(IntLatch::PULSE50US);
+        this->set_interrupt_latch_clear(IntClear::ANYREAD);
         this->set_int_enabled(true);
     }
 
@@ -512,28 +512,28 @@ namespace InvertedSway {
         // this->set_zero_motion_detection_threshold(4);
     }
 
-    void MPU6050::set_interrupt_mode(IntrMode const mode) const noexcept
+    void MPU6050::set_interrupt_mode(IntMode const mode) const noexcept
     {
         this->i2c_write_byte(RegAddress::INT_PIN_CFG,
-                             std::to_underlying(mode) << std::to_underlying(IntrCfg::INT_LEVEL_BIT));
+                             std::to_underlying(mode) << std::to_underlying(IntCfg::INT_LEVEL_BIT));
     }
 
-    void MPU6050::set_interrupt_drive(IntrDrive const drive) const noexcept
+    void MPU6050::set_interrupt_drive(IntDrive const drive) const noexcept
     {
         this->i2c_write_byte(RegAddress::INT_PIN_CFG,
-                             std::to_underlying(drive) << std::to_underlying(IntrCfg::INT_OPEN_BIT));
+                             std::to_underlying(drive) << std::to_underlying(IntCfg::INT_OPEN_BIT));
     }
 
-    void MPU6050::set_interrupt_latch(IntrLatch const latch) const noexcept
+    void MPU6050::set_interrupt_latch(IntLatch const latch) const noexcept
     {
         this->i2c_write_byte(RegAddress::INT_PIN_CFG,
-                             std::to_underlying(latch) << std::to_underlying(IntrCfg::INT_RD_CLEAR_BIT));
+                             std::to_underlying(latch) << std::to_underlying(IntCfg::INT_RD_CLEAR_BIT));
     }
 
-    void MPU6050::set_interrupt_latch_clear(IntrClear const clear) const noexcept
+    void MPU6050::set_interrupt_latch_clear(IntClear const clear) const noexcept
     {
         this->i2c_write_byte(RegAddress::INT_PIN_CFG,
-                             std::to_underlying(clear) << std::to_underlying(IntrCfg::LATCH_INT_EN_BIT));
+                             std::to_underlying(clear) << std::to_underlying(IntCfg::LATCH_INT_EN_BIT));
     }
 
     void MPU6050::set_int_enabled(bool const enabled) const noexcept
@@ -543,7 +543,7 @@ namespace InvertedSway {
 
     void MPU6050::set_int_data_ready_enabled(bool const enabled) const noexcept
     {
-        this->i2c_write_byte(RegAddress::INT_ENABLE, enabled << std::to_underlying(Intr::DATA_RDY_BIT));
+        this->i2c_write_byte(RegAddress::INT_ENABLE, enabled << std::to_underlying(Interrupt::DATA_RDY_BIT));
     }
 
     std::uint8_t MPU6050::get_int_status() const noexcept
@@ -568,17 +568,17 @@ namespace InvertedSway {
 
     void MPU6050::set_int_zero_motion_enabled(bool const enabled) const noexcept
     {
-        this->i2c_write_byte(RegAddress::INT_ENABLE, enabled << std::to_underlying(Intr::ZMOT_BIT));
+        this->i2c_write_byte(RegAddress::INT_ENABLE, enabled << std::to_underlying(Interrupt::ZMOT_BIT));
     }
 
     void MPU6050::set_int_motion_enabled(bool const enabled) const noexcept
     {
-        this->i2c_write_byte(RegAddress::INT_ENABLE, enabled << std::to_underlying(Intr::MOT_BIT));
+        this->i2c_write_byte(RegAddress::INT_ENABLE, enabled << std::to_underlying(Interrupt::MOT_BIT));
     }
 
     void MPU6050::set_int_free_fall_enabled(bool const enabled) const noexcept
     {
-        this->i2c_write_byte(RegAddress::INT_ENABLE, enabled << std::to_underlying(Intr::FF_BIT));
+        this->i2c_write_byte(RegAddress::INT_ENABLE, enabled << std::to_underlying(Interrupt::FF_BIT));
     }
 
     void MPU6050::set_motion_detection_threshold(std::uint8_t const threshold) const noexcept
