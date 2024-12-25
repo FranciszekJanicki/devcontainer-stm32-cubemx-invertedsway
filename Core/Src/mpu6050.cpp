@@ -363,7 +363,7 @@ namespace InvertedSway {
             HAL_Delay(50);
             // this->set_clock_source(Clock::INTERNAL);
             HAL_Delay(50);
-            // this->set_sampling_divider(get_sampling_divider(sampling_rate, DLPF::BW_256));
+            this->set_sampling_divider(get_sampling_divider(sampling_rate, DLPF::BW_256));
             HAL_Delay(50);
             // this->set_dlpf_mode(DLPF::BW_256);
             HAL_Delay(50);
@@ -371,7 +371,7 @@ namespace InvertedSway {
             HAL_Delay(50);
             this->set_full_scale_accel_range(this->accel_range_);
             HAL_Delay(50);
-            // this->set_interrupt();
+            this->set_interrupt();
             this->initialized_ = true;
         }
     }

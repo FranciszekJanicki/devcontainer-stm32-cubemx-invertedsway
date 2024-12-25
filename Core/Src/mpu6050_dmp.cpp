@@ -1,4 +1,5 @@
 #include "mpu6050_dmp.hpp"
+#include "mpu6050.hpp"
 
 using namespace InvertedSway;
 using Scaled = MPU6050_DMP::Scaled;
@@ -25,6 +26,30 @@ using IntrDMP = MPU6050_DMP::IntrDMP;
 using TC = MPU6050_DMP::TC;
 
 namespace InvertedSway {
+
+    MPU6050_DMP::MPU6050_DMP(MPU6050&& mpu6050) noexcept : mpu6050_{std::forward<MPU6050>(mpu6050)}
+    {
+        this->initialize();
+    }
+
+    MPU6050_DMP::~MPU6050_DMP() noexcept
+    {
+        this->deinitialize();
+    }
+
+    void MPU6050_DMP::initialize() noexcept
+    {
+        if (this->mpu6050_.initialized_) {
+            this->initialized_ = true;
+        }
+    }
+
+    void MPU6050_DMP::deinitialize() noexcept
+    {
+        if (this->mpu6050_.initialized_) {
+            this->initialized_ = false;
+        }
+    }
 
     bool MPU6050_DMP::get_otp_bank_valid() const noexcept
     {

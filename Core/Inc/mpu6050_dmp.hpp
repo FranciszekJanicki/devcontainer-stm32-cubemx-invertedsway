@@ -49,6 +49,9 @@ namespace InvertedSway {
         static constexpr std::size_t DMP_MEMORY_CHUNK_SIZE{16};
         static constexpr auto FIFO_DEFAULT_TIMEOUT{11000};
 
+        void initialize() noexcept;
+        void deinitialize() noexcept;
+
         bool get_otp_bank_valid() const noexcept;
         void set_otp_bank_valid(bool const enabled) const noexcept;
 
