@@ -12,14 +12,11 @@
 #include "usart.h"
 #include <utility>
 
-static bool sampling_timer_elapsed{false};
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    if (htim->Instance == TIM2) {
+    if (GPIO_Pin == MPU6050_INTR_Pin) {
         sampling_timer_elapsed = true;
     }
-    HAL_TIM_Base_Start_IT(htim);
 }
 
 void balance_sway()
@@ -40,7 +37,7 @@ void balance_sway()
     L298N l298n{std::move(motor_channels)};
 
     MPU6050 mpu6050{&hi2c1,
-                    MPU6050::DeviceAddress::AD0_LOW,
+                    MPU6050::DevAddress::AD0_LOW,
                     MPU6050::GyroRange::GYRO_FS_250,
                     MPU6050::AccelRange::ACCEL_FS_2,
                     sampling_rate_hz};
@@ -52,8 +49,6 @@ void balance_sway()
     Encoder encoder{&htim3};
 
     Sway sway{std::move(mpu6050), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
-
-    HAL_TIM_Base_Start_IT(&htim2);
 
     while (true) {
         if (sampling_timer_elapsed) {

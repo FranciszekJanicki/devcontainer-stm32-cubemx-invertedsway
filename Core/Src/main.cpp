@@ -49,7 +49,7 @@ void test_kalman()
     MX_I2C1_Init();
 
     KALMAN_TEST(MPU6050{&hi2c1,
-                        MPU6050::DeviceAddress::AD0_LOW,
+                        MPU6050::DevAddress::AD0_LOW,
                         MPU6050::GyroRange::GYRO_FS_250,
                         MPU6050::AccelRange::ACCEL_FS_2,
                         8000U},
@@ -70,7 +70,7 @@ int main()
     SystemClock_Config();
 
     /* most important test */
-    test_dutkiewicz();
+    test_kalman();
 
     return 0;
 }

@@ -1,4 +1,5 @@
 #include "tests.hpp"
+#include "balance_sway.hpp"
 #include "encoder.hpp"
 #include "kalman.hpp"
 #include "motor.hpp"
@@ -104,11 +105,12 @@ namespace Tests {
     void KALMAN_TEST(MPU6050 mpu6050, Kalman kalman, std::uint32_t const sampling_rate) noexcept
     {
         while (true) {
-            // if (HAL_GPIO_ReadPin(MPU6050_INTR_GPIO_Port, MPU6050_INTR_Pin) == GPIO_PinState::GPIO_PIN_SET) {
+            // if (sampling_timer_elapsed) {
             float const roll = mpu6050.get_roll();
             float const gx = mpu6050.get_rotation_x_scaled();
             printf("mpu angle: %f, %f\n\r", gx, roll);
             printf("kalman angle: %f\n\r", kalman(gx, roll, 1.0f / static_cast<float>(sampling_rate)));
+            sampling_timer_elapsed = false;
             //}
         }
     }
