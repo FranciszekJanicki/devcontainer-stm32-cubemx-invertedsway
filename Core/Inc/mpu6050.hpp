@@ -554,11 +554,15 @@ namespace InvertedSway {
         bool is_valid_device_id() const noexcept;
 
         void initialize(std::uint32_t const sampling_rate) noexcept;
+        void initialize_main() const noexcept;
+        void initialize_interrupt() const noexcept;
+        void initialize_rest(std::uint32_t const sampling_rate) const noexcept;
+        void initialize_motion_interrupt() const noexcept;
         void deinitialize() noexcept;
 
-        void set_sampling_divider(std::uint8_t const divider) const noexcept;
+        void set_sampling_rate(std::uint32_t const divider, DLPF const dlpf) const noexcept;
 
-        void set_external_frame_sync(std::uint8_t const frame_sync) const noexcept;
+        void set_external_frame_sync(ExtSync const frame_sync) const noexcept;
         void set_dlpf_mode(DLPF const dlpf) const noexcept;
 
         void set_full_scale_gyro_range(GyroRange const range) const noexcept;
@@ -581,14 +585,12 @@ namespace InvertedSway {
         void set_gyro_z_fifo_enabled(bool const enabled) const noexcept;
         void set_accel_fifo_enabled(bool const enabled) const noexcept;
 
-        void set_interrupt() const noexcept;
         void set_interrupt_mode(IntrMode const mode) const noexcept;
         void set_interrupt_drive(IntrDrive const drive) const noexcept;
         void set_interrupt_latch(IntrLatch const latch) const noexcept;
         void set_interrupt_latch_clear(IntrClear const clear) const noexcept;
 
-        void set_motion_interrupt() const noexcept;
-        void set_int_enabled(bool const enabled) const noexcept;
+        void set_int_enabled(std::uint8_t const enabled) const noexcept;
         void set_int_free_fall_enabled(bool const enabled) const noexcept;
         void set_int_motion_enabled(bool const enabled) const noexcept;
         void set_int_zero_motion_enabled(bool const enabled) const noexcept;
