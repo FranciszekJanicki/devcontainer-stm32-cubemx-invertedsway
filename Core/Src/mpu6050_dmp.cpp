@@ -6,11 +6,9 @@ using Scaled = MPU6050_DMP::Scaled;
 using GyroScaled = MPU6050_DMP::GyroScaled;
 using AccelScaled = MPU6050_DMP::AccelScaled;
 using RollPitchYaw = MPU6050_DMP::RollPitchYaw;
-using TempScaled = MPU6050_DMP::TempScaled;
 using Raw = MPU6050_DMP::Raw;
 using GyroRaw = MPU6050_DMP::GyroRaw;
 using AccelRaw = MPU6050_DMP::AccelRaw;
-using TempRaw = MPU6050_DMP::TempRaw;
 using DevAddress = MPU6050_DMP::DevAddress;
 using RegAddress = MPU6050_DMP::RegAddress;
 using Power1 = MPU6050_DMP::Power1;
@@ -38,18 +36,10 @@ namespace InvertedSway {
     }
 
     void MPU6050_DMP::initialize() noexcept
-    {
-        if (this->mpu6050_.initialized_) {
-            this->initialized_ = true;
-        }
-    }
+    {}
 
     void MPU6050_DMP::deinitialize() noexcept
-    {
-        if (this->mpu6050_.initialized_) {
-            this->initialized_ = false;
-        }
-    }
+    {}
 
     bool MPU6050_DMP::get_otp_bank_valid() const noexcept
     {

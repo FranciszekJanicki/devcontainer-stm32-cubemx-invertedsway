@@ -12,11 +12,10 @@ using Scaled = MPU6050::Scaled;
 using GyroScaled = MPU6050::GyroScaled;
 using AccelScaled = MPU6050::AccelScaled;
 using RollPitchYaw = MPU6050::RollPitchYaw;
-using TempScaled = MPU6050::TempScaled;
+using Scaled = MPU6050::Scaled;
 using Raw = MPU6050::Raw;
 using GyroRaw = MPU6050::GyroRaw;
 using AccelRaw = MPU6050::AccelRaw;
-using TempRaw = MPU6050::TempRaw;
 using DevAddress = MPU6050::DevAddress;
 using RegAddress = MPU6050::RegAddress;
 using Power1 = MPU6050::Power1;
@@ -74,6 +73,47 @@ namespace InvertedSway {
         }
     }
 
+    Scaled MPU6050::temp_raw_to_scaled(Raw const temp_raw) noexcept
+    {
+        return static_cast<Scaled>(temp_raw) / 340 + 36.53;
+    }
+
+    AccelScaled MPU6050::accel_raw_to_scaled(AccelRaw const accel_raw, AccelRange const accel_range) noexcept
+    {
+        Scaled const scale{accel_range_to_scale(accel_range)};
+        return AccelScaled{static_cast<Scaled>(accel_raw.x) / scale,
+                           static_cast<Scaled>(accel_raw.y) / scale,
+                           static_cast<Scaled>(accel_raw.z) / scale};
+    }
+
+    Scaled MPU6050::accel_raw_to_scaled(Raw const accel_raw, AccelRange const accel_range) noexcept
+    {
+        return static_cast<Scaled>(accel_raw) / accel_range_to_scale(accel_range);
+    }
+
+    GyroScaled MPU6050::gyro_raw_to_scaled(GyroRaw const gyro_raw, GyroRange const gyro_range) noexcept
+    {
+        Scaled const scale{gyro_range_to_scale(gyro_range)};
+        return GyroScaled{static_cast<Scaled>(gyro_raw.x) / scale,
+                          static_cast<Scaled>(gyro_raw.y) / scale,
+                          static_cast<Scaled>(gyro_raw.z) / scale};
+    }
+
+    Scaled MPU6050::gyro_raw_to_scaled(Raw const gyro_raw, GyroRange const gyro_range) noexcept
+    {
+        return static_cast<Scaled>(gyro_raw) / gyro_range_to_scale(gyro_range);
+    }
+
+    RollPitchYaw MPU6050::accel_to_rpy(AccelScaled const accel_scaled) noexcept
+    {
+        return RollPitchYaw{
+            std::atan2(accel_scaled.y, accel_scaled.z) * 180.0f / PI,
+            -(std::atan2(accel_scaled.x, std::sqrt(accel_scaled.y * accel_scaled.y + accel_scaled.z * accel_scaled.z)) *
+              180.0) /
+                PI,
+            {}};
+    }
+
     MPU6050::MPU6050(I2CHandle const i2c_bus,
                      DevAddress const device_address,
                      GyroRange const gyro_range,
@@ -89,13 +129,13 @@ namespace InvertedSway {
         this->deinitialize();
     }
 
-    TempScaled MPU6050::get_temperature_celsius() const noexcept
+    Scaled MPU6050::get_temperature_celsius() const noexcept
     {
         if (!this->initialized_) {
             std::unreachable();
         }
 
-        return static_cast<TempScaled>(this->get_temperature_raw()) / 340 + 36.53;
+        return temp_raw_to_scaled(this->get_temperature_raw());
     }
 
     Scaled MPU6050::get_acceleration_x_scaled() const noexcept
@@ -104,7 +144,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return static_cast<Scaled>(this->get_acceleration_x_raw()) / accel_range_to_scale(this->accel_range_);
+        return accel_raw_to_scaled(this->get_acceleration_x_raw(), this->accel_range_);
     }
 
     Scaled MPU6050::get_acceleration_y_scaled() const noexcept
@@ -113,7 +153,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return static_cast<Scaled>(this->get_acceleration_y_raw()) / accel_range_to_scale(this->accel_range_);
+        return accel_raw_to_scaled(this->get_acceleration_y_raw(), this->accel_range_);
     }
 
     Scaled MPU6050::get_acceleration_z_scaled() const noexcept
@@ -122,7 +162,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return static_cast<Scaled>(this->get_acceleration_z_raw()) * accel_range_to_scale(this->accel_range_);
+        return accel_raw_to_scaled(this->get_acceleration_z_raw(), this->accel_range_);
     }
 
     AccelScaled MPU6050::get_acceleration_scaled() const noexcept
@@ -131,12 +171,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        const auto accel_scale{accel_range_to_scale(this->accel_range_)};
-        const auto accel_raw_result{this->get_acceleration_raw()};
-
-        return AccelScaled{static_cast<Scaled>(accel_raw_result.x) / accel_scale,
-                           static_cast<Scaled>(accel_raw_result.y) / accel_scale,
-                           static_cast<Scaled>(accel_raw_result.z) / accel_scale};
+        return accel_raw_to_scaled(this->get_acceleration_raw(), this->accel_range_);
     }
 
     Scaled MPU6050::get_rotation_x_scaled() const noexcept
@@ -145,7 +180,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return static_cast<Scaled>(this->get_rotation_x_raw()) / gyro_range_to_scale(this->gyro_range_);
+        return gyro_raw_to_scaled(this->get_rotation_x_raw(), this->gyro_range_);
     }
 
     Scaled MPU6050::get_rotation_y_scaled() const noexcept
@@ -154,7 +189,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return static_cast<Scaled>(this->get_rotation_y_raw()) / gyro_range_to_scale(this->gyro_range_);
+        return gyro_raw_to_scaled(this->get_rotation_y_raw(), this->gyro_range_);
     }
 
     Scaled MPU6050::get_rotation_z_scaled() const noexcept
@@ -163,7 +198,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return static_cast<Scaled>(this->get_rotation_x_raw()) / gyro_range_to_scale(this->gyro_range_);
+        return gyro_raw_to_scaled(this->get_rotation_z_raw(), this->gyro_range_);
     }
 
     GyroScaled MPU6050::get_rotation_scaled() const noexcept
@@ -172,12 +207,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        const auto gyro_scale{gyro_range_to_scale(this->gyro_range_)};
-        const auto gyro_raw{this->get_rotation_raw()};
-
-        return GyroScaled{static_cast<Scaled>(gyro_raw.x) / gyro_scale,
-                          static_cast<Scaled>(gyro_raw.y) / gyro_scale,
-                          static_cast<Scaled>(gyro_raw.z) / gyro_scale};
+        return gyro_raw_to_scaled(this->get_rotation_raw(), this->gyro_range_);
     }
 
     RollPitchYaw MPU6050::get_roll_pitch_yaw() const noexcept
@@ -186,14 +216,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        const auto accel_scaled{get_acceleration_scaled()};
-
-        return RollPitchYaw{
-            std::atan2(accel_scaled.y, accel_scaled.z) * 180.0f / PI,
-            -(std::atan2(accel_scaled.x, std::sqrt(accel_scaled.y * accel_scaled.y + accel_scaled.z * accel_scaled.z)) *
-              180.0) /
-                PI,
-            {}};
+        return accel_to_rpy(get_acceleration_scaled());
     }
 
     Scaled MPU6050::get_roll() const noexcept
@@ -201,9 +224,8 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-        const auto accel_scaled{get_acceleration_scaled()};
 
-        return std::atan2(accel_scaled.y, accel_scaled.z) * 180.0f / PI;
+        return accel_to_rpy(get_acceleration_scaled()).x;
     }
 
     Scaled MPU6050::get_pitch() const noexcept
@@ -212,12 +234,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        const auto accel_scaled{get_acceleration_scaled()};
-
-        return -(std::atan2(accel_scaled.x,
-                            std::sqrt(accel_scaled.y * accel_scaled.y + accel_scaled.z * accel_scaled.z)) *
-                 180.0f) /
-               PI;
+        return accel_to_rpy(get_acceleration_scaled()).y;
     }
 
     Scaled MPU6050::get_yaw() const noexcept
@@ -226,9 +243,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        const auto accel_scaled{get_acceleration_scaled()};
-
-        return {};
+        return accel_to_rpy(get_acceleration_scaled()).z;
     }
 
     void MPU6050::i2c_write_words(RegAddress const reg_address,
@@ -295,6 +310,7 @@ namespace InvertedSway {
 
     void MPU6050::i2c_read_words(RegAddress const reg_address,
                                  std::uint16_t* read_data,
+
                                  std::size_t const read_size) const noexcept
     {
         I2CDriver::read_words(this->i2c_bus_,
@@ -356,7 +372,6 @@ namespace InvertedSway {
     void MPU6050::initialize(std::uint32_t const sampling_rate) noexcept
     {
         if (this->is_valid_device_id()) {
-            HAL_Delay(500000);
             this->device_reset();
             HAL_Delay(50);
             this->set_sleep_enabled(false);
@@ -487,7 +502,7 @@ namespace InvertedSway {
     void MPU6050::set_interrupt() const noexcept
     {
         this->set_interrupt_mode(IntrMode::ACTIVEHIGH);
-        this->set_interrupt_drive(IntrDrive::PUSHPULL);
+        // this->set_interrupt_drive(IntrDrive::PUSHPULL);
         this->set_interrupt_latch(IntrLatch::PULSE50US);
         this->set_interrupt_latch_clear(IntrClear::ANYREAD);
         this->set_int_enabled(true);
@@ -616,9 +631,9 @@ namespace InvertedSway {
         std::uint8_t buffer[6];
         this->i2c_read_bytes(RegAddress::ACCEL_XOUT_H, buffer, sizeof(buffer));
 
-        return AccelRaw{static_cast<Raw>((static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1])),
-                        static_cast<Raw>((static_cast<Raw>(buffer[2]) << 8) | static_cast<Raw>(buffer[3])),
-                        static_cast<Raw>((static_cast<Raw>(buffer[4]) << 8) | static_cast<Raw>(buffer[5]))};
+        return AccelRaw{(static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1]),
+                        (static_cast<Raw>(buffer[2]) << 8) | static_cast<Raw>(buffer[3]),
+                        (static_cast<Raw>(buffer[4]) << 8) | static_cast<Raw>(buffer[5])};
     }
 
     Raw MPU6050::get_acceleration_x_raw() const noexcept
@@ -657,7 +672,7 @@ namespace InvertedSway {
         return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
     }
 
-    TempRaw MPU6050::get_temperature_raw() const noexcept
+    Raw MPU6050::get_temperature_raw() const noexcept
     {
         if (!this->initialized_) {
             std::unreachable();
@@ -666,7 +681,7 @@ namespace InvertedSway {
         std::uint8_t buffer[2];
         this->i2c_read_bytes(RegAddress::TEMP_OUT_H, buffer, sizeof(buffer));
 
-        return ((static_cast<TempRaw>(buffer[0])) << 8) | buffer[1];
+        return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
     }
 
     GyroRaw MPU6050::get_rotation_raw() const noexcept

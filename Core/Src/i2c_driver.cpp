@@ -12,7 +12,10 @@ namespace I2CDriver {
                      std::uint8_t const reg_address,
                      std::uint16_t* write_data,
                      std::size_t const write_size) noexcept
-    {}
+    {
+        if (write_data != nullptr) {
+        }
+    }
 
     void write_word(I2CHandle const i2c_bus,
                     std::uint16_t const dev_address,
@@ -28,13 +31,15 @@ namespace I2CDriver {
                      std::uint8_t* write_data,
                      std::size_t const write_size) noexcept
     {
-        HAL_I2C_Mem_Write(i2c_bus,
-                          dev_address << 1,
-                          reg_address,
-                          sizeof(reg_address),
-                          write_data,
-                          write_size,
-                          I2C_TIMEOUT);
+        if (write_data != nullptr) {
+            HAL_I2C_Mem_Write(i2c_bus,
+                              dev_address << 1,
+                              reg_address,
+                              sizeof(reg_address),
+                              write_data,
+                              write_size,
+                              I2C_TIMEOUT);
+        }
     }
 
     void write_byte(I2CHandle const i2c_bus,
@@ -85,14 +90,16 @@ namespace I2CDriver {
                     std::uint16_t* read_data,
                     std::size_t const read_size) noexcept
     {
-        /* TO DO- IMPLEMENT PROPER WORD READING */
-        HAL_I2C_Mem_Read(i2c_bus,
-                         dev_address << 1,
-                         reg_address,
-                         sizeof(reg_address),
-                         (uint8_t*)read_data,
-                         read_size,
-                         I2C_TIMEOUT);
+        if (read_data != nullptr) {
+            /* TO DO- IMPLEMENT PROPER WORD READING */
+            HAL_I2C_Mem_Read(i2c_bus,
+                             dev_address << 1,
+                             reg_address,
+                             sizeof(reg_address),
+                             (uint8_t*)read_data,
+                             read_size,
+                             I2C_TIMEOUT);
+        }
     }
 
     std::uint16_t
@@ -110,13 +117,15 @@ namespace I2CDriver {
                     std::uint8_t* read_data,
                     std::size_t const read_size) noexcept
     {
-        HAL_I2C_Mem_Read(i2c_bus,
-                         dev_address << 1,
-                         reg_address,
-                         sizeof(reg_address),
-                         read_data,
-                         read_size,
-                         I2C_TIMEOUT);
+        if (read_data != nullptr) {
+            HAL_I2C_Mem_Read(i2c_bus,
+                             dev_address << 1,
+                             reg_address,
+                             sizeof(reg_address),
+                             read_data,
+                             read_size,
+                             I2C_TIMEOUT);
+        }
     }
 
     std::uint8_t

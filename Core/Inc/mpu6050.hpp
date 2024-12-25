@@ -454,11 +454,9 @@ namespace InvertedSway {
         using GyroScaled = Linalg::Vector3D<Scaled>;   // radians
         using AccelScaled = Linalg::Vector3D<Scaled>;  // m/s^2
         using RollPitchYaw = Linalg::Vector3D<Scaled>; // degrees
-        using TempScaled = float;                      // celsius
         using Raw = std::uint16_t;
         using GyroRaw = Linalg::Vector3D<Raw>;
         using AccelRaw = Linalg::Vector3D<Raw>;
-        using TempRaw = std::uint16_t;
 
         MPU6050() noexcept = default;
 
@@ -475,42 +473,6 @@ namespace InvertedSway {
         MPU6050& operator=(MPU6050&& other) noexcept = default;
 
         ~MPU6050() noexcept;
-
-        /* celsius */
-        [[nodiscard]] TempScaled get_temperature_celsius() const noexcept;
-
-        /* meters per square second */
-        [[nodiscard]] AccelScaled get_acceleration_scaled() const noexcept;
-        [[nodiscard]] Scaled get_acceleration_x_scaled() const noexcept;
-        [[nodiscard]] Scaled get_acceleration_y_scaled() const noexcept;
-        [[nodiscard]] Scaled get_acceleration_z_scaled() const noexcept;
-
-        /* radians */
-        [[nodiscard]] GyroScaled get_rotation_scaled() const noexcept;
-        [[nodiscard]] Scaled get_rotation_x_scaled() const noexcept;
-        [[nodiscard]] Scaled get_rotation_y_scaled() const noexcept;
-        [[nodiscard]] Scaled get_rotation_z_scaled() const noexcept;
-
-        /* degrees */
-        [[nodiscard]] RollPitchYaw get_roll_pitch_yaw() const noexcept;
-        [[nodiscard]] Scaled get_roll() const noexcept;
-        [[nodiscard]] Scaled get_pitch() const noexcept;
-        [[nodiscard]] Scaled get_yaw() const noexcept;
-
-        static Scaled gyro_range_to_scale(GyroRange const gyro_range) noexcept;
-        static Scaled accel_range_to_scale(AccelRange const accel_range) noexcept;
-
-        static std::uint8_t get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept;
-
-        static constexpr Scaled PI{3.1415f};
-        static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_EN_HZ{1000};
-        static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_DIS_HZ{8000};
-        static constexpr std::uint32_t ACCEL_OUTPUT_RATE_HZ{1000};
-
-        bool is_valid_device_id() const noexcept;
-
-        void initialize(std::uint32_t const sampling_rate) noexcept;
-        void deinitialize() noexcept;
 
         void i2c_write_words(RegAddress const reg_address,
                              std::uint16_t* write_data,
@@ -550,6 +512,49 @@ namespace InvertedSway {
         std::uint8_t i2c_read_bits(RegAddress const reg_address,
                                    std::uint8_t const read_position,
                                    std::size_t const read_size) const noexcept;
+
+        /* celsius */
+        [[nodiscard]] Scaled get_temperature_celsius() const noexcept;
+
+        /* meters per square second */
+        [[nodiscard]] AccelScaled get_acceleration_scaled() const noexcept;
+        [[nodiscard]] Scaled get_acceleration_x_scaled() const noexcept;
+        [[nodiscard]] Scaled get_acceleration_y_scaled() const noexcept;
+        [[nodiscard]] Scaled get_acceleration_z_scaled() const noexcept;
+
+        /* radians */
+        [[nodiscard]] GyroScaled get_rotation_scaled() const noexcept;
+        [[nodiscard]] Scaled get_rotation_x_scaled() const noexcept;
+        [[nodiscard]] Scaled get_rotation_y_scaled() const noexcept;
+        [[nodiscard]] Scaled get_rotation_z_scaled() const noexcept;
+
+        /* degrees */
+        [[nodiscard]] RollPitchYaw get_roll_pitch_yaw() const noexcept;
+        [[nodiscard]] Scaled get_roll() const noexcept;
+        [[nodiscard]] Scaled get_pitch() const noexcept;
+        [[nodiscard]] Scaled get_yaw() const noexcept;
+
+    private:
+        static Scaled gyro_range_to_scale(GyroRange const gyro_range) noexcept;
+        static Scaled accel_range_to_scale(AccelRange const accel_range) noexcept;
+        static std::uint8_t get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept;
+
+        static Scaled temp_raw_to_scaled(Raw const temp_raw) noexcept;
+        static AccelScaled accel_raw_to_scaled(AccelRaw const accel_raw, AccelRange const accel_range) noexcept;
+        static Scaled accel_raw_to_scaled(Raw const accel_raw, AccelRange const accel_range) noexcept;
+        static GyroScaled gyro_raw_to_scaled(GyroRaw const gyro_raw, GyroRange const gyro_range) noexcept;
+        static Scaled gyro_raw_to_scaled(Raw const gyro_raw, GyroRange const gyro_range) noexcept;
+        static RollPitchYaw accel_to_rpy(AccelScaled const accel_scaled) noexcept;
+
+        static constexpr Scaled PI{3.1415f};
+        static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_EN_HZ{1000};
+        static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_DIS_HZ{8000};
+        static constexpr std::uint32_t ACCEL_OUTPUT_RATE_HZ{1000};
+
+        bool is_valid_device_id() const noexcept;
+
+        void initialize(std::uint32_t const sampling_rate) noexcept;
+        void deinitialize() noexcept;
 
         void set_sampling_divider(std::uint8_t const divider) const noexcept;
 

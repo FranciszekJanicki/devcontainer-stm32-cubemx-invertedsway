@@ -11,11 +11,9 @@ namespace InvertedSway {
         using GyroScaled = MPU6050::GyroScaled;
         using AccelScaled = MPU6050::AccelScaled;
         using RollPitchYaw = MPU6050::RollPitchYaw;
-        using TempScaled = MPU6050::TempScaled;
         using Raw = MPU6050::Raw;
         using GyroRaw = MPU6050::GyroRaw;
         using AccelRaw = MPU6050::AccelRaw;
-        using TempRaw = MPU6050::TempRaw;
         using DevAddress = MPU6050::DevAddress;
         using RegAddress = MPU6050::RegAddress;
         using Power1 = MPU6050::Power1;
