@@ -27,7 +27,6 @@ namespace I2CDriver {
                      std::uint8_t const reg_address,
                      std::uint8_t* write_data,
                      std::size_t const write_size) noexcept
-
     {
         HAL_I2C_Mem_Write(i2c_bus,
                           dev_address << 1,

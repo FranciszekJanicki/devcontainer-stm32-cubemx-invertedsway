@@ -497,22 +497,17 @@ namespace InvertedSway {
         [[nodiscard]] Scaled get_pitch() const noexcept;
         [[nodiscard]] Scaled get_yaw() const noexcept;
 
-    private:
         static Scaled gyro_range_to_scale(GyroRange const gyro_range) noexcept;
         static Scaled accel_range_to_scale(AccelRange const accel_range) noexcept;
 
         static std::uint8_t get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept;
 
         static constexpr Scaled PI{3.1415f};
-        static constexpr std::uint32_t I2C_TIMEOUT{100};
         static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_EN_HZ{1000};
         static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_DIS_HZ{8000};
         static constexpr std::uint32_t ACCEL_OUTPUT_RATE_HZ{1000};
 
-        static constexpr std::uint8_t DMP_MEMORY_BANKS{8};
-        static constexpr std::size_t DMP_MEMORY_BANK_SIZE{256};
-        static constexpr std::size_t DMP_MEMORY_CHUNK_SIZE{16};
-        static constexpr auto FIFO_DEFAULT_TIMEOUT{11000};
+        bool is_valid_device_id() const noexcept;
 
         void initialize(std::uint32_t const sampling_rate) noexcept;
         void deinitialize() noexcept;
@@ -588,7 +583,7 @@ namespace InvertedSway {
         void set_interrupt_latch_clear(IntrClear const clear) const noexcept;
 
         void set_motion_interrupt() const noexcept;
-        void set_int_enabled(std::uint8_t const enabled) const noexcept;
+        void set_int_enabled(bool const enabled) const noexcept;
         void set_int_free_fall_enabled(bool const enabled) const noexcept;
         void set_int_motion_enabled(bool const enabled) const noexcept;
         void set_int_zero_motion_enabled(bool const enabled) const noexcept;
@@ -659,66 +654,6 @@ namespace InvertedSway {
         void set_fifo_bytes(std::uint8_t* write_data, std::size_t const write_size) const noexcept;
 
         std::uint8_t get_device_id() const noexcept;
-
-        bool get_otp_bank_valid() const noexcept;
-        void set_otp_bank_valid(bool const enabled) const noexcept;
-
-        void set_gyro_x_offset_tc(std::uint8_t const offset) const noexcept;
-        void set_gyro_y_offset_tc(std::uint8_t const offset) const noexcept;
-        void set_gyro_z_offset_tc(std::uint8_t const offset) const noexcept;
-
-        void set_x_fine_gain(std::uint8_t const gain) const noexcept;
-        void set_y_fine_gain(std::uint8_t const gain) const noexcept;
-        void set_z_fine_gain(std::uint8_t const gain) const noexcept;
-
-        void set_accel_x_offset(std::uint16_t const offset) const noexcept;
-        void set_accel_y_offset(std::uint16_t const offset) const noexcept;
-        void set_accel_z_offset(std::uint16_t const offset) const noexcept;
-
-        void set_gyro_x_offset(std::uint16_t const offset) const noexcept;
-        void set_gyro_y_offset(std::uint16_t const offset) const noexcept;
-        void set_gyro_z_offset(std::uint16_t const offset) const noexcept;
-
-        void set_int_pll_ready_enabled(bool const enabled) const noexcept;
-        void set_int_dmp_enabled(bool const enabled) const noexcept;
-
-        bool get_dmp_int_5_status() const noexcept;
-        bool get_dmp_int_4_status() const noexcept;
-        bool get_dmp_int_3_status() const noexcept;
-        bool get_dmp_int_2_status() const noexcept;
-        bool get_dmp_int_1_status() const noexcept;
-        bool get_dmp_int_0_status() const noexcept;
-
-        bool get_int_pll_ready_status() const noexcept;
-        bool get_int_dmp_status() const noexcept;
-
-        void set_dmp_enabled(bool const enabled) const noexcept;
-        void reset_dmp() const noexcept;
-
-        void set_memory_bank(std::uint8_t const bank,
-                             bool const prefetch_enabled = false,
-                             bool const user_bank = false) const noexcept;
-        void set_memory_start_address(std::uint8_t const address) const noexcept;
-
-        std::uint8_t read_memory_byte() const noexcept;
-
-        void write_memory_byte(std::uint8_t write_data) const noexcept;
-
-        void read_memory_block(std::uint8_t* read_data,
-                               std::size_t const read_size,
-                               std::uint8_t bank,
-                               std::uint8_t address) const noexcept;
-
-        void write_memory_block(std::uint8_t* write_data,
-                                std::size_t const write_size,
-                                std::uint8_t bank,
-                                std::uint8_t address) const noexcept;
-
-        void write_dmp_configuration_set(std::uint8_t* write_data, std::size_t const write_size) const noexcept;
-
-        void set_dmp_config1(std::uint8_t const config) const noexcept;
-
-        void set_dmp_config2(std::uint8_t const config) const noexcept;
 
         bool initialized_{false};
 
