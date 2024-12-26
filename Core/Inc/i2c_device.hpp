@@ -33,7 +33,7 @@ namespace InvertedSway {
 
         DWord read_dword(std::uint8_t const reg_address) const noexcept
         {
-            return this->read_dwords<1>(reg_address).front();
+            return this->read_dwords<1>(reg_address)[0];
         }
 
         template <std::size_t READ_SIZE>
@@ -45,7 +45,7 @@ namespace InvertedSway {
 
         Word read_word(std::uint8_t const reg_address) const noexcept
         {
-            return this->read_words<1>(reg_address).front();
+            return this->read_words<1>(reg_address)[0];
         }
 
         template <std::size_t READ_SIZE>
@@ -89,7 +89,6 @@ namespace InvertedSway {
             Byte read = this->read_byte(reg_address);
             Byte mask = ((1 << READ_SIZE) - 1) << (read_position - READ_SIZE + 1);
             read &= mask;
-
             return read >> (read_position - READ_SIZE + 1);
         }
 
@@ -97,10 +96,9 @@ namespace InvertedSway {
                        std::uint8_t const read_position,
                        std::size_t const read_size) const noexcept
         {
-            std::uint8_t read = this->read_byte(reg_address);
-            std::uint8_t mask = ((1 << read_size) - 1) << (read_position - read_size + 1);
+            Byte read = this->read_byte(reg_address);
+            Byte mask = ((1 << read_size) - 1) << (read_position - read_size + 1);
             read &= mask;
-
             return read >> (read_position - read_size + 1);
         }
 
@@ -165,7 +163,6 @@ namespace InvertedSway {
             } else {
                 write &= ~(1 << write_position);
             }
-
             write_byte(reg_address, write);
         }
 
@@ -181,7 +178,6 @@ namespace InvertedSway {
             temp &= mask;
             write &= ~(mask);
             write |= temp;
-
             this->write_byte(reg_address, write);
         }
 
@@ -190,14 +186,13 @@ namespace InvertedSway {
                         std::uint8_t const write_position,
                         std::size_t const write_size) const noexcept
         {
-            std::uint8_t write = this->read_byte(reg_address);
-            uint8_t mask = ((1 << write_size) - 1) << (write_position - write_size + 1);
-            std::uint8_t temp = write_data;
+            Byte write = this->read_byte(reg_address);
+            Byte mask = ((1 << write_size) - 1) << (write_position - write_size + 1);
+            Byte temp = write_data;
             temp <<= (write_position - write_size + 1);
             temp &= mask;
             write &= ~(mask);
             write |= temp;
-
             write_byte(reg_address, write);
         }
 

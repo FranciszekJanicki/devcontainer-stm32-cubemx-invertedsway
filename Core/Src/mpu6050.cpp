@@ -103,7 +103,6 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         return static_cast<Scaled>(this->get_temperature_raw()) / 340.0f + 36.53f;
     }
 
@@ -112,7 +111,6 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         return static_cast<Scaled>(this->get_acceleration_x_raw()) / this->accel_scale_;
     }
 
@@ -121,7 +119,6 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         return static_cast<Scaled>(this->get_acceleration_y_raw()) / this->accel_scale_;
     }
 
@@ -130,7 +127,6 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         return static_cast<Scaled>(this->get_acceleration_z_raw()) / this->accel_scale_;
     }
 
@@ -139,7 +135,6 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         return static_cast<AccelScaled>(this->get_acceleration_raw()) / this->accel_scale_;
     }
 
@@ -148,7 +143,6 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         return static_cast<Scaled>(this->get_rotation_x_raw()) / this->gyro_scale_;
     }
 
@@ -157,7 +151,6 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         return static_cast<Scaled>(this->get_rotation_y_raw()) / this->gyro_scale_;
     }
 
@@ -166,7 +159,6 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         return static_cast<Scaled>(this->get_rotation_z_raw()) / this->gyro_scale_;
     }
 
@@ -175,7 +167,6 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         return static_cast<GyroScaled>(this->get_rotation_raw()) / this->gyro_scale_;
     }
 
@@ -184,7 +175,6 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         return accel_scaled_to_rpy(this->get_acceleration_scaled());
     }
 
@@ -193,7 +183,6 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         return accel_scaled_to_rpy(this->get_acceleration_scaled()).x;
     }
 
@@ -202,7 +191,6 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         return accel_scaled_to_rpy(this->get_acceleration_scaled()).y;
     }
 
@@ -211,7 +199,6 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         return accel_scaled_to_rpy(this->get_acceleration_scaled()).z;
     }
 
@@ -809,9 +796,7 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         auto buffer = this->i2c_device_.read_bytes<6>(std::to_underlying(RegAddress::ACCEL_XOUT_H));
-
         return AccelRaw{(static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1]),
                         (static_cast<Raw>(buffer[2]) << 8) | static_cast<Raw>(buffer[3]),
                         (static_cast<Raw>(buffer[4]) << 8) | static_cast<Raw>(buffer[5])};
@@ -822,9 +807,7 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         auto buffer = this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::ACCEL_XOUT_H));
-
         return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
     }
 
@@ -833,9 +816,7 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         auto buffer = this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::ACCEL_YOUT_H));
-
         return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
     }
 
@@ -844,9 +825,7 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         auto buffer = this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::ACCEL_ZOUT_H));
-
         return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
     }
 
@@ -855,9 +834,7 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         auto buffer = this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::TEMP_OUT_H));
-
         return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
     }
 
@@ -866,9 +843,7 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         auto buffer = this->i2c_device_.read_bytes<6>(std::to_underlying(RegAddress::GYRO_XOUT_H));
-
         return GyroRaw{static_cast<Raw>((static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1])),
                        static_cast<Raw>((static_cast<Raw>(buffer[2]) << 8) | static_cast<Raw>(buffer[3])),
                        static_cast<Raw>((static_cast<Raw>(buffer[4]) << 8) | static_cast<Raw>(buffer[5]))};
@@ -879,9 +854,7 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         auto buffer = this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::GYRO_XOUT_H));
-
         return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
     }
 
@@ -890,9 +863,7 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         auto buffer = this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::GYRO_YOUT_H));
-
         return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
     }
 
@@ -901,9 +872,7 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-
         auto buffer = this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::GYRO_ZOUT_H));
-
         return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
     }
 
@@ -1186,4 +1155,5 @@ namespace InvertedSway {
     {
         return this->i2c_device_.read_byte(std::to_underlying(RegAddress::WHO_AM_I));
     }
+
 }; // namespace InvertedSway
