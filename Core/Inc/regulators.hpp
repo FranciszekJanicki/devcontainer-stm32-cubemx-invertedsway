@@ -38,7 +38,7 @@ namespace InvertedSway {
             Value operator()(Value const error, Value const dt) noexcept
             {
                 this->sum += (error + this->previous_error) / 2 * dt;
-                this->sum = std::clamp(this->sum, -this->windup, this->windup);
+                this->sum = std::clamp(this->sum, -this->windup / this->ki, this->windup / this->ki);
                 return this->kp * error + this->kd * (error - std::exchange(this->previous_error, error)) / dt +
                        this->ki * this->sum;
             }
