@@ -8,11 +8,8 @@ using namespace InvertedSway;
 using Error = Motor::Error;
 using Direction = Motor::Direction;
 using Raw = Motor::Raw;
-using Speed = Motor::Speed;
 using Voltage = Motor::Voltage;
-using Speed = Motor::Speed;
 using ExpectedRaw = Motor::ExpectedRaw;
-using ExpectedSpeed = Motor::ExpectedSpeed;
 using ExpectedVoltage = Motor::ExpectedVoltage;
 using Unexpected = Motor::Unexpected;
 

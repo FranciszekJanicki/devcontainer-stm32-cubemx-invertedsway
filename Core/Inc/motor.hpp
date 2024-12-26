@@ -26,10 +26,8 @@ namespace InvertedSway {
         };
 
         using Raw = std::uint16_t;
-        using Speed = double;
-        using Voltage = double;
+        using Voltage = float;
         using ExpectedVoltage = std::expected<Voltage, Error>;
-        using ExpectedSpeed = std::expected<Speed, Error>;
         using ExpectedRaw = std::expected<Raw, Error>;
         using Unexpected = std::unexpected<Error>;
 
@@ -75,12 +73,8 @@ namespace InvertedSway {
     private:
         static Raw clamp_raw(Raw const raw) noexcept;
         static Voltage clamp_voltage(Voltage const voltage) noexcept;
-        static Speed clamp_speed(Speed const speed) noexcept;
 
-        static Speed raw_to_speed(Raw const raw) noexcept;
         static Voltage raw_to_voltage(Raw const raw) noexcept;
-
-        static Raw speed_to_raw(Speed const speed) noexcept;
         static Raw voltage_to_raw(Voltage const voltage) noexcept;
 
         Error initialize() noexcept;

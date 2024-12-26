@@ -20,7 +20,8 @@
 #include <utility>
 
 using namespace InvertedSway;
-using Kalman = Filters::Kalman<float>;
+using namespace Filters;
+using namespace Regulators;
 
 static bool sampling_timer_elapsed{false};
 
@@ -108,9 +109,9 @@ namespace Tests {
 
     void MOTOR_DRIVER_TEST() noexcept
     {
+        auto regulator{make_regulator<Algorithm::PID>(0.0f, 0.0f, 0.0f, 0.0f)};
         Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
         Encoder encoder{&htim3};
-        auto regulator{Regulators::make_regulator<Regulators::Algorithm::PID>(0.0f, 0.0f, 0.0f, 0.0f)};
         MotorDriver motor_driver{std::move(regulator), std::move(motor), std::move(encoder)};
 
         constexpr auto MAX_SPEED{MotorDriver::MAX_SPEED_RPM};
@@ -125,7 +126,7 @@ namespace Tests {
                                      -MAX_SPEED / 2,
                                      -MAX_SPEED,
                                      -MAX_SPEED / 2}) {
-                motor_driver(speed, 1);
+                //    motor_driver(speed, 1);
                 HAL_Delay(1000);
             }
         }
@@ -185,7 +186,7 @@ namespace Tests {
                         MPU6050::AccelRange::ACCEL_FS_2,
                         8000U};
 
-        auto kalman{Filters::make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
+        auto kalman{make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
 
         auto const sampling_time{1.0f / 8000.0f};
 
