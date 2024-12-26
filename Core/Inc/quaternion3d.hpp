@@ -64,13 +64,10 @@ namespace Linalg {
 
         constexpr Quaternion3D& operator*=(Quaternion3D const& other) noexcept
         {
-            const auto& [left_w, left_x, left_y, left_z] = std::forward_as_tuple(this->w, this->x, this->y, this->z);
-            const auto& [right_w, right_x, right_y, right_z] =
-                std::forward_as_tuple(other.w, other.x, other.y, other.z);
-            this->w = left_w * right_w - left_x * right_x - left_y * right_y - left_z * right_z;
-            this->x = left_w * right_x + left_x * right_w + left_y * right_z - left_z * right_y;
-            this->y = left_w * right_y - left_x * right_z + left_y * right_w + left_z * right_x;
-            this->z = left_w * right_z + left_x * right_y - left_y * right_x + left_z * right_w;
+            this->w = this->w * right.w - this->x * right.x - this->y * right.y - this->z * right.z;
+            this->x = this->w * right.x + this->x * right.w + this->y * right.z - this->z * right.y;
+            this->y = this->w * right.y - this->x * right.z + this->y * right.w + this->z * right.x;
+            this->z = this->w * right.z + this->x * right.y - this->y * right.x + this->z * right.w;
             return *this;
         }
 
@@ -95,15 +92,14 @@ namespace Linalg {
     }
 
     template <Arithmetic Value>
-    constexpr auto operator*(Quaternion3D<Value> const& left, Quaternion3D<Value> const& other) noexcept
+    constexpr auto operator*(Quaternion3D<Value> const& left, Quaternion3D<Value> const& right) noexcept
     {
-        const auto& [left_w, left_x, left_y, left_z] = std::forward_as_tuple(left.w, left.x, left.y, left.z);
-        const auto& [right_w, right_x, right_y, right_z] = std::forward_as_tuple(other.w, other.x, other.y, other.z);
-        return Quaternion3D<Value>{left_w * right_w - left_x * right_x - left_y * right_y - left_z * right_z,
-                                   left_w * right_x + left_x * right_w + left_y * right_z - left_z * right_y,
-                                   left_w * right_y - left_x * right_z + left_y * right_w + left_z * right_x,
-                                   left_w * right_z + left_x * right_y - left_y * right_x + left_z * right_w};
+        return Quaternion3D<Value>{left.w * right.w - left.x * right.x - left.y * right.y - left.z * right.z,
+                                   left.w * right.x + left.x * right.w + left.y * right.z - left.z * right.y,
+                                   left.w * right.y - left.x * right.z + left.y * right.w + left.z * right.x,
+                                   left.w * right.z + left.x * right.y - left.y * right.x + left.z * right.w};
     }
+
 }; // namespace Linalg
 
 #endif // QUATERNION3D_HPP
