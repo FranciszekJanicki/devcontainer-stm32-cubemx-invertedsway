@@ -78,8 +78,7 @@ int main()
     HAL_Init();
     SystemClock_Config();
 
-    /* most important test */
-    test_kalman();
+    test_mpu();
 
     return 0;
 }

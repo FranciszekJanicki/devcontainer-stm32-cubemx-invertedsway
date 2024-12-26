@@ -515,12 +515,6 @@ namespace InvertedSway {
                                    std::uint8_t const read_position,
                                    std::size_t const read_size) const noexcept;
 
-        void set_fifo_enabled(bool const enabled) const noexcept;
-        void set_i2c_master_mode_enabled(bool const enabled) const noexcept;
-        void reset_fifo() const noexcept;
-        void reset_i2c_master() const noexcept;
-        void reset_sensors() const noexcept;
-
         /* celsius */
         [[nodiscard]] Scaled get_temperature_celsius() const noexcept;
 
@@ -561,7 +555,7 @@ namespace InvertedSway {
         bool is_valid_device_id() const noexcept;
 
         void initialize(std::uint32_t const sampling_rate) noexcept;
-        void initialize_main(std::uint32_t const sampling_rate) const noexcept;
+        void initialize_base(std::uint32_t const sampling_rate) const noexcept;
         void initialize_interrupt() const noexcept;
         void initialize_motion_interrupt() const noexcept;
         void deinitialize() noexcept;
@@ -684,6 +678,12 @@ namespace InvertedSway {
         void set_accel_power_on_delay(Delay const delay) const noexcept;
         void set_free_fall_detection_counter_decrement(DetectDecrement const decrement) const noexcept;
         void set_motion_detection_counter_decrement(DetectDecrement const decrement) const noexcept;
+
+        void set_fifo_enabled(bool const enabled) const noexcept;
+        void set_i2c_master_mode_enabled(bool const enabled) const noexcept;
+        void reset_fifo() const noexcept;
+        void reset_i2c_master() const noexcept;
+        void reset_sensors() const noexcept;
 
         void device_reset() const noexcept;
         void set_clock_source(Clock const source) const noexcept;
