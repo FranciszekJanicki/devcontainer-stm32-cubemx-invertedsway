@@ -50,6 +50,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Src/balance_sway.cpp"
     "Core/Src/i2c_driver.cpp"
     "Core/Src/mpu6050_dmp.cpp"
+    "Core/Inc/i2c_driver_sigma.hpp"
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE

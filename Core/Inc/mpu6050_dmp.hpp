@@ -43,7 +43,7 @@ namespace InvertedSway {
 
         AccelScaled get_acceleration_scaled() const noexcept;
         GyroScaled get_rotation_scaled() const noexcept;
-        RollPitchYaw get_roll_pitch_yaw_scaled() const noexcept;
+        RollPitchYaw get_roll_pitch_yaw() const noexcept;
 
     private:
         static constexpr std::uint8_t DMP_MEMORY_BANKS{8};

@@ -561,9 +561,8 @@ namespace InvertedSway {
         bool is_valid_device_id() const noexcept;
 
         void initialize(std::uint32_t const sampling_rate) noexcept;
-        void initialize_main() const noexcept;
+        void initialize_main(std::uint32_t const sampling_rate) const noexcept;
         void initialize_interrupt() const noexcept;
-        void initialize_rest(std::uint32_t const sampling_rate) const noexcept;
         void initialize_motion_interrupt() const noexcept;
         void deinitialize() noexcept;
 

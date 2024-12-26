@@ -66,16 +66,13 @@ namespace InvertedSway {
 
     std::uint8_t MPU6050::get_sampling_divider(std::uint32_t const sampling_rate, DLPF const dlpf) noexcept
     {
-        if (dlpf == DLPF::BW_256) {
-            return static_cast<std::uint8_t>((GYRO_OUTPUT_RATE_DLPF_DIS_HZ / sampling_rate) - 1U);
-        } else {
-            return static_cast<std::uint8_t>((GYRO_OUTPUT_RATE_DLPF_EN_HZ / sampling_rate) - 1U);
-        }
+        return static_cast<std::uint8_t>(
+            ((dlpf == DLPF::BW_256 ? GYRO_OUTPUT_RATE_DLPF_DIS_HZ : GYRO_OUTPUT_RATE_DLPF_EN_HZ) / sampling_rate) - 1U);
     }
 
     Scaled MPU6050::temp_raw_to_scaled(Raw const temp_raw) noexcept
     {
-        return static_cast<Scaled>(temp_raw) / 340 + 36.53;
+        return static_cast<Scaled>(temp_raw) / 340.0f + 36.53f;
     }
 
     AccelScaled MPU6050::accel_raw_to_scaled(AccelRaw const accel_raw, AccelRange const accel_range) noexcept
@@ -109,7 +106,7 @@ namespace InvertedSway {
         return RollPitchYaw{
             std::atan2(accel_scaled.y, accel_scaled.z) * 180.0f / PI,
             -(std::atan2(accel_scaled.x, std::sqrt(accel_scaled.y * accel_scaled.y + accel_scaled.z * accel_scaled.z)) *
-              180.0) /
+              180.0f) /
                 PI,
             {}};
     }
@@ -373,33 +370,27 @@ namespace InvertedSway {
     {
         if (this->is_valid_device_id()) {
             this->device_reset();
-            this->initialize_main();
-            this->initialize_rest(sampling_rate);
+            this->initialize_main(sampling_rate);
             this->initialize_interrupt();
             this->initialize_motion_interrupt();
             this->initialized_ = true;
         }
     }
 
-    void MPU6050::initialize_main() const noexcept
+    void MPU6050::initialize_main(std::uint32_t const sampling_rate) const noexcept
     {
-        this->set_clock_source(Clock::PLL_XGYRO);
+        this->set_sleep_enabled(false);
+        // this->set_clock_source(Clock::INTERNAL);
+        this->set_sampling_rate(sampling_rate, DLPF::BW_256);
+        this->set_dlpf_mode(DLPF::BW_256);
         this->set_full_scale_gyro_range(this->gyro_range_);
         this->set_full_scale_accel_range(this->accel_range_);
-        this->set_sleep_enabled(false);
-    }
-
-    void MPU6050::initialize_rest(std::uint32_t const sampling_rate) const noexcept
-    {
-        this->set_sampling_rate(sampling_rate, DLPF::BW_42);
-        this->set_dlpf_mode(DLPF::BW_42);
-        this->set_external_frame_sync(ExtSync::TEMP_OUT_L);
     }
 
     void MPU6050::initialize_interrupt() const noexcept
     {
         this->set_interrupt_mode(IntrMode::ACTIVEHIGH);
-        this->set_interrupt_drive(IntrDrive::PUSHPULL);
+        // this->set_interrupt_drive(IntrDrive::PUSHPULL);
         this->set_interrupt_latch(IntrLatch::PULSE50US);
         this->set_interrupt_latch_clear(IntrClear::ANYREAD);
         this->set_int_data_ready_enabled(true);
@@ -407,7 +398,6 @@ namespace InvertedSway {
 
     void MPU6050::initialize_motion_interrupt() const noexcept
     {
-        // Motion interrputs
         // this->set_dhpf_mode(DHPF_5);
         // this->set_int_motion_enabled(true);
         // this->set_int_zero_motion_enabled(true);
