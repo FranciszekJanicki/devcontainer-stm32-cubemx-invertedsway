@@ -462,11 +462,13 @@ namespace InvertedSway {
 
         MPU6050() noexcept = default;
 
-        MPU6050(I2CHandle const i2c_bus,
+        MPU6050(I2CBusHandle const i2c_bus,
                 DevAddress const device_address,
+                std::uint32_t const sampling_rate,
                 GyroRange const gyro_range,
                 AccelRange const accel_range,
-                std::uint32_t const sampling_rate) noexcept;
+                DLPF const dlpf,
+                DHPF const dhpf) noexcept;
 
         MPU6050(MPU6050 const& other) noexcept = delete;
         MPU6050(MPU6050&& other) noexcept = default;
@@ -541,11 +543,11 @@ namespace InvertedSway {
         static std::uint8_t get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept;
 
         static Scaled temp_raw_to_scaled(Raw const temp_raw) noexcept;
-        static AccelScaled accel_raw_to_scaled(AccelRaw const accel_raw, AccelRange const accel_range) noexcept;
-        static Scaled accel_raw_to_scaled(Raw const accel_raw, AccelRange const accel_range) noexcept;
-        static GyroScaled gyro_raw_to_scaled(GyroRaw const gyro_raw, GyroRange const gyro_range) noexcept;
-        static Scaled gyro_raw_to_scaled(Raw const gyro_raw, GyroRange const gyro_range) noexcept;
-        static RollPitchYaw accel_to_rpy(AccelScaled const accel_scaled) noexcept;
+        static AccelScaled accel_raw_to_scaled(AccelRaw const accel_raw, Scaled const accel_scale) noexcept;
+        static Scaled accel_raw_to_scaled(Raw const accel_raw, Scaled const accel_scale) noexcept;
+        static GyroScaled gyro_raw_to_scaled(GyroRaw const gyro_raw, Scaled const gyro_scale) noexcept;
+        static Scaled gyro_raw_to_scaled(Raw const gyro_raw, Scaled const gyro_scale) noexcept;
+        static RollPitchYaw accel_scaled_to_rpy(AccelScaled const accel_scaled) noexcept;
 
         static constexpr Scaled PI{3.1415f};
         static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_EN_HZ{1000};
@@ -554,8 +556,13 @@ namespace InvertedSway {
 
         bool is_valid_device_id() const noexcept;
 
-        void initialize(std::uint32_t const sampling_rate) noexcept;
-        void initialize_base(std::uint32_t const sampling_rate) const noexcept;
+        void initialize(std::uint32_t const sampling_rate,
+                        GyroRange const gyro_range,
+                        AccelRange const accel_range,
+                        DLPF const dlpf,
+                        DHPF const dhpf) noexcept;
+        void initialize_base(GyroRange const gyro_range, AccelRange const accel_range) const noexcept;
+        void initialize_rest(std::uint32_t const sampling_rate, DLPF const dlpf, DHPF const dhpf) const noexcept;
         void initialize_interrupt() const noexcept;
         void initialize_motion_interrupt() const noexcept;
         void deinitialize() noexcept;
@@ -710,11 +717,11 @@ namespace InvertedSway {
 
         bool initialized_{false};
 
-        I2CHandle i2c_bus_{nullptr};
+        I2CBusHandle i2c_bus_{nullptr};
         DevAddress device_address_{};
 
-        GyroRange gyro_range_{};
-        AccelRange accel_range_{};
+        Scaled gyro_scale_{};
+        Scaled accel_scale_{};
     };
 
 }; // namespace InvertedSway

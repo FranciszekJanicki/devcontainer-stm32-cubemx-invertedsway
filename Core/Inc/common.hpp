@@ -17,7 +17,7 @@ namespace InvertedSway {
     using TimerHandle = TIM_HandleTypeDef*;
     using GPIOHandle = GPIO_TypeDef*;
     using UARTHandle = UART_HandleTypeDef*;
-    using I2CHandle = I2C_HandleTypeDef*;
+    using I2CBusHandle = I2C_HandleTypeDef*;
 
 }; // namespace InvertedSway
 

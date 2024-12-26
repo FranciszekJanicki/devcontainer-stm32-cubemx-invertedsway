@@ -4,6 +4,7 @@
 #include "filters.hpp"
 #include "gpio.h"
 #include "i2c.h"
+#include "i2c_driver_sigma.hpp"
 #include "l298n.hpp"
 #include "main.h"
 #include "motor.hpp"
@@ -41,11 +42,6 @@ namespace Tests {
 
         Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
 
-        using Direction = Motor::Direction;
-
-        motor.set_compare_min();
-        motor.set_fast_stop();
-
         while (true) {
             for (auto const voltage : {0.0f, 3.0f, 6.0f, 3.0f, 0.0f, -3.0f, -6.0f, -3.0f}) {
                 if (voltage > 0.0f) {
@@ -60,9 +56,6 @@ namespace Tests {
                 HAL_Delay(1000);
             }
         }
-
-        motor.set_compare_min();
-        motor.set_fast_stop();
     }
 
     void MOTOR_BOOST_TEST() noexcept
@@ -73,11 +66,6 @@ namespace Tests {
 
         Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
         float const voltage_start_threshold{1.0f};
-
-        using Direction = Motor::Direction;
-
-        motor.set_compare_min();
-        motor.set_fast_stop();
 
         while (true) {
             auto last_voltage{0.0f};
@@ -100,9 +88,6 @@ namespace Tests {
                 HAL_Delay(1000);
             }
         }
-
-        motor.set_compare_min();
-        motor.set_fast_stop();
     }
 
     void MOTOR_DRIVER_TEST() noexcept
@@ -143,9 +128,11 @@ namespace Tests {
 
         MPU6050 mpu6050{&hi2c1,
                         MPU6050::DevAddress::AD0_LOW,
+                        8000U,
                         MPU6050::GyroRange::GYRO_FS_250,
                         MPU6050::AccelRange::ACCEL_FS_2,
-                        8000U};
+                        MPU6050::DLPF::BW_256,
+                        MPU6050::DHPF::DHPF_RESET};
 
         while (true) {
             // if (/*sampling_timer_elapsed*/ HAL_GPIO_ReadPin(MPU6050_INTR_GPIO_Port, MPU6050_INTR_Pin) ==
@@ -167,10 +154,11 @@ namespace Tests {
 
         MPU6050 mpu6050{&hi2c1,
                         MPU6050::DevAddress::AD0_LOW,
+                        8000U,
                         MPU6050::GyroRange::GYRO_FS_250,
                         MPU6050::AccelRange::ACCEL_FS_2,
-                        8000U};
-
+                        MPU6050::DLPF::BW_256,
+                        MPU6050::DHPF::DHPF_RESET};
         MPU6050_DMP mpu6050_dmp{std::move(mpu6050)};
 
         while (true) {
@@ -192,12 +180,12 @@ namespace Tests {
 
         MPU6050 mpu6050{&hi2c1,
                         MPU6050::DevAddress::AD0_LOW,
+                        8000U,
                         MPU6050::GyroRange::GYRO_FS_250,
                         MPU6050::AccelRange::ACCEL_FS_2,
-                        8000U};
-
+                        MPU6050::DLPF::BW_256,
+                        MPU6050::DHPF::DHPF_RESET};
         auto kalman{make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
-
         auto const sampling_time{1.0f / 8000.0f};
 
         while (true) {
@@ -221,9 +209,6 @@ namespace Tests {
         Encoder encoder{&htim3};
         Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
 
-        motor.set_compare_min();
-        motor.set_fast_stop();
-
         while (true) {
             float const angle = encoder.get_angle().value();
 
@@ -236,9 +221,6 @@ namespace Tests {
             printf("encoder angle: %f\n\r", angle);
             HAL_Delay(100);
         }
-
-        motor.set_compare_min();
-        motor.set_fast_stop();
     }
 
     void DUTKIEWICZ_TEST() noexcept

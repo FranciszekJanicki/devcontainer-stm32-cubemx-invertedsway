@@ -7,14 +7,14 @@ namespace I2CDriver {
 
     constexpr auto I2C_TIMEOUT{1000};
 
-    void write_dwords(I2CHandle const i2c_bus,
+    void write_dwords(I2CBusHandle const i2c_bus,
                       std::uint16_t const dev_address,
                       std::uint8_t const reg_address,
                       std::uint16_t* write_data,
                       std::size_t const write_size) noexcept
     {}
 
-    void write_dword(I2CHandle const i2c_bus,
+    void write_dword(I2CBusHandle const i2c_bus,
                      std::uint16_t const dev_address,
                      std::uint8_t const reg_address,
                      std::uint16_t write_data) noexcept
@@ -22,14 +22,14 @@ namespace I2CDriver {
         write_dwords(i2c_bus, dev_address, reg_address, &write_data, sizeof(write_data));
     }
 
-    void write_words(I2CHandle const i2c_bus,
+    void write_words(I2CBusHandle const i2c_bus,
                      std::uint16_t const dev_address,
                      std::uint8_t const reg_address,
                      std::uint16_t* write_data,
                      std::size_t const write_size) noexcept
     {}
 
-    void write_word(I2CHandle const i2c_bus,
+    void write_word(I2CBusHandle const i2c_bus,
                     std::uint16_t const dev_address,
                     std::uint8_t const reg_address,
                     std::uint16_t write_data) noexcept
@@ -37,7 +37,7 @@ namespace I2CDriver {
         write_words(i2c_bus, dev_address, reg_address, &write_data, sizeof(write_data));
     }
 
-    void write_bytes(I2CHandle const i2c_bus,
+    void write_bytes(I2CBusHandle const i2c_bus,
                      std::uint16_t const dev_address,
                      std::uint8_t const reg_address,
                      std::uint8_t* write_data,
@@ -52,7 +52,7 @@ namespace I2CDriver {
                           I2C_TIMEOUT);
     }
 
-    void write_byte(I2CHandle const i2c_bus,
+    void write_byte(I2CBusHandle const i2c_bus,
                     std::uint16_t const dev_address,
                     std::uint8_t const reg_address,
                     std::uint8_t write_data) noexcept
@@ -60,7 +60,7 @@ namespace I2CDriver {
         write_bytes(i2c_bus, dev_address, reg_address, &write_data, sizeof(write_data));
     }
 
-    void write_bit(I2CHandle const i2c_bus,
+    void write_bit(I2CBusHandle const i2c_bus,
                    std::uint16_t const dev_address,
                    std::uint8_t const reg_address,
                    bool const write_data,
@@ -76,7 +76,7 @@ namespace I2CDriver {
         write_byte(i2c_bus, dev_address, reg_address, write);
     }
 
-    void write_bits(I2CHandle const i2c_bus,
+    void write_bits(I2CBusHandle const i2c_bus,
                     std::uint16_t const dev_address,
                     std::uint8_t const reg_address,
                     std::uint8_t const write_data,
@@ -94,7 +94,7 @@ namespace I2CDriver {
         write_byte(i2c_bus, dev_address, reg_address, write);
     }
 
-    void read_dwords(I2CHandle const i2c_bus,
+    void read_dwords(I2CBusHandle const i2c_bus,
                      std::uint16_t const dev_address,
                      std::uint8_t const reg_address,
                      std::uint32_t* read_data,
@@ -102,10 +102,10 @@ namespace I2CDriver {
     {}
 
     std::uint32_t
-    read_dword(I2CHandle const i2c_bus, std::uint16_t const dev_address, std::uint8_t const reg_address) noexcept
+    read_dword(I2CBusHandle const i2c_bus, std::uint16_t const dev_address, std::uint8_t const reg_address) noexcept
     {}
 
-    void read_words(I2CHandle const i2c_bus,
+    void read_words(I2CBusHandle const i2c_bus,
                     std::uint16_t const dev_address,
                     std::uint8_t const reg_address,
                     std::uint16_t* read_data,
@@ -113,7 +113,7 @@ namespace I2CDriver {
     {}
 
     std::uint16_t
-    read_word(I2CHandle const i2c_bus, std::uint16_t const dev_address, std::uint8_t const reg_address) noexcept
+    read_word(I2CBusHandle const i2c_bus, std::uint16_t const dev_address, std::uint8_t const reg_address) noexcept
     {
         std::uint16_t read;
         read_words(i2c_bus, dev_address, reg_address, &read, sizeof(read));
@@ -121,7 +121,7 @@ namespace I2CDriver {
         return read;
     }
 
-    void read_bytes(I2CHandle const i2c_bus,
+    void read_bytes(I2CBusHandle const i2c_bus,
                     std::uint16_t const dev_address,
                     std::uint8_t const reg_address,
                     std::uint8_t* read_data,
@@ -137,7 +137,7 @@ namespace I2CDriver {
     }
 
     std::uint8_t
-    read_byte(I2CHandle const i2c_bus, std::uint16_t const dev_address, std::uint8_t const reg_address) noexcept
+    read_byte(I2CBusHandle const i2c_bus, std::uint16_t const dev_address, std::uint8_t const reg_address) noexcept
     {
         std::uint8_t read;
         read_bytes(i2c_bus, dev_address, reg_address, &read, sizeof(read));
@@ -145,7 +145,7 @@ namespace I2CDriver {
         return read;
     }
 
-    bool read_bit(I2CHandle const i2c_bus,
+    bool read_bit(I2CBusHandle const i2c_bus,
                   std::uint16_t const dev_address,
                   std::uint8_t const reg_address,
                   std::uint8_t const read_position) noexcept
@@ -153,7 +153,7 @@ namespace I2CDriver {
         return read_byte(i2c_bus, dev_address, reg_address) & (1 << read_position);
     }
 
-    std::uint8_t read_bits(I2CHandle const i2c_bus,
+    std::uint8_t read_bits(I2CBusHandle const i2c_bus,
                            std::uint16_t const dev_address,
                            std::uint8_t const reg_address,
                            std::uint8_t const read_position,

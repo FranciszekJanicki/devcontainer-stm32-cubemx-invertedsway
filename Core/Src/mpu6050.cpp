@@ -75,33 +75,31 @@ namespace InvertedSway {
         return static_cast<Scaled>(temp_raw) / 340.0f + 36.53f;
     }
 
-    AccelScaled MPU6050::accel_raw_to_scaled(AccelRaw const accel_raw, AccelRange const accel_range) noexcept
+    AccelScaled MPU6050::accel_raw_to_scaled(AccelRaw const accel_raw, Scaled const accel_scale) noexcept
     {
-        Scaled const scale{accel_range_to_scale(accel_range)};
-        return AccelScaled{static_cast<Scaled>(accel_raw.x) / scale,
-                           static_cast<Scaled>(accel_raw.y) / scale,
-                           static_cast<Scaled>(accel_raw.z) / scale};
+        return AccelScaled{static_cast<Scaled>(accel_raw.x) / accel_scale,
+                           static_cast<Scaled>(accel_raw.y) / accel_scale,
+                           static_cast<Scaled>(accel_raw.z) / accel_scale};
     }
 
-    Scaled MPU6050::accel_raw_to_scaled(Raw const accel_raw, AccelRange const accel_range) noexcept
+    Scaled MPU6050::accel_raw_to_scaled(Raw const accel_raw, Scaled const accel_scale) noexcept
     {
-        return static_cast<Scaled>(accel_raw) / accel_range_to_scale(accel_range);
+        return static_cast<Scaled>(accel_raw) / accel_scale;
     }
 
-    GyroScaled MPU6050::gyro_raw_to_scaled(GyroRaw const gyro_raw, GyroRange const gyro_range) noexcept
+    GyroScaled MPU6050::gyro_raw_to_scaled(GyroRaw const gyro_raw, Scaled const gyro_scale) noexcept
     {
-        Scaled const scale{gyro_range_to_scale(gyro_range)};
-        return GyroScaled{static_cast<Scaled>(gyro_raw.x) / scale,
-                          static_cast<Scaled>(gyro_raw.y) / scale,
-                          static_cast<Scaled>(gyro_raw.z) / scale};
+        return GyroScaled{static_cast<Scaled>(gyro_raw.x) / gyro_scale,
+                          static_cast<Scaled>(gyro_raw.y) / gyro_scale,
+                          static_cast<Scaled>(gyro_raw.z) / gyro_scale};
     }
 
-    Scaled MPU6050::gyro_raw_to_scaled(Raw const gyro_raw, GyroRange const gyro_range) noexcept
+    Scaled MPU6050::gyro_raw_to_scaled(Raw const gyro_raw, Scaled const gyro_scale) noexcept
     {
-        return static_cast<Scaled>(gyro_raw) / gyro_range_to_scale(gyro_range);
+        return static_cast<Scaled>(gyro_raw) / gyro_scale;
     }
 
-    RollPitchYaw MPU6050::accel_to_rpy(AccelScaled const accel_scaled) noexcept
+    RollPitchYaw MPU6050::accel_scaled_to_rpy(AccelScaled const accel_scaled) noexcept
     {
         return RollPitchYaw{
             std::atan2(accel_scaled.y, accel_scaled.z) * 180.0f / PI,
@@ -111,14 +109,19 @@ namespace InvertedSway {
             {}};
     }
 
-    MPU6050::MPU6050(I2CHandle const i2c_bus,
+    MPU6050::MPU6050(I2CBusHandle const i2c_bus,
                      DevAddress const device_address,
+                     std::uint32_t const sampling_rate,
                      GyroRange const gyro_range,
                      AccelRange const accel_range,
-                     std::uint32_t const sampling_rate) noexcept :
-        i2c_bus_{i2c_bus}, device_address_{device_address}, gyro_range_{gyro_range}, accel_range_{accel_range}
+                     DLPF const dlpf,
+                     DHPF const dhpf) noexcept :
+        i2c_bus_{i2c_bus},
+        device_address_{device_address},
+        gyro_scale_{gyro_range_to_scale(gyro_range)},
+        accel_scale_{accel_range_to_scale(accel_range)}
     {
-        this->initialize(sampling_rate);
+        this->initialize(sampling_rate, gyro_range, accel_range, dlpf, dhpf);
     }
 
     MPU6050::~MPU6050() noexcept
@@ -141,7 +144,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return accel_raw_to_scaled(this->get_acceleration_x_raw(), this->accel_range_);
+        return accel_raw_to_scaled(this->get_acceleration_x_raw(), this->accel_scale_);
     }
 
     Scaled MPU6050::get_acceleration_y_scaled() const noexcept
@@ -150,7 +153,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return accel_raw_to_scaled(this->get_acceleration_y_raw(), this->accel_range_);
+        return accel_raw_to_scaled(this->get_acceleration_y_raw(), this->accel_scale_);
     }
 
     Scaled MPU6050::get_acceleration_z_scaled() const noexcept
@@ -159,7 +162,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return accel_raw_to_scaled(this->get_acceleration_z_raw(), this->accel_range_);
+        return accel_raw_to_scaled(this->get_acceleration_z_raw(), this->accel_scale_);
     }
 
     AccelScaled MPU6050::get_acceleration_scaled() const noexcept
@@ -168,7 +171,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return accel_raw_to_scaled(this->get_acceleration_raw(), this->accel_range_);
+        return accel_raw_to_scaled(this->get_acceleration_raw(), this->accel_scale_);
     }
 
     Scaled MPU6050::get_rotation_x_scaled() const noexcept
@@ -177,7 +180,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return gyro_raw_to_scaled(this->get_rotation_x_raw(), this->gyro_range_);
+        return gyro_raw_to_scaled(this->get_rotation_x_raw(), this->gyro_scale_);
     }
 
     Scaled MPU6050::get_rotation_y_scaled() const noexcept
@@ -186,7 +189,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return gyro_raw_to_scaled(this->get_rotation_y_raw(), this->gyro_range_);
+        return gyro_raw_to_scaled(this->get_rotation_y_raw(), this->gyro_scale_);
     }
 
     Scaled MPU6050::get_rotation_z_scaled() const noexcept
@@ -195,7 +198,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return gyro_raw_to_scaled(this->get_rotation_z_raw(), this->gyro_range_);
+        return gyro_raw_to_scaled(this->get_rotation_z_raw(), this->gyro_scale_);
     }
 
     GyroScaled MPU6050::get_rotation_scaled() const noexcept
@@ -204,7 +207,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return gyro_raw_to_scaled(this->get_rotation_raw(), this->gyro_range_);
+        return gyro_raw_to_scaled(this->get_rotation_raw(), this->gyro_scale_);
     }
 
     RollPitchYaw MPU6050::get_roll_pitch_yaw() const noexcept
@@ -213,7 +216,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return accel_to_rpy(get_acceleration_scaled());
+        return accel_scaled_to_rpy(get_acceleration_scaled());
     }
 
     Scaled MPU6050::get_roll() const noexcept
@@ -222,7 +225,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return accel_to_rpy(get_acceleration_scaled()).x;
+        return accel_scaled_to_rpy(get_acceleration_scaled()).x;
     }
 
     Scaled MPU6050::get_pitch() const noexcept
@@ -231,7 +234,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return accel_to_rpy(get_acceleration_scaled()).y;
+        return accel_scaled_to_rpy(get_acceleration_scaled()).y;
     }
 
     Scaled MPU6050::get_yaw() const noexcept
@@ -240,7 +243,7 @@ namespace InvertedSway {
             std::unreachable();
         }
 
-        return accel_to_rpy(get_acceleration_scaled()).z;
+        return accel_scaled_to_rpy(get_acceleration_scaled()).z;
     }
 
     void MPU6050::i2c_write_words(RegAddress const reg_address,
@@ -366,44 +369,45 @@ namespace InvertedSway {
         return this->get_device_id() == std::to_underlying(this->device_address_);
     }
 
-    void MPU6050::initialize(std::uint32_t const sampling_rate) noexcept
+    void MPU6050::initialize(std::uint32_t const sampling_rate,
+                             GyroRange const gyro_range,
+                             AccelRange const accel_range,
+                             DLPF const dlpf,
+                             DHPF const dhpf) noexcept
     {
         if (this->is_valid_device_id()) {
-            // this->device_reset();
-            // this->initialize_base(sampling_rate);
-            // this->initialize_interrupt();
-            // this->initialize_motion_interrupt();
-
-            this->i2c_write_byte(RegAddress::PWR_MGMT_1, 0x01 << 7);
-            this->i2c_write_byte(RegAddress::PWR_MGMT_1, 0x00);
-            this->i2c_write_byte(RegAddress::SMPLRT_DIV, 39);
-            this->i2c_write_byte(RegAddress::CONFIG, 0x00);
-            this->i2c_write_byte(RegAddress::ACCEL_CONFIG, 0);
-            this->i2c_write_byte(RegAddress::GYRO_CONFIG, 0);
-            this->i2c_write_byte(RegAddress::INT_PIN_CFG, (0 << 7) | (0 << 5) | (1 << 4));
-            this->i2c_write_byte(RegAddress::INT_ENABLE, 0x01);
-
+            this->device_reset();
+            this->initialize_base(gyro_range, accel_range);
+            this->initialize_rest(sampling_rate, dlpf, dhpf);
+            this->initialize_interrupt();
+            this->initialize_motion_interrupt();
             this->initialized_ = true;
         }
     }
 
-    void MPU6050::initialize_base(std::uint32_t const sampling_rate) const noexcept
+    void MPU6050::initialize_base(GyroRange const gyro_range, AccelRange const accel_range) const noexcept
     {
         this->set_sleep_enabled(false);
-        // this->set_clock_source(Clock::INTERNAL);HAL_Delay(100);
-        this->set_sampling_rate(sampling_rate, DLPF::BW_256);
-        this->set_dlpf_mode(DLPF::BW_256);
-        this->set_full_scale_gyro_range(this->gyro_range_);
-        this->set_full_scale_accel_range(this->accel_range_);
+        this->set_clock_source(Clock::INTERNAL);
+        this->set_full_scale_gyro_range(gyro_range);
+        this->set_full_scale_accel_range(accel_range);
+    }
+
+    void MPU6050::initialize_rest(std::uint32_t const sampling_rate, DLPF const dlpf, DHPF const dhpf) const noexcept
+    {
+        this->set_sampling_rate(sampling_rate, dlpf);
+        this->set_dlpf_mode(dlpf);
+        this->set_dhpf_mode(dhpf);
+        this->set_external_frame_sync(ExtSync::DISABLED);
     }
 
     void MPU6050::initialize_interrupt() const noexcept
     {
         this->set_interrupt_mode(IntrMode::ACTIVEHIGH);
-        // this->set_interrupt_drive(IntrDrive::PUSHPULL);
+        this->set_interrupt_drive(IntrDrive::PUSHPULL);
         this->set_interrupt_latch(IntrLatch::PULSE50US);
         this->set_interrupt_latch_clear(IntrClear::ANYREAD);
-        this->set_int_enabled(1);
+        this->set_int_data_ready_enabled(true);
     }
 
     void MPU6050::initialize_motion_interrupt() const noexcept

@@ -41,9 +41,11 @@ void balance_sway()
 
     MPU6050 mpu6050{&hi2c1,
                     MPU6050::DevAddress::AD0_LOW,
+                    sampling_rate_hz,
                     MPU6050::GyroRange::GYRO_FS_250,
                     MPU6050::AccelRange::ACCEL_FS_2,
-                    sampling_rate_hz};
+                    MPU6050::DLPF::BW_256,
+                    MPU6050::DHPF::DHPF_RESET};
 
     auto kalman{make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
 
