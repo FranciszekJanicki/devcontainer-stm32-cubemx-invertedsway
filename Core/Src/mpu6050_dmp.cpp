@@ -66,141 +66,160 @@ namespace InvertedSway {
 
     bool MPU6050_DMP::get_otp_bank_valid() const noexcept
     {
-        return this->mpu6050_.i2c_read_bit(RegAddress::XG_OFFS_TC, std::to_underlying(TC::OTP_BNK_VLD_BIT));
+        return this->mpu6050_.i2c_device_.read_bit(std::to_underlying(RegAddress::XG_OFFS_TC),
+                                                   std::to_underlying(TC::OTP_BNK_VLD_BIT));
     }
 
     void MPU6050_DMP::set_otp_bank_valid(bool const valid) const noexcept
     {
-        this->mpu6050_.i2c_write_bit(RegAddress::XG_OFFS_TC, valid, std::to_underlying(TC::OTP_BNK_VLD_BIT));
+        this->mpu6050_.i2c_device_.write_bit(std::to_underlying(RegAddress::XG_OFFS_TC),
+                                             valid,
+                                             std::to_underlying(TC::OTP_BNK_VLD_BIT));
     }
 
     void MPU6050_DMP::set_gyro_x_offset_tc(std::uint8_t const offset) const noexcept
     {
-        this->mpu6050_.i2c_write_bits(RegAddress::XG_OFFS_TC,
-                                      offset,
-                                      std::to_underlying(TC::OFFSET_BIT),
-                                      std::to_underlying(TC::OFFSET_LENGTH));
+        this->mpu6050_.i2c_device_.write_bits(std::to_underlying(RegAddress::XG_OFFS_TC),
+                                              offset,
+                                              std::to_underlying(TC::OFFSET_BIT),
+                                              std::to_underlying(TC::OFFSET_LENGTH));
     }
 
     void MPU6050_DMP::set_gyro_y_offset_tc(std::uint8_t const offset) const noexcept
     {
-        this->mpu6050_.i2c_write_bits(RegAddress::YG_OFFS_TC,
-                                      offset,
-                                      std::to_underlying(TC::OFFSET_BIT),
-                                      std::to_underlying(TC::OFFSET_LENGTH));
+        this->mpu6050_.i2c_device_.write_bits(std::to_underlying(RegAddress::YG_OFFS_TC),
+                                              offset,
+                                              std::to_underlying(TC::OFFSET_BIT),
+                                              std::to_underlying(TC::OFFSET_LENGTH));
     }
 
     void MPU6050_DMP::set_gyro_z_offset_tc(std::uint8_t const offset) const noexcept
     {
-        this->mpu6050_.i2c_write_bits(RegAddress::ZG_OFFS_TC,
-                                      offset,
-                                      std::to_underlying(TC::OFFSET_BIT),
-                                      std::to_underlying(TC::OFFSET_LENGTH));
+        this->mpu6050_.i2c_device_.write_bits(std::to_underlying(RegAddress::ZG_OFFS_TC),
+                                              offset,
+                                              std::to_underlying(TC::OFFSET_BIT),
+                                              std::to_underlying(TC::OFFSET_LENGTH));
     }
 
     void MPU6050_DMP::set_x_fine_gain(std::uint8_t const gain) const noexcept
     {
-        this->mpu6050_.i2c_write_byte(RegAddress::X_FINE_GAIN, gain);
+        this->mpu6050_.i2c_device_.write_byte(std::to_underlying(RegAddress::X_FINE_GAIN), gain);
     }
 
     void MPU6050_DMP::set_y_fine_gain(std::uint8_t const gain) const noexcept
     {
-        this->mpu6050_.i2c_write_byte(RegAddress::Y_FINE_GAIN, gain);
+        this->mpu6050_.i2c_device_.write_byte(std::to_underlying(RegAddress::Y_FINE_GAIN), gain);
     }
 
     void MPU6050_DMP::set_z_fine_gain(std::uint8_t const gain) const noexcept
     {
-        this->mpu6050_.i2c_write_byte(RegAddress::Z_FINE_GAIN, gain);
+        this->mpu6050_.i2c_device_.write_byte(std::to_underlying(RegAddress::Z_FINE_GAIN), gain);
     }
 
     void MPU6050_DMP::set_accel_x_offset(std::uint16_t const offset) const noexcept
     {
-        this->mpu6050_.i2c_write_word(RegAddress::XA_OFFS_H, offset);
+        this->mpu6050_.i2c_device_.write_word(std::to_underlying(RegAddress::XA_OFFS_H), offset);
     }
 
     void MPU6050_DMP::set_accel_y_offset(std::uint16_t const offset) const noexcept
     {
-        this->mpu6050_.i2c_write_word(RegAddress::YA_OFFS_H, offset);
+        this->mpu6050_.i2c_device_.write_word(std::to_underlying(RegAddress::YA_OFFS_H), offset);
     }
 
     void MPU6050_DMP::set_accel_z_offset(std::uint16_t const offset) const noexcept
     {
-        this->mpu6050_.i2c_write_word(RegAddress::ZA_OFFS_H, offset);
+        this->mpu6050_.i2c_device_.write_word(std::to_underlying(RegAddress::ZA_OFFS_H), offset);
     }
 
     void MPU6050_DMP::set_gyro_x_offset(std::uint16_t const offset) const noexcept
     {
-        this->mpu6050_.i2c_write_word(RegAddress::XG_OFFS_USRH, offset);
+        this->mpu6050_.i2c_device_.write_word(std::to_underlying(RegAddress::XG_OFFS_USRH), offset);
     }
 
     void MPU6050_DMP::set_gyro_y_offset(std::uint16_t const offset) const noexcept
     {
-        this->mpu6050_.i2c_write_word(RegAddress::YG_OFFS_USRH, offset);
+        this->mpu6050_.i2c_device_.write_word(std::to_underlying(RegAddress::YG_OFFS_USRH), offset);
     }
 
     void MPU6050_DMP::set_gyro_z_offset(std::uint16_t const offset) const noexcept
     {
-        this->mpu6050_.i2c_write_word(RegAddress::ZG_OFFS_USRH, offset);
+        this->mpu6050_.i2c_device_.write_word(std::to_underlying(RegAddress::ZG_OFFS_USRH), offset);
     }
 
     void MPU6050_DMP::set_int_pll_ready_enabled(bool const enabled) const noexcept
     {
-        this->mpu6050_.i2c_write_bit(RegAddress::INT_ENABLE, enabled, std::to_underlying(Interrupt::PLL_RDY_INT_BIT));
+        this->mpu6050_.i2c_device_.write_bit(std::to_underlying(RegAddress::INT_ENABLE),
+                                             enabled,
+                                             std::to_underlying(Interrupt::PLL_RDY_INT_BIT));
     }
 
     void MPU6050_DMP::set_int_dmp_enabled(bool const enabled) const noexcept
     {
-        this->mpu6050_.i2c_write_bit(RegAddress::INT_ENABLE, enabled, std::to_underlying(Interrupt::DMP_INT_BIT));
+        this->mpu6050_.i2c_device_.write_bit(std::to_underlying(RegAddress::INT_ENABLE),
+                                             enabled,
+                                             std::to_underlying(Interrupt::DMP_INT_BIT));
     }
 
     bool MPU6050_DMP::get_dmp_int_5_status() const noexcept
     {
-        return this->mpu6050_.i2c_read_bit(RegAddress::DMP_INT_STATUS, std::to_underlying(IntrDMP::DMPINT_5_BIT));
+        return this->mpu6050_.i2c_device_.read_bit(std::to_underlying(RegAddress::DMP_INT_STATUS),
+                                                   std::to_underlying(IntrDMP::DMPINT_5_BIT));
     }
 
     bool MPU6050_DMP::get_dmp_int_4_status() const noexcept
     {
-        return this->mpu6050_.i2c_read_bit(RegAddress::DMP_INT_STATUS, std::to_underlying(IntrDMP::DMPINT_4_BIT));
+        return this->mpu6050_.i2c_device_.read_bit(std::to_underlying(RegAddress::DMP_INT_STATUS),
+                                                   std::to_underlying(IntrDMP::DMPINT_4_BIT));
     }
 
     bool MPU6050_DMP::get_dmp_int_3_status() const noexcept
     {
-        return this->mpu6050_.i2c_read_bit(RegAddress::DMP_INT_STATUS, std::to_underlying(IntrDMP::DMPINT_3_BIT));
+        return this->mpu6050_.i2c_device_.read_bit(std::to_underlying(RegAddress::DMP_INT_STATUS),
+                                                   std::to_underlying(IntrDMP::DMPINT_3_BIT));
     }
 
     bool MPU6050_DMP::get_dmp_int_2_status() const noexcept
     {
-        return this->mpu6050_.i2c_read_bit(RegAddress::DMP_INT_STATUS, std::to_underlying(IntrDMP::DMPINT_2_BIT));
+        return this->mpu6050_.i2c_device_.read_bit(std::to_underlying(RegAddress::DMP_INT_STATUS),
+                                                   std::to_underlying(IntrDMP::DMPINT_2_BIT));
     }
 
     bool MPU6050_DMP::get_dmp_int_1_status() const noexcept
     {
-        return this->mpu6050_.i2c_read_bit(RegAddress::DMP_INT_STATUS, std::to_underlying(IntrDMP::DMPINT_1_BIT));
+        return this->mpu6050_.i2c_device_.read_bit(std::to_underlying(RegAddress::DMP_INT_STATUS),
+                                                   std::to_underlying(IntrDMP::DMPINT_1_BIT));
     }
 
     bool MPU6050_DMP::get_dmp_int_0_status() const noexcept
     {
-        return this->mpu6050_.i2c_read_bit(RegAddress::DMP_INT_STATUS, std::to_underlying(IntrDMP::DMPINT_0_BIT));
+        return this->mpu6050_.i2c_device_.read_bit(std::to_underlying(RegAddress::DMP_INT_STATUS),
+                                                   std::to_underlying(IntrDMP::DMPINT_0_BIT));
     }
 
     bool MPU6050_DMP::get_int_pll_ready_status() const noexcept
     {
-        return this->mpu6050_.i2c_read_bit(RegAddress::INT_STATUS, std::to_underlying(Interrupt::PLL_RDY_INT_BIT));
+        return this->mpu6050_.i2c_device_.read_bit(std::to_underlying(RegAddress::INT_STATUS),
+                                                   std::to_underlying(Interrupt::PLL_RDY_INT_BIT));
     }
 
     bool MPU6050_DMP::get_int_dmp_status() const noexcept
     {
-        return this->mpu6050_.i2c_read_bit(RegAddress::INT_STATUS, std::to_underlying(Interrupt::DMP_INT_BIT));
+        return this->mpu6050_.i2c_device_.read_bit(std::to_underlying(RegAddress::INT_STATUS),
+                                                   std::to_underlying(Interrupt::DMP_INT_BIT));
     }
 
     void MPU6050_DMP::set_dmp_enabled(bool const enabled) const noexcept
     {
-        this->mpu6050_.i2c_write_bit(RegAddress::USER_CTRL, enabled, std::to_underlying(UserCtrl::DMP_EN_BIT));
+        this->mpu6050_.i2c_device_.write_bit(std::to_underlying(RegAddress::USER_CTRL),
+                                             enabled,
+                                             std::to_underlying(UserCtrl::DMP_EN_BIT));
     }
 
     void MPU6050_DMP::reset_dmp() const noexcept
     {
-        this->mpu6050_.i2c_write_bit(RegAddress::USER_CTRL, true, std::to_underlying(UserCtrl::DMP_RESET_BIT));
+        this->mpu6050_.i2c_device_.write_bit(std::to_underlying(RegAddress::USER_CTRL),
+                                             true,
+                                             std::to_underlying(UserCtrl::DMP_RESET_BIT));
     }
 
     void MPU6050_DMP::set_memory_bank(std::uint8_t const bank,
@@ -212,22 +231,22 @@ namespace InvertedSway {
             data |= 0x20;
         if (prefetch_enabled)
             data |= 0x40;
-        this->mpu6050_.i2c_write_byte(RegAddress::BANK_SEL, data);
+        this->mpu6050_.i2c_device_.write_byte(std::to_underlying(RegAddress::BANK_SEL), data);
     }
 
     void MPU6050_DMP::set_memory_start_address(std::uint8_t const address) const noexcept
     {
-        this->mpu6050_.i2c_write_byte(RegAddress::MEM_START_ADDR, address);
+        this->mpu6050_.i2c_device_.write_byte(std::to_underlying(RegAddress::MEM_START_ADDR), address);
     }
 
     std::uint8_t MPU6050_DMP::read_memory_byte() const noexcept
     {
-        return this->mpu6050_.i2c_read_byte(RegAddress::MEM_R_W);
+        return this->mpu6050_.i2c_device_.read_byte(std::to_underlying(RegAddress::MEM_R_W));
     }
 
     void MPU6050_DMP::write_memory_byte(std::uint8_t const data) const noexcept
     {
-        this->mpu6050_.i2c_write_byte(RegAddress::MEM_R_W, data);
+        this->mpu6050_.i2c_device_.write_byte(std::to_underlying(RegAddress::MEM_R_W), data);
     }
 
     void MPU6050_DMP::read_memory_block(std::uint8_t* read_data,
@@ -248,7 +267,7 @@ namespace InvertedSway {
                 chunk_size = 256 - address;
             }
 
-            this->mpu6050_.i2c_read_bytes(RegAddress::MEM_R_W, read_data + i, chunk_size);
+            this->mpu6050_.i2c_device_.read_bytes(std::to_underlying(RegAddress::MEM_R_W), read_data + i, chunk_size);
             i += chunk_size;
             address += chunk_size;
 
@@ -280,7 +299,7 @@ namespace InvertedSway {
                 chunk_size = 256 - address;
             }
 
-            this->mpu6050_.i2c_write_bytes(RegAddress::MEM_R_W, write_data + i, chunk_size);
+            this->mpu6050_.i2c_device_.write_bytes(std::to_underlying(RegAddress::MEM_R_W), write_data + i, chunk_size);
             i += chunk_size;
             address += chunk_size;
 
@@ -306,7 +325,7 @@ namespace InvertedSway {
                 i += length;
             } else {
                 if (write_data[i++] == 0x01) {
-                    this->mpu6050_.i2c_write_byte(RegAddress::INT_ENABLE, 0x32);
+                    this->mpu6050_.i2c_device_.write_byte(std::to_underlying(RegAddress::INT_ENABLE), 0x32);
                 }
             }
         }
@@ -314,12 +333,11 @@ namespace InvertedSway {
 
     void MPU6050_DMP::set_dmp_config1(std::uint8_t const config) const noexcept
     {
-        this->mpu6050_.i2c_write_byte(RegAddress::DMP_CFG_1, config);
+        this->mpu6050_.i2c_device_.write_byte(std::to_underlying(RegAddress::DMP_CFG_1), config);
     }
 
     void MPU6050_DMP::set_dmp_config2(std::uint8_t const config) const noexcept
     {
-        this->mpu6050_.i2c_write_byte(RegAddress::DMP_CFG_2, config);
+        this->mpu6050_.i2c_device_.write_byte(std::to_underlying(RegAddress::DMP_CFG_2), config);
     }
-
 }; // namespace InvertedSway

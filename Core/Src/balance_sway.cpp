@@ -39,9 +39,10 @@ void balance_sway()
 
     L298N l298n{std::move(motor_channels)};
 
-    MPU6050 mpu6050{&hi2c1,
-                    MPU6050::DevAddress::AD0_LOW,
-                    sampling_rate_hz,
+    I2CDevice i2c_mpu_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
+
+    MPU6050 mpu6050{i2c_mpu_device,
+                    8000U,
                     MPU6050::GyroRange::GYRO_FS_250,
                     MPU6050::AccelRange::ACCEL_FS_2,
                     MPU6050::DLPF::BW_256,

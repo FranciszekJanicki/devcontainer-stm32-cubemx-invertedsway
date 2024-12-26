@@ -100,6 +100,14 @@ namespace Linalg {
             return *this;
         }
 
+        template <Arithmetic Converted>
+        [[nodiscard]] explicit constexpr operator Vector3D<Converted>() const noexcept
+        {
+            return Vector3D<Converted>{static_cast<Converted>(this->x),
+                                       static_cast<Converted>(this->y),
+                                       static_cast<Converted>(this->z)};
+        }
+
         [[nodiscard]] constexpr bool operator<=>(Vector3D const& other) const noexcept = default;
 
         Value x{};

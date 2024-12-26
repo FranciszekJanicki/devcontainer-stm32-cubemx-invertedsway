@@ -2,6 +2,7 @@
 #define MPU6050_HPP
 
 #include "common.hpp"
+#include "i2c_driver_sigma.hpp"
 #include "stm32l4xx_hal.h"
 #include "vector3d.hpp"
 #include <cstddef>
@@ -462,8 +463,7 @@ namespace InvertedSway {
 
         MPU6050() noexcept = default;
 
-        MPU6050(I2CBusHandle const i2c_bus,
-                DevAddress const device_address,
+        MPU6050(I2CDevice const i2c_device,
                 std::uint32_t const sampling_rate,
                 GyroRange const gyro_range,
                 AccelRange const accel_range,
@@ -477,45 +477,6 @@ namespace InvertedSway {
         MPU6050& operator=(MPU6050&& other) noexcept = default;
 
         ~MPU6050() noexcept;
-
-        void i2c_write_words(RegAddress const reg_address,
-                             std::uint16_t* write_data,
-                             std::uint8_t write_size) const noexcept;
-
-        void i2c_write_word(RegAddress const reg_address, std::uint16_t write_data) const noexcept;
-
-        void i2c_write_bytes(RegAddress const reg_address,
-                             std::uint8_t* write_data,
-                             std::size_t const write_size) const noexcept;
-
-        void i2c_write_byte(RegAddress const reg_address, std::uint8_t write_data) const noexcept;
-
-        void i2c_write_bit(RegAddress const reg_address,
-                           bool const write_data,
-                           std::uint8_t const write_position) const noexcept;
-
-        void i2c_write_bits(RegAddress const reg_address,
-                            std::uint8_t const write_data,
-                            std::uint8_t const write_position,
-                            std::size_t const write_size) const noexcept;
-
-        void i2c_read_words(RegAddress const reg_address,
-                            std::uint16_t* read_data,
-                            std::size_t const read_size) const noexcept;
-
-        std::uint16_t i2c_read_word(RegAddress const reg_address) const noexcept;
-
-        void i2c_read_bytes(RegAddress const reg_address,
-                            std::uint8_t* read_data,
-                            std::size_t const read_size) const noexcept;
-
-        std::uint8_t i2c_read_byte(RegAddress const reg_address) const noexcept;
-
-        bool i2c_read_bit(RegAddress const reg_address, std::uint8_t const read_position) const noexcept;
-
-        std::uint8_t i2c_read_bits(RegAddress const reg_address,
-                                   std::uint8_t const read_position,
-                                   std::size_t const read_size) const noexcept;
 
         /* celsius */
         [[nodiscard]] Scaled get_temperature_celsius() const noexcept;
@@ -541,12 +502,6 @@ namespace InvertedSway {
         static Scaled gyro_range_to_scale(GyroRange const gyro_range) noexcept;
         static Scaled accel_range_to_scale(AccelRange const accel_range) noexcept;
         static std::uint8_t get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept;
-
-        static Scaled temp_raw_to_scaled(Raw const temp_raw) noexcept;
-        static AccelScaled accel_raw_to_scaled(AccelRaw const accel_raw, Scaled const accel_scale) noexcept;
-        static Scaled accel_raw_to_scaled(Raw const accel_raw, Scaled const accel_scale) noexcept;
-        static GyroScaled gyro_raw_to_scaled(GyroRaw const gyro_raw, Scaled const gyro_scale) noexcept;
-        static Scaled gyro_raw_to_scaled(Raw const gyro_raw, Scaled const gyro_scale) noexcept;
         static RollPitchYaw accel_scaled_to_rpy(AccelScaled const accel_scaled) noexcept;
 
         static constexpr Scaled PI{3.1415f};
@@ -717,8 +672,7 @@ namespace InvertedSway {
 
         bool initialized_{false};
 
-        I2CBusHandle i2c_bus_{nullptr};
-        DevAddress device_address_{};
+        I2CDevice i2c_device_{};
 
         Scaled gyro_scale_{};
         Scaled accel_scale_{};

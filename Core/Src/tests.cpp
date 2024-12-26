@@ -65,6 +65,7 @@ namespace Tests {
         MX_TIM4_Init();
 
         Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
+
         float const voltage_start_threshold{1.0f};
 
         while (true) {
@@ -98,8 +99,11 @@ namespace Tests {
         MX_TIM4_Init();
 
         auto regulator{make_regulator<Algorithm::PID>(0.0f, 0.0f, 0.0f, 0.0f)};
+
         Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
+
         Encoder encoder{&htim3};
+
         MotorDriver motor_driver{std::move(regulator), std::move(motor), std::move(encoder)};
 
         constexpr auto MAX_SPEED{MotorDriver::MAX_SPEED_RPM};
@@ -126,8 +130,9 @@ namespace Tests {
         MX_USART2_UART_Init();
         MX_I2C1_Init();
 
-        MPU6050 mpu6050{&hi2c1,
-                        MPU6050::DevAddress::AD0_LOW,
+        I2CDevice i2c_mpu_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
+
+        MPU6050 mpu6050{i2c_mpu_device,
                         8000U,
                         MPU6050::GyroRange::GYRO_FS_250,
                         MPU6050::AccelRange::ACCEL_FS_2,
@@ -152,13 +157,15 @@ namespace Tests {
         MX_USART2_UART_Init();
         MX_I2C1_Init();
 
-        MPU6050 mpu6050{&hi2c1,
-                        MPU6050::DevAddress::AD0_LOW,
+        I2CDevice i2c_mpu_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
+
+        MPU6050 mpu6050{i2c_mpu_device,
                         8000U,
                         MPU6050::GyroRange::GYRO_FS_250,
                         MPU6050::AccelRange::ACCEL_FS_2,
                         MPU6050::DLPF::BW_256,
                         MPU6050::DHPF::DHPF_RESET};
+
         MPU6050_DMP mpu6050_dmp{std::move(mpu6050)};
 
         while (true) {
@@ -178,14 +185,17 @@ namespace Tests {
         MX_USART2_UART_Init();
         MX_I2C1_Init();
 
-        MPU6050 mpu6050{&hi2c1,
-                        MPU6050::DevAddress::AD0_LOW,
+        I2CDevice i2c_mpu_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
+
+        MPU6050 mpu6050{i2c_mpu_device,
                         8000U,
                         MPU6050::GyroRange::GYRO_FS_250,
                         MPU6050::AccelRange::ACCEL_FS_2,
                         MPU6050::DLPF::BW_256,
                         MPU6050::DHPF::DHPF_RESET};
+
         auto kalman{make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
+
         auto const sampling_time{1.0f / 8000.0f};
 
         while (true) {

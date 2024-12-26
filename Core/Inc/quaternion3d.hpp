@@ -71,6 +71,15 @@ namespace Linalg {
             return *this;
         }
 
+        template <Arithmetic Converted>
+        [[nodiscard]] explicit constexpr operator Quaternion3D<Converted>() const noexcept
+        {
+            return Quaternion3D<Converted>{static_cast<Converted>(this->w),
+                                           static_cast<Converted>(this->x),
+                                           static_cast<Converted>(this->y),
+                                           static_cast<Converted>(this->z)};
+        }
+
         [[nodiscard]] constexpr bool operator<=>(Quaternion3D const& other) const noexcept = default;
 
         Value w{};
