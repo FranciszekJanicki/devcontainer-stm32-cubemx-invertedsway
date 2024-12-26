@@ -10,7 +10,6 @@
 namespace InvertedSway {
 
     struct I2CDevice {
-    public:
         using Bit = bool;
         using Byte = std::uint8_t;
         using Word = std::uint16_t;
@@ -25,10 +24,11 @@ namespace InvertedSway {
         template <std::size_t SIZE>
         using DWords = std::array<DWord, SIZE>;
 
-        /* C++ style overloads */
-
         template <std::size_t READ_SIZE>
         DWords<READ_SIZE> read_dwords(std::uint8_t const reg_address) const noexcept
+        {}
+
+        void read_dwords(std::uint8_t const reg_address, DWord* read_data, std::size_t const read_size) const noexcept
         {}
 
         DWord read_dword(std::uint8_t const reg_address) const noexcept
@@ -38,6 +38,9 @@ namespace InvertedSway {
 
         template <std::size_t READ_SIZE>
         Words<READ_SIZE> read_words(std::uint8_t const reg_address) const noexcept
+        {}
+
+        void read_words(std::uint8_t const reg_address, Word* read_data, std::size_t const read_size) const noexcept
         {}
 
         Word read_word(std::uint8_t const reg_address) const noexcept
@@ -57,6 +60,17 @@ namespace InvertedSway {
                              read.size(),
                              I2C_TIMEOUT);
             return read;
+        }
+
+        void read_bytes(std::uint8_t const reg_address, Byte* read_data, std::size_t const read_size) const noexcept
+        {
+            HAL_I2C_Mem_Read(this->i2c_bus,
+                             this->device_address << 1,
+                             reg_address,
+                             sizeof(reg_address),
+                             read_data,
+                             read_size,
+                             I2C_TIMEOUT);
         }
 
         Byte read_byte(std::uint8_t const reg_address) const noexcept
@@ -79,8 +93,23 @@ namespace InvertedSway {
             return read >> (read_position - READ_SIZE + 1);
         }
 
+        Byte read_bits(std::uint8_t const reg_address,
+                       std::uint8_t const read_position,
+                       std::size_t const read_size) const noexcept
+        {
+            std::uint8_t read = this->read_byte(reg_address);
+            std::uint8_t mask = ((1 << read_size) - 1) << (read_position - read_size + 1);
+            read &= mask;
+
+            return read >> (read_position - read_size + 1);
+        }
+
         template <std::size_t WRITE_SIZE>
         void write_dwords(std::uint8_t const reg_address, DWords<WRITE_SIZE> write_data) const noexcept
+        {}
+
+        void
+        write_dwords(std::uint8_t const reg_address, DWord* write_data, std::size_t const write_size) const noexcept
         {}
 
         void write_dword(std::uint8_t const reg_address, DWord write_data) const noexcept
@@ -90,6 +119,9 @@ namespace InvertedSway {
 
         template <std::size_t WRITE_SIZE>
         void write_words(std::uint8_t const reg_address, Words<WRITE_SIZE> write_data) const noexcept
+        {}
+
+        void write_words(std::uint8_t const reg_address, Word* write_data, std::size_t const write_size) const noexcept
         {}
 
         void write_word(std::uint8_t const reg_address, Word write_data) const noexcept
@@ -106,6 +138,17 @@ namespace InvertedSway {
                               sizeof(reg_address),
                               write_data.data(),
                               write_data.size(),
+                              I2C_TIMEOUT);
+        }
+
+        void write_bytes(std::uint8_t const reg_address, Byte* write_data, std::size_t const write_size) const noexcept
+        {
+            HAL_I2C_Mem_Write(this->i2c_bus,
+                              this->device_address << 1,
+                              reg_address,
+                              sizeof(reg_address),
+                              write_data,
+                              write_size,
                               I2C_TIMEOUT);
         }
 
@@ -142,24 +185,6 @@ namespace InvertedSway {
             this->write_byte(reg_address, write);
         }
 
-        void
-        write_dwords(std::uint8_t const reg_address, DWord* write_data, std::size_t const write_size) const noexcept
-        {}
-
-        void write_words(std::uint8_t const reg_address, Word* write_data, std::size_t const write_size) const noexcept
-        {}
-
-        void write_bytes(std::uint8_t const reg_address, Byte* write_data, std::size_t const write_size) const noexcept
-        {
-            HAL_I2C_Mem_Write(this->i2c_bus,
-                              this->device_address << 1,
-                              reg_address,
-                              sizeof(reg_address),
-                              write_data,
-                              write_size,
-                              I2C_TIMEOUT);
-        }
-
         void write_bits(std::uint8_t const reg_address,
                         Byte const write_data,
                         std::uint8_t const write_position,
@@ -176,38 +201,9 @@ namespace InvertedSway {
             write_byte(reg_address, write);
         }
 
-        void read_dwords(std::uint8_t const reg_address, DWord* read_data, std::size_t const read_size) const noexcept
-        {}
-
-        void read_words(std::uint8_t const reg_address, Word* read_data, std::size_t const read_size) const noexcept
-        {}
-
-        void read_bytes(std::uint8_t const reg_address, Byte* read_data, std::size_t const read_size) const noexcept
-        {
-            HAL_I2C_Mem_Read(this->i2c_bus,
-                             this->device_address << 1,
-                             reg_address,
-                             sizeof(reg_address),
-                             read_data,
-                             read_size,
-                             I2C_TIMEOUT);
-        }
-
-        Byte read_bits(std::uint8_t const reg_address,
-                       std::uint8_t const read_position,
-                       std::size_t const read_size) const noexcept
-        {
-            std::uint8_t read = this->read_byte(reg_address);
-            std::uint8_t mask = ((1 << read_size) - 1) << (read_position - read_size + 1);
-            read &= mask;
-
-            return read >> (read_position - read_size + 1);
-        }
-
         I2CBusHandle i2c_bus{nullptr};
         std::uint16_t device_address{};
 
-    private:
         static constexpr auto I2C_TIMEOUT{100};
     };
 
