@@ -4,7 +4,6 @@
 #include "filters.hpp"
 #include "gpio.h"
 #include "i2c.h"
-#include "kalman.hpp"
 #include "l298n.hpp"
 #include "main.h"
 #include "motor.hpp"
@@ -36,6 +35,10 @@ namespace Tests {
 
     void MOTOR_TEST() noexcept
     {
+        MX_GPIO_Init();
+        MX_USART2_UART_Init();
+        MX_TIM4_Init();
+
         Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
 
         using Direction = Motor::Direction;
@@ -64,6 +67,10 @@ namespace Tests {
 
     void MOTOR_BOOST_TEST() noexcept
     {
+        MX_GPIO_Init();
+        MX_USART2_UART_Init();
+        MX_TIM4_Init();
+
         Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
         float const voltage_start_threshold{1.0f};
 
@@ -100,6 +107,11 @@ namespace Tests {
 
     void MOTOR_DRIVER_TEST() noexcept
     {
+        MX_GPIO_Init();
+        MX_USART2_UART_Init();
+        MX_TIM3_Init();
+        MX_TIM4_Init();
+
         auto regulator{make_regulator<Algorithm::PID>(0.0f, 0.0f, 0.0f, 0.0f)};
         Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
         Encoder encoder{&htim3};
@@ -125,6 +137,10 @@ namespace Tests {
 
     void MPU_TEST() noexcept
     {
+        MX_GPIO_Init();
+        MX_USART2_UART_Init();
+        MX_I2C1_Init();
+
         MPU6050 mpu6050{&hi2c1,
                         MPU6050::DevAddress::AD0_LOW,
                         MPU6050::GyroRange::GYRO_FS_250,
@@ -170,6 +186,10 @@ namespace Tests {
 
     void KALMAN_TEST() noexcept
     {
+        MX_GPIO_Init();
+        MX_USART2_UART_Init();
+        MX_I2C1_Init();
+
         MPU6050 mpu6050{&hi2c1,
                         MPU6050::DevAddress::AD0_LOW,
                         MPU6050::GyroRange::GYRO_FS_250,
@@ -193,6 +213,11 @@ namespace Tests {
 
     void ENCODER_TEST() noexcept
     {
+        MX_GPIO_Init();
+        MX_USART2_UART_Init();
+        MX_TIM3_Init();
+        MX_TIM4_Init();
+
         Encoder encoder{&htim3};
         Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
 
@@ -218,6 +243,8 @@ namespace Tests {
 
     void DUTKIEWICZ_TEST() noexcept
     {
+        MX_USART2_UART_Init();
+
         while (true) {
             for (auto i{0}; i < 8; ++i)
                 printf("DUTKIEWICZ SIGMA\t");

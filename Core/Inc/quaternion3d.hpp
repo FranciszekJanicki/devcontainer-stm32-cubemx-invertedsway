@@ -64,10 +64,10 @@ namespace Linalg {
 
         constexpr Quaternion3D& operator*=(Quaternion3D const& other) noexcept
         {
-            this->w = this->w * right.w - this->x * right.x - this->y * right.y - this->z * right.z;
-            this->x = this->w * right.x + this->x * right.w + this->y * right.z - this->z * right.y;
-            this->y = this->w * right.y - this->x * right.z + this->y * right.w + this->z * right.x;
-            this->z = this->w * right.z + this->x * right.y - this->y * right.x + this->z * right.w;
+            this->w = this->w * other.w - this->x * other.x - this->y * other.y - this->z * other.z;
+            this->x = this->w * other.x + this->x * other.w + this->y * other.z - this->z * other.y;
+            this->y = this->w * other.y - this->x * other.z + this->y * other.w + this->z * other.x;
+            this->z = this->w * other.z + this->x * other.y - this->y * other.x + this->z * other.w;
             return *this;
         }
 
