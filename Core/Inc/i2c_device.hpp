@@ -1,5 +1,5 @@
-#ifndef I2C_DRIVER_SIGMA_HPP
-#define I2C_DRIVER_SIGMA_HPP
+#ifndef I2C_DEVICE_HPP
+#define I2C_DEVICE_HPP
 
 #include "common.hpp"
 #include "stm32l4xx_hal.h"
@@ -209,9 +209,8 @@ namespace InvertedSway {
 
     private:
         static constexpr auto I2C_TIMEOUT{100};
-
-    }; // namespace I2CDriverSigma
+    };
 
 }; // namespace InvertedSway
 
-#endif // I2C_DRIVER_SIGMA_HPP
+#endif // I2C_DEVICE_HPP

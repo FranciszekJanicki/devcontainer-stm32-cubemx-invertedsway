@@ -48,9 +48,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Src/stm32l4xx_it.c"
     "Core/Src/stm32l4xx_hal_msp.c"
     "Core/Src/balance_sway.cpp"
-    "Core/Src/i2c_driver.cpp"
     "Core/Src/mpu6050_dmp.cpp"
-    "Core/Inc/i2c_driver_sigma.hpp"
+    "Core/Inc/i2c_device.hpp"
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
@@ -63,28 +62,28 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 
 target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC
     -std=c++23
-    # -fconcepts
-    # -Wall
-    # -Wextra
-    # -Wconversion
-    # -Wshadow
-    # -Wpedantic
-    # -Wnarrowing
-    # -Wimplicit
-    # -Waddress
-    # -Wnon-virtual-dtor
-    # -pedantic
-    # -Wpessimizing-move
-    # -Wsign-conversion
-    # -Wmisleading-indentation
-    # -Wduplicated-cond
-    # -Wduplicated-branches
-    # -Wlogical-op
-    # -Wregister
-    # -Wnull-dereference
-    # -Wuseless-cast
-    # -Wdouble-promotion
-    # -Wformat=2
-    # -Wimplicit-fallthrough
-    # -Wcast-align
+    -fconcepts
+    -Wall
+    -Wextra
+    -Wconversion
+    -Wshadow
+    -Wpedantic
+    -Wnarrowing
+    -Wimplicit
+    -Waddress
+    -Wnon-virtual-dtor
+    -pedantic
+    -Wpessimizing-move
+    -Wsign-conversion
+    -Wmisleading-indentation
+    -Wduplicated-cond
+    -Wduplicated-branches
+    -Wlogical-op
+    -Wregister
+    -Wnull-dereference
+    -Wuseless-cast
+    -Wdouble-promotion
+    -Wformat=2
+    -Wimplicit-fallthrough
+    -Wcast-align
 )
