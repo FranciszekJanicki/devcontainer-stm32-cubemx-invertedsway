@@ -32,10 +32,8 @@ namespace InvertedSway {
     {
         if (angle > 0.0f) {
             return Direction::FORWARD;
-        } else if (angle < 0.0f) {
-            return Direction::BACKWARD;
         } else {
-            return Direction::SOFT_STOP;
+            return Direction::BACKWARD;
         }
     }
 
@@ -62,8 +60,8 @@ namespace InvertedSway {
     Value Sway::get_measured_angle(Value const dt) noexcept
     {
         if (HAL_GPIO_ReadPin(MPU6050_INTR_GPIO_Port, MPU6050_INTR_Pin) == GPIO_PinState::GPIO_PIN_SET) {
-            this->roll_ = this->mpu6050_.get_roll();
-            this->gx_ = this->mpu6050_.get_rotation_x_scaled();
+            this->roll_ = this->mpu6050_.get_pitch();
+            this->gx_ = this->mpu6050_.get_rotation_y_scaled();
         }
         // printf("mpu angle: %f, %f\n\r", this->gx_, this->roll_);
         // printf("kalman angle: %f\n\r", this->output_signal_);
@@ -101,7 +99,7 @@ namespace InvertedSway {
     void Sway::set_angle(Value const control_angle) noexcept
     {
         this->set_direction(control_angle);
-        this->try_motor_boost(control_angle);
+        // this->try_motor_boost(control_angle);
         this->set_voltage(control_angle);
     }
 
@@ -112,7 +110,7 @@ namespace InvertedSway {
 
     void Sway::set_voltage(Value const control_angle) const noexcept
     {
-        this->l298n_.set_compare_voltage(L298N::Channel::CHANNEL1, angle_to_voltage(std::abs(control_angle)));
+        this->l298n_.set_compare_voltage(L298N::Channel::CHANNEL1, std::abs(control_angle));
     }
 
     void Sway::try_motor_boost(Value const control_angle) noexcept
