@@ -3,7 +3,7 @@
 #include "filters.hpp"
 #include "gpio.h"
 #include "i2c.h"
-#include "i2c_driver_sigma.hpp"
+#include "i2c_device.hpp"
 #include "l298n.hpp"
 #include "main.h"
 #include "mpu6050.hpp"

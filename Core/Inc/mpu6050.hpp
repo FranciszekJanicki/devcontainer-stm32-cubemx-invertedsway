@@ -2,7 +2,7 @@
 #define MPU6050_HPP
 
 #include "common.hpp"
-#include "i2c_driver_sigma.hpp"
+#include "i2c_device.hpp"
 #include "stm32l4xx_hal.h"
 #include "vector3d.hpp"
 #include <cstddef>

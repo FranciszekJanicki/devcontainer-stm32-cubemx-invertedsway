@@ -1,6 +1,6 @@
 #include "mpu6050.hpp"
 #include "common.hpp"
-#include "i2c_driver.hpp"
+#include "i2c_device.hpp"
 #include "main.h"
 #include <cmath>
 #include <cstdint>
@@ -1169,17 +1169,17 @@ namespace InvertedSway {
 
     void MPU6050::get_fifo_bytes(std::uint8_t* read_data, std::size_t const read_size) const noexcept
     {
-        // this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::FIFO_R_W, read_data, read_size);
+        this->i2c_device_.read_bytes(std::to_underlying(RegAddress::FIFO_R_W), read_data, read_size);
     }
 
     void MPU6050::set_fifo_byte(std::uint8_t const write_data) const noexcept
     {
-        // this->i2c_device_.write_byte(std::to_underlying(RegAddress::FIFO_R_W, write_data);
+        this->i2c_device_.write_byte(std::to_underlying(RegAddress::FIFO_R_W), write_data);
     }
 
     void MPU6050::set_fifo_bytes(std::uint8_t* write_data, std::size_t const write_size) const noexcept
     {
-        // this->i2c_device_.write_bytes(std::to_underlying(RegAddress::FIFO_R_W, write_data, write_size);
+        this->i2c_device_.write_bytes(std::to_underlying(RegAddress::FIFO_R_W), write_data, write_size);
     }
 
     std::uint8_t MPU6050::get_device_id() const noexcept
