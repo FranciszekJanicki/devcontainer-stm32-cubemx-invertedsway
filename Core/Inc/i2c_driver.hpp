@@ -9,6 +9,17 @@ namespace I2CDriver {
 
     using namespace InvertedSway;
 
+    void write_dwords(I2CHandle const i2c_bus,
+                      std::uint16_t const dev_address,
+                      std::uint8_t const reg_address,
+                      std::uint16_t* write_data,
+                      std::size_t const write_size) noexcept;
+
+    void write_dword(I2CHandle const i2c_bus,
+                     std::uint16_t const dev_address,
+                     std::uint8_t const reg_address,
+                     std::uint16_t write_data) noexcept;
+
     void write_words(I2CHandle const i2c_bus,
                      std::uint16_t const dev_address,
                      std::uint8_t const reg_address,
@@ -43,6 +54,15 @@ namespace I2CDriver {
                     std::uint8_t const write_data,
                     std::uint8_t const write_position,
                     std::size_t const write_size) noexcept;
+
+    void read_dwords(I2CHandle const i2c_bus,
+                     std::uint16_t const dev_address,
+                     std::uint8_t const reg_address,
+                     std::uint32_t* read_data,
+                     std::size_t const read_size) noexcept;
+
+    std::uint32_t
+    read_dword(I2CHandle const i2c_bus, std::uint16_t const dev_address, std::uint8_t const reg_address) noexcept;
 
     void read_words(I2CHandle const i2c_bus,
                     std::uint16_t const dev_address,

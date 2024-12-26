@@ -36,7 +36,30 @@ namespace InvertedSway {
     }
 
     void MPU6050_DMP::initialize() noexcept
-    {}
+    {
+        this->set_memory_bank(0x10, true, true);
+        this->set_memory_start_address(0x06);
+        this->set_memory_bank(0, false, false);
+        this->get_otp_bank_valid();
+
+        this->mpu6050_.set_slave_address(0, 0x7F);
+        this->mpu6050_.set_i2c_master_mode_enabled(false);
+        this->mpu6050_.set_slave_address(0, 0x68);
+        this->mpu6050_.reset_i2c_master();
+        this->write_memory_block(dmp_memory, sizeof(dmp_memory), 0x00, 0x00);
+
+        std::uint8_t dmp_update[]{0x00, 0x01};
+        this->write_memory_block(dmp_update, sizeof(dmp_update), 0x02, 0x16);
+        this->set_dmp_config1(0x03);
+        this->set_dmp_config2(0x00);
+        this->set_otp_bank_valid(false);
+
+        this->mpu6050_.set_fifo_enabled(true);
+        this->reset_dmp();
+        this->set_dmp_enabled(false);
+        this->mpu6050_.reset_fifo();
+        this->mpu6050_.get_int_status();
+    }
 
     void MPU6050_DMP::deinitialize() noexcept
     {}
@@ -226,7 +249,6 @@ namespace InvertedSway {
             }
 
             this->mpu6050_.i2c_read_bytes(RegAddress::MEM_R_W, read_data + i, chunk_size);
-
             i += chunk_size;
             address += chunk_size;
 
@@ -258,9 +280,7 @@ namespace InvertedSway {
                 chunk_size = 256 - address;
             }
 
-            std::uint8_t* prog_buffer = (uint8_t*)write_data + i;
-            this->mpu6050_.i2c_write_bytes(RegAddress::MEM_R_W, prog_buffer, chunk_size);
-
+            this->mpu6050_.i2c_write_bytes(RegAddress::MEM_R_W, write_data + i, chunk_size);
             i += chunk_size;
             address += chunk_size;
 
@@ -282,9 +302,7 @@ namespace InvertedSway {
             std::uint8_t length = write_data[i++];
 
             if (length > 0) {
-                std::uint8_t* prog_buffer = (uint8_t*)write_data + i;
-
-                this->write_memory_block(prog_buffer, length, bank, offset);
+                this->write_memory_block(write_data + i, length, bank, offset);
                 i += length;
             } else {
                 if (write_data[i++] == 0x01) {
