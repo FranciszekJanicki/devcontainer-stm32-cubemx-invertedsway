@@ -71,6 +71,24 @@ namespace Linalg {
             return *this;
         }
 
+        constexpr Quaternion3D& operator*=(Value const factor) noexcept
+        {
+            this->w *= factor;
+            this->x *= factor;
+            this->y *= factor;
+            this->z *= factor;
+            return *this;
+        }
+
+        constexpr Quaternion3D& operator/=(Value const factor) noexcept
+        {
+            if (factor == 0) {
+                std::unreachable();
+            }
+            *this *= (1 / factor);
+            return *this;
+        }
+
         template <Arithmetic Converted>
         [[nodiscard]] explicit constexpr operator Quaternion3D<Converted>() const noexcept
         {
@@ -107,6 +125,30 @@ namespace Linalg {
                                    left.w * right.x + left.x * right.w + left.y * right.z - left.z * right.y,
                                    left.w * right.y - left.x * right.z + left.y * right.w + left.z * right.x,
                                    left.w * right.z + left.x * right.y - left.y * right.x + left.z * right.w};
+    }
+
+    template <Arithmetic Value>
+    constexpr auto operator*(Quaternion3D<Value> const& quaternion, Value const factor) noexcept
+    {
+        return Quaternion3D<Value>{quaternion.w * factor,
+                                   quaternion.x * factor,
+                                   quaternion.y * factor,
+                                   quaternion.z * factor};
+    }
+
+    template <Arithmetic Value>
+    constexpr auto operator*(Value const factor, Quaternion3D<Value> const& quaternion) noexcept
+    {
+        return quaternion * factor;
+    }
+
+    template <Arithmetic Value>
+    constexpr auto operator/(Quaternion3D<Value> const& quaternion, Value const factor) noexcept
+    {
+        if (factor == 0) {
+            std::unreachable();
+        }
+        return quaternion * (1 / factor);
     }
 
 }; // namespace Linalg

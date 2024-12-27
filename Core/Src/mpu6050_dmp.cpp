@@ -8,6 +8,7 @@ using QuaternionRaw = MPU6050_DMP::QuaternionRaw;
 using QuaternionScaled = MPU6050_DMP::QuaternionScaled;
 using RollPitchYaw = MPU6050_DMP::RollPitchYaw;
 using Gravity = MPU6050_DMP::Gravity;
+using UserCtrl = MPU6050_DMP::UserCtrl;
 using RegAddress = MPU6050_DMP::RegAddress;
 using Interrupt = MPU6050_DMP::Interrupt;
 using IntrDMP = MPU6050_DMP::IntrDMP;
@@ -162,30 +163,30 @@ namespace InvertedSway {
         this->mpu6050_.i2c_device_.write_word(std::to_underlying(RegAddress::ZG_OFFS_USRH), offset);
     }
 
-    QuaternionRaw MPU6050_DMP::get_quaternion_raw(std::uint8_t const* packet) const noexcept
+    QuaternionRaw MPU6050_DMP::get_quaternion_raw() const noexcept
     {
-        if (packet == nullptr) {
-            packet = this->dmp_packet_buffer;
-        }
-        return QuaternionRaw{((packet[0] << 8) | packet[1]),
-                             ((packet[4] << 8) | packet[5]),
-                             ((packet[8] << 8) | packet[9]),
-                             ((packet[12] << 8) | packet[13])};
+        std::uint8_t packet[14];
+        this->mpu6050_.get_fifo_bytes(packet, sizeof(packet));
+        return QuaternionRaw{(static_cast<Raw>(packet[0]) << 8) | static_cast<Raw>(packet[1]),
+                             (static_cast<Raw>(packet[4]) << 8) | static_cast<Raw>(packet[5]),
+                             (static_cast<Raw>(packet[8]) << 8) | static_cast<Raw>(packet[9]),
+                             (static_cast<Raw>(packet[12]) << 8) | static_cast<Raw>(packet[13])};
     }
 
-    QuaternionScaled MPU6050_DMP::get_quaternion_scaled(const std::uint8_t* packet) const noexcept
+    QuaternionScaled MPU6050_DMP::get_quaternion_scaled() const noexcept
     {
-        return static_cast<QuaternionScaled>(this->get_quaternion_raw(packet)) / this->mpu6050_.accel_scale_;
+        return static_cast<QuaternionScaled>(this->get_quaternion_raw()) /
+               static_cast<Scaled>(this->mpu6050_.accel_scale_);
     }
 
-    Gravity MPU6050_DMP::get_gravity(const std::uint8_t* packet) const noexcept
+    Gravity MPU6050_DMP::get_gravity() const noexcept
     {
-        return quaternion_to_gravity(this->get_quaternion_scaled(packet));
+        return quaternion_to_gravity(this->get_quaternion_scaled());
     }
 
-    RollPitchYaw MPU6050_DMP::get_roll_pitch_yaw(const std::uint8_t* packet) const noexcept
+    RollPitchYaw MPU6050_DMP::get_roll_pitch_yaw() const noexcept
     {
-        return quaternion_to_roll_pitch_yaw(this->get_quaternion_scaled(packet));
+        return quaternion_to_roll_pitch_yaw(this->get_quaternion_scaled());
     }
 
     void MPU6050_DMP::set_int_pll_ready_enabled(bool const enabled) const noexcept
@@ -382,4 +383,5 @@ namespace InvertedSway {
     {
         this->mpu6050_.i2c_device_.write_byte(std::to_underlying(RegAddress::DMP_CFG_2), config);
     }
+
 }; // namespace InvertedSway

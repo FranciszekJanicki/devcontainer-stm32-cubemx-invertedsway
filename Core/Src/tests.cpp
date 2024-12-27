@@ -170,7 +170,7 @@ namespace Tests {
 
         while (true) {
             if (sampling_timer_elapsed) {
-                auto const& [roll, pitch, yaw]{mpu6050_dmp.get_acceleration_scaled()};
+                auto const& [roll, pitch, yaw]{mpu6050_dmp.get_roll_pitch_yaw()};
                 printf("roll: %f, pitch: %f, yaw: %f\n\r", roll, pitch, yaw);
                 sampling_timer_elapsed = false;
             }

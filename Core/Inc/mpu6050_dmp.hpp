@@ -9,12 +9,14 @@ namespace InvertedSway {
 
     struct MPU6050_DMP {
     public:
-        using Scaled = float;
+        using Scaled = MPU6050::Scaled;
         using Raw = std::int16_t;
         using QuaternionRaw = Linalg::Quaternion3D<Raw>;
         using QuaternionScaled = Linalg::Quaternion3D<Scaled>;
         using RollPitchYaw = Linalg::Vector3D<Scaled>;
         using Gravity = Linalg::Vector3D<Scaled>;
+        using UserCtrl = MPU6050::UserCtrl;
+        using RegAddress = MPU6050::RegAddress;
         using Interrupt = MPU6050::Interrupt;
         using IntrDMP = MPU6050::IntrDMP;
         using TC = MPU6050::TC;
@@ -31,10 +33,10 @@ namespace InvertedSway {
 
         ~MPU6050_DMP() noexcept;
 
-        QuaternionRaw get_quaternion_raw(std::uint8_t const* packet) const noexcept;
-        QuaternionScaled get_quaternion_scaled(std::uint8_t const* packet) const noexcept;
-        Gravity get_gravity(std::uint8_t const* packet) const noexcept;
-        RollPitchYaw get_roll_pitch_yaw(std::uint8_t const* packet) const noexcept;
+        QuaternionRaw get_quaternion_raw() const noexcept;
+        QuaternionScaled get_quaternion_scaled() const noexcept;
+        Gravity get_gravity() const noexcept;
+        RollPitchYaw get_roll_pitch_yaw() const noexcept;
 
     private:
         static Gravity quaternion_to_gravity(QuaternionScaled const quaternion) noexcept;

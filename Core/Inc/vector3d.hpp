@@ -70,13 +70,6 @@ namespace Linalg {
             return *this;
         }
 
-        constexpr Vector3D& operator*=(Vector3D const& other) noexcept
-        {
-            this->x *= other.x;
-            this->y *= other.y;
-            this->z *= other.z;
-            return *this;
-        }
         constexpr Vector3D& operator*=(Value const factor) noexcept
         {
             this->x *= factor;
@@ -85,18 +78,12 @@ namespace Linalg {
             return *this;
         }
 
-        constexpr Vector3D& operator/=(Vector3D const& other) noexcept
-        {
-            this->x /= other.x;
-            this->y /= other.y;
-            this->z /= other.z;
-            return *this;
-        }
         constexpr Vector3D& operator/=(Value const factor) noexcept
         {
-            this->x /= factor;
-            this->y /= factor;
-            this->z /= factor;
+            if (factor == 0) {
+                std::unreachable();
+            }
+            *this *= (1 / factor);
             return *this;
         }
 
@@ -128,30 +115,24 @@ namespace Linalg {
     }
 
     template <Arithmetic Value>
-    constexpr auto operator*(Vector3D<Value> const& left, Vector3D<Value> const& right) noexcept
-    {
-        return Vector3D<Value>{left.x * right.x, left.y * right.y, left.z * right.z};
-    }
-    template <Arithmetic Value>
     constexpr auto operator*(Value const factor, Vector3D<Value> const& vector) noexcept
-    {
-        return Vector3D<Value>{vector.x * factor, vector.y * factor, vector.z * factor};
-    }
-    template <Arithmetic Value>
-    constexpr auto operator*(Vector3D<Value> const& vector, Value const factor) noexcept
     {
         return Vector3D<Value>{vector.x * factor, vector.y * factor, vector.z * factor};
     }
 
     template <Arithmetic Value>
-    constexpr auto operator/(Vector3D<Value> const& left, Vector3D<Value> const& right) noexcept
+    constexpr auto operator*(Vector3D<Value> const& vector, Value const factor) noexcept
     {
-        return Vector3D<Value>{left.x / right.x, left.y / right.y, left.z / right.z};
+        return factor * vector;
     }
+
     template <Arithmetic Value>
     constexpr auto operator/(Vector3D<Value> const& vector, Value const factor) noexcept
     {
-        return Vector3D<Value>{vector.x / factor, vector.y / factor, vector.z / factor};
+        if (factor == 0) {
+            std::unreachable();
+        }
+        return vector * (1 / factor);
     }
 
 }; // namespace Linalg

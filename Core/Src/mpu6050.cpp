@@ -862,9 +862,9 @@ namespace InvertedSway {
             std::unreachable();
         }
         auto buffer = this->i2c_device_.read_bytes<6>(std::to_underlying(RegAddress::GYRO_XOUT_H));
-        return GyroRaw{static_cast<Raw>((static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1])),
-                       static_cast<Raw>((static_cast<Raw>(buffer[2]) << 8) | static_cast<Raw>(buffer[3])),
-                       static_cast<Raw>((static_cast<Raw>(buffer[4]) << 8) | static_cast<Raw>(buffer[5]))};
+        return GyroRaw{(static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1]),
+                       (static_cast<Raw>(buffer[2]) << 8) | static_cast<Raw>(buffer[3]),
+                       (static_cast<Raw>(buffer[4]) << 8) | static_cast<Raw>(buffer[5])};
     }
 
     Raw MPU6050::get_rotation_x_raw() const noexcept
