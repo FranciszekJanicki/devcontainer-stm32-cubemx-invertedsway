@@ -1,4 +1,5 @@
 #include "system_clock.h"
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,9 +48,7 @@ void SystemClock_Config(void)
 
 void Error_Handler()
 {
-    // __disable_irq();
-    // while (1) {
-    //}
+    printf("HAL ERROR HANDLER\n\r");
 }
 
 #ifdef __cplusplus

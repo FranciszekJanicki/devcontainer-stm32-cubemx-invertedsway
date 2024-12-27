@@ -235,26 +235,26 @@ namespace InvertedSway {
             this->device_reset();
             this->initialize_base(gyro_range, accel_range);
             this->initialize_rest(sampling_rate, dlpf, dhpf);
-            this->initialize_interrupt();
-            this->initialize_motion_interrupt();
+            //  this->initialize_interrupt();
+            //  this->initialize_motion_interrupt();
             this->initialized_ = true;
         }
     }
 
     void MPU6050::initialize_base(GyroRange const gyro_range, AccelRange const accel_range) const noexcept
     {
-        this->set_sleep_enabled(false);
-        this->set_clock_source(Clock::INTERNAL);
+        this->set_clock_source(Clock::PLL_XGYRO);
         this->set_full_scale_gyro_range(gyro_range);
         this->set_full_scale_accel_range(accel_range);
+        this->set_sleep_enabled(false);
     }
 
     void MPU6050::initialize_rest(std::uint32_t const sampling_rate, DLPF const dlpf, DHPF const dhpf) const noexcept
     {
         this->set_sampling_rate(sampling_rate, dlpf);
         this->set_dlpf_mode(dlpf);
-        this->set_dhpf_mode(dhpf);
-        this->set_external_frame_sync(ExtSync::DISABLED);
+        // this->set_dhpf_mode(dhpf);
+        // this->set_external_frame_sync(ExtSync::DISABLED);
     }
 
     void MPU6050::initialize_interrupt() const noexcept
@@ -346,7 +346,7 @@ namespace InvertedSway {
 
     void MPU6050::set_motion_detection_threshold(std::uint8_t const threshold) const noexcept
     {
-        this->i2c_device_.write_byte(std::to_underlying(RegAddress::FF_THR), threshold);
+        this->i2c_device_.write_byte(std::to_underlying(RegAddress::MOT_THR), threshold);
     }
 
     void MPU6050::set_motion_detection_duration(std::uint8_t const duration) const noexcept
