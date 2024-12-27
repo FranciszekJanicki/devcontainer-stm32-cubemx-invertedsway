@@ -46,10 +46,10 @@ void SystemClock_Config(void)
     }
 }
 
-// void Error_Handler()
-// {
-//     printf("HAL ERROR HANDLER\n\r");
-// }
+void Error_Handler()
+{
+    printf("HAL ERROR HANDLER\n\r");
+}
 
 #ifdef __cplusplus
 }
