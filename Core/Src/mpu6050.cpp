@@ -70,7 +70,7 @@ namespace InvertedSway {
             ((dlpf == DLPF::BW_256 ? GYRO_OUTPUT_RATE_DLPF_DIS_HZ : GYRO_OUTPUT_RATE_DLPF_EN_HZ) / sampling_rate) - 1U);
     }
 
-    RollPitchYaw MPU6050::accel_scaled_to_rpy(AccelScaled const accel_scaled) noexcept
+    RollPitchYaw MPU6050::accel_to_roll_pitch_yaw(AccelScaled const accel_scaled) noexcept
     {
         return RollPitchYaw{
             std::atan2(accel_scaled.y, accel_scaled.z) * 180.0f / PI,
@@ -78,6 +78,24 @@ namespace InvertedSway {
               180.0f) /
                 PI,
             {}};
+    }
+
+    Scaled MPU6050::accel_to_roll(AccelScaled const accel_scaled) noexcept
+    {
+        return std::atan2(accel_scaled.y, accel_scaled.z) * 180.0f / PI;
+    }
+
+    Scaled MPU6050::accel_to_pitch(AccelScaled const accel_scaled) noexcept
+    {
+        return -(std::atan2(accel_scaled.x,
+                            std::sqrt(accel_scaled.y * accel_scaled.y + accel_scaled.z * accel_scaled.z)) *
+                 180.0f) /
+               PI;
+    }
+
+    Scaled MPU6050::accel_to_yaw(AccelScaled const accel_scaled) noexcept
+    {
+        return {};
     }
 
     MPU6050::MPU6050(I2CDevice const i2c_device,
@@ -175,7 +193,7 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-        return accel_scaled_to_rpy(this->get_acceleration_scaled());
+        return accel_to_roll_pitch_yaw(this->get_acceleration_scaled());
     }
 
     Scaled MPU6050::get_roll() const noexcept
@@ -183,7 +201,7 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-        return accel_scaled_to_rpy(this->get_acceleration_scaled()).x;
+        return accel_to_roll(this->get_acceleration_scaled());
     }
 
     Scaled MPU6050::get_pitch() const noexcept
@@ -191,7 +209,7 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-        return accel_scaled_to_rpy(this->get_acceleration_scaled()).y;
+        return accel_to_pitch(this->get_acceleration_scaled());
     }
 
     Scaled MPU6050::get_yaw() const noexcept
@@ -199,7 +217,7 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-        return accel_scaled_to_rpy(this->get_acceleration_scaled()).z;
+        return accel_to_yaw(this->get_acceleration_scaled());
     }
 
     bool MPU6050::is_valid_device_id() const noexcept
@@ -443,7 +461,7 @@ namespace InvertedSway {
                                      std::to_underlying(I2C::MST_CLK_LENGTH));
     }
 
-    static std::uint8_t slave_num_to_address(std::uint8_t const num) noexcept
+    std::uint8_t MPU6050::slave_num_to_address(std::uint8_t const num) noexcept
     {
         switch (num) {
             case 0:
@@ -459,7 +477,7 @@ namespace InvertedSway {
         }
     }
 
-    static std::uint8_t slave_num_to_register(std::uint8_t const num) noexcept
+    std::uint8_t MPU6050::slave_num_to_register(std::uint8_t const num) noexcept
     {
         switch (num) {
             case 0:
@@ -475,7 +493,7 @@ namespace InvertedSway {
         }
     }
 
-    static std::uint8_t slave_num_to_control(std::uint8_t const num) noexcept
+    std::uint8_t MPU6050::slave_num_to_control(std::uint8_t const num) noexcept
     {
         switch (num) {
             case 0:
@@ -491,7 +509,7 @@ namespace InvertedSway {
         }
     }
 
-    static std::uint8_t slave_num_to_output_byte(std::uint8_t const num) noexcept
+    std::uint8_t MPU6050::slave_num_to_output_byte(std::uint8_t const num) noexcept
     {
         switch (num) {
             case 0:
