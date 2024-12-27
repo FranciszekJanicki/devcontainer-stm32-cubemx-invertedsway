@@ -94,7 +94,8 @@
         "bitset": "c",
         "cerrno": "cpp",
         "cfloat": "cpp",
-        "climits": "cpp"
+        "climits": "cpp",
+        "iostream": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "editor.formatOnSave": true

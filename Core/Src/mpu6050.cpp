@@ -1,5 +1,6 @@
 #include "mpu6050.hpp"
 #include "common.hpp"
+#include "i2c.h"
 #include "i2c_device.hpp"
 #include "main.h"
 #include <cmath>
@@ -222,7 +223,7 @@ namespace InvertedSway {
 
     bool MPU6050::is_valid_device_id() const noexcept
     {
-        return this->get_device_id() == this->i2c_device_.device_address;
+        return this->get_device_id() == 0x68 << 1;
     }
 
     void MPU6050::initialize(std::uint32_t const sampling_rate,
@@ -232,11 +233,36 @@ namespace InvertedSway {
                              DHPF const dhpf) noexcept
     {
         if (this->is_valid_device_id()) {
-            this->device_reset();
-            this->initialize_base(gyro_range, accel_range);
-            this->initialize_rest(sampling_rate, dlpf, dhpf);
-            //  this->initialize_interrupt();
-            //  this->initialize_motion_interrupt();
+            // this->device_reset();
+            // this->initialize_base(gyro_range, accel_range);
+            // this->initialize_rest(sampling_rate, dlpf, dhpf);
+            //   this->initialize_interrupt();
+            //   this->initialize_motion_interrupt();
+
+            std::uint8_t buffer = 1 << 7;
+            HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::PWR_MGMT_1), 1, &buffer, 1, 1000);
+
+            buffer = 0;
+            HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::PWR_MGMT_1), 1, &buffer, 1, 1000);
+
+            buffer = 39;
+            HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::SMPLRT_DIV), 1, &buffer, 1, 1000);
+
+            buffer = 0;
+            HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::CONFIG), 1, &buffer, 1, 1000);
+
+            buffer = 0;
+            HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::GYRO_CONFIG), 1, &buffer, 1, 1000);
+
+            buffer = 0;
+            HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::ACCEL_CONFIG), 1, &buffer, 1, 1000);
+
+            buffer = (0 << 7) | (0 << 5) | (1 << 4);
+            HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::INT_PIN_CFG), 1, &buffer, 1, 1000);
+
+            buffer = 1;
+            HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::INT_ENABLE), 1, &buffer, 1, 1000);
+
             this->initialized_ = true;
         }
     }
@@ -253,8 +279,8 @@ namespace InvertedSway {
     {
         this->set_sampling_rate(sampling_rate, dlpf);
         this->set_dlpf_mode(dlpf);
-        // this->set_dhpf_mode(dhpf);
-        // this->set_external_frame_sync(ExtSync::DISABLED);
+        this->set_dhpf_mode(dhpf);
+        this->set_external_frame_sync(ExtSync::DISABLED);
     }
 
     void MPU6050::initialize_interrupt() const noexcept
@@ -690,7 +716,7 @@ namespace InvertedSway {
     {
         this->i2c_device_.write_bit(std::to_underlying(RegAddress::INT_PIN_CFG),
                                     std::to_underlying(clear),
-                                    std::to_underlying(IntrCfg::LATCH_INT_EN_BIT));
+                                    std::to_underlying(IntrCfg::INT_RD_CLEAR_BIT));
     }
 
     void MPU6050::set_f_sync_interrupt_level(bool const level) const noexcept
@@ -814,7 +840,11 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-        auto buffer = this->i2c_device_.read_bytes<6>(std::to_underlying(RegAddress::ACCEL_XOUT_H));
+
+        std::uint8_t buffer[6];
+        HAL_I2C_Mem_Read(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::GYRO_XOUT_H), 1, buffer, 6, 1000);
+
+        // auto buffer = this->i2c_device_.read_bytes<6>(std::to_underlying(RegAddress::ACCEL_XOUT_H));
         return AccelRaw{(static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1]),
                         (static_cast<Raw>(buffer[2]) << 8) | static_cast<Raw>(buffer[3]),
                         (static_cast<Raw>(buffer[4]) << 8) | static_cast<Raw>(buffer[5])};
@@ -861,7 +891,11 @@ namespace InvertedSway {
         if (!this->initialized_) {
             std::unreachable();
         }
-        auto buffer = this->i2c_device_.read_bytes<6>(std::to_underlying(RegAddress::GYRO_XOUT_H));
+
+        std::uint8_t buffer[6];
+        HAL_I2C_Mem_Read(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::GYRO_XOUT_H), 1, buffer, 6, 1000);
+
+        // auto buffer = this->i2c_device_.read_bytes<6>(std::to_underlying(RegAddress::GYRO_XOUT_H));
         return GyroRaw{(static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1]),
                        (static_cast<Raw>(buffer[2]) << 8) | static_cast<Raw>(buffer[3]),
                        (static_cast<Raw>(buffer[4]) << 8) | static_cast<Raw>(buffer[5])};

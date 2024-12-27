@@ -38,7 +38,7 @@ namespace InvertedSway {
         template <std::size_t READ_SIZE>
         [[nodiscard]] Bytes<READ_SIZE> read_bytes(std::uint8_t const reg_address) const noexcept
         {
-            Bytes<READ_SIZE> read;
+            Bytes<READ_SIZE> read{};
             HAL_I2C_Mem_Read(this->i2c_bus,
                              this->device_address << 1,
                              reg_address,

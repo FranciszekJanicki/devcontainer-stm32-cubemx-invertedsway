@@ -51,7 +51,7 @@ namespace InvertedSway {
             XG_OFFS_USRL = 0x14,
             YG_OFFS_USRH = 0x15,
             YG_OFFS_USRL = 0x16,
-            ZG_OFFS_USRH = 0x1,
+            ZG_OFFS_USRH = 0x17,
             ZG_OFFS_USRL = 0x18,
             SMPLRT_DIV = 0x19,
             CONFIG = 0x1A,
