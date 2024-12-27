@@ -502,7 +502,16 @@ namespace InvertedSway {
         static Scaled gyro_range_to_scale(GyroRange const gyro_range) noexcept;
         static Scaled accel_range_to_scale(AccelRange const accel_range) noexcept;
         static std::uint8_t get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept;
-        static RollPitchYaw accel_scaled_to_rpy(AccelScaled const accel_scaled) noexcept;
+
+        static Scaled accel_to_roll_pitch_yaw(AccelScaled const accel_scaled) noexcept;
+        static Scaled accel_to_roll(AccelScaled const accel_scaled) noexcept;
+        static Scaled accel_to_pitch(AccelScaled const accel_scaled) noexcept;
+        static Scaled accel_to_yaw(AccelScaled const accel_scaled) noexcept;
+
+        static std::uint8_t slave_num_to_address(std::uint8_t const num) noexcept;
+        static std::uint8_t slave_num_to_register(std::uint8_t const num) noexcept;
+        static std::uint8_t slave_num_to_control(std::uint8_t const num) noexcept;
+        static std::uint8_t slave_num_to_output_byte(std::uint8_t const num) noexcept;
 
         static constexpr Scaled PI{3.1415f};
         static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_EN_HZ{1000};
