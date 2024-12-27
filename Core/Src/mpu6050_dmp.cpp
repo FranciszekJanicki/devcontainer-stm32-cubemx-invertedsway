@@ -34,9 +34,9 @@ namespace InvertedSway {
                                     2 * quaternion.w * quaternion.w + 2 * quaternion.x * quaternion.x - 1)};
         if (gravity.z < 0) {
             if (rpy.y > 0) {
-                rpy.y = MPU6050::PI - rpy.y;
+                rpy.y = PI - rpy.y;
             } else {
-                rpy.y = -MPU6050::PI - rpy.y;
+                rpy.y = -PI - rpy.y;
             }
         }
         return rpy;
@@ -175,8 +175,7 @@ namespace InvertedSway {
 
     QuaternionScaled MPU6050_DMP::get_quaternion_scaled() const noexcept
     {
-        return static_cast<QuaternionScaled>(this->get_quaternion_raw()) /
-               static_cast<Scaled>(this->mpu6050_.accel_scale_);
+        return static_cast<QuaternionScaled>(this->get_quaternion_raw()) / this->mpu6050_.accel_scale_;
     }
 
     Gravity MPU6050_DMP::get_gravity() const noexcept

@@ -32,7 +32,7 @@ namespace InvertedSway {
             Bytes<NUM_BITS / 8> bytes{};
             for (auto i{0}; i < bytes.size(); ++i) {
                 for (auto j{0}; j < 8; ++j) {
-                    bytes[i] |= (1 << bits[i * j]);
+                    bytes[i] |= (1 << bits[i * 8 + j]);
                 }
             }
             return bytes;
@@ -44,7 +44,7 @@ namespace InvertedSway {
             Bits<8 * NUM_BYTES> bits{};
             for (auto i{0}; i < bits.size(); ++i) {
                 for (auto j{0}; j < 8; ++j) {
-                    bits[i * j] = bytes[i] & (1 << j);
+                    bits[i * 8 + j] = (bytes[i] & (1 << j));
                 }
             }
             return bits;
@@ -57,7 +57,7 @@ namespace InvertedSway {
 
             Words<NUM_BYTES / 2> words{};
             for (auto i{0}; i < words.size(); ++i) {
-                words[i] = static_cast<Word>(bytes[i] << 8) | static_cast<Word>(bytes[i + 1]);
+                words[i] = static_cast<Word>(bytes[2 * i] << 8) | static_cast<Word>(bytes[2 * i + 1]);
             }
             return words;
         }
@@ -67,8 +67,8 @@ namespace InvertedSway {
         {
             Bytes<2 * NUM_WORDS> bytes{};
             for (auto i{0}; i < bytes.size(); ++i) {
-                bytes[i] = static_cast<Byte>(words[i] >> 8);
-                bytes[i + 1] = static_cast<Byte>(words[i]);
+                bytes[2 * i] = static_cast<Byte>(words[i] >> 8);
+                bytes[2 * i + 1] = static_cast<Byte>(words[i]);
             }
             return bytes;
         }
@@ -80,7 +80,7 @@ namespace InvertedSway {
 
             DWords<NUM_WORDS / 2> dwords{};
             for (auto i{0}; i < dwords.size(); ++i) {
-                dwords[i] = static_cast<DWord>(words[i] << 16) | static_cast<DWord>(words[i + 1]);
+                dwords[i] = static_cast<DWord>(words[2 * i] << 16) | static_cast<DWord>(words[2 * i + 1]);
             }
             return dwords;
         }
@@ -90,8 +90,8 @@ namespace InvertedSway {
         {
             Words<2 * NUM_DWORDS> words{};
             for (auto i{0}; i < words.size(); ++i) {
-                words[i] = static_cast<Word>(words[i] >> 16);
-                words[i + 1] = static_cast<Word>(words[i]);
+                words[2 * i] = static_cast<Word>(words[i] >> 16);
+                words[2 * i + 1] = static_cast<Word>(words[i]);
             }
             return words;
         }

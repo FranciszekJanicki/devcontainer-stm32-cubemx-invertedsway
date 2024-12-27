@@ -46,6 +46,7 @@ namespace InvertedSway {
         static constexpr std::size_t DMP_MEMORY_BANK_SIZE{256};
         static constexpr std::size_t DMP_MEMORY_CHUNK_SIZE{16};
         static constexpr auto FIFO_DEFAULT_TIMEOUT{11000};
+        static constexpr Scaled PI{MPU6050::PI};
 
         std::uint8_t dmp_packet_buffer[64];
 
