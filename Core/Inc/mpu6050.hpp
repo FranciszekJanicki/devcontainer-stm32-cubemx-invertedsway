@@ -457,7 +457,7 @@ namespace InvertedSway {
         using GyroScaled = Linalg::Vector3D<Scaled>;   // radians
         using AccelScaled = Linalg::Vector3D<Scaled>;  // m/s^2
         using RollPitchYaw = Linalg::Vector3D<Scaled>; // degrees
-        using Raw = std::uint16_t;
+        using Raw = std::int16_t;
         using GyroRaw = Linalg::Vector3D<Raw>;
         using AccelRaw = Linalg::Vector3D<Raw>;
 

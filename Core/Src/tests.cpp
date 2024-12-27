@@ -139,23 +139,46 @@ namespace Tests {
         MX_I2C1_Init();
         MX_TIM2_Init();
 
-        I2CDevice i2c_mpu_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
+        using RegAddress = MPU6050::RegAddress;
 
-        MPU6050 mpu6050{i2c_mpu_device,
-                        8000U,
-                        MPU6050::GyroRange::GYRO_FS_250,
-                        MPU6050::AccelRange::ACCEL_FS_2,
-                        MPU6050::DLPF::BW_256,
-                        MPU6050::DHPF::DHPF_RESET};
+        std::uint8_t buf = 1 << 7;
+        HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::PWR_MGMT_1), 1, &buf, 1, 1000);
+
+        buf = 0;
+        HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::PWR_MGMT_1), 1, &buf, 1, 1000);
+
+        buf = 39;
+        HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::SMPLRT_DIV), 1, &buf, 1, 1000);
+
+        buf = 0;
+        HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::CONFIG), 1, &buf, 1, 1000);
+
+        buf = 0;
+        HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::GYRO_CONFIG), 1, &buf, 1, 1000);
+
+        buf = 0;
+        HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::ACCEL_CONFIG), 1, &buf, 1, 1000);
+
+        buf = (0 << 7) | (0 << 5) | (1 << 4);
+        HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::INT_PIN_CFG), 1, &buf, 1, 1000);
+
+        buf = 1;
+        HAL_I2C_Mem_Write(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::INT_ENABLE), 1, &buf, 1, 1000);
 
         HAL_TIM_Base_Start_IT(&htim2);
 
+        std::uint8_t buffer[2];
+
         while (true) {
             if (sampling_timer_elapsed) {
-                float ax{mpu6050.get_acceleration_raw().x};
-                float gx{mpu6050.get_rotation_raw().x};
-                printf("accel %f\n\r", ax);
-                printf("gyro %f\n\r", gx);
+                std::uint8_t buffer[2];
+                HAL_I2C_Mem_Read(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::GYRO_XOUT_H), 1, buffer, 2, 1000);
+
+                printf("accel %d\n\r", ((int16_t)buffer[0] << 8) | (int16_t)buffer[1]);
+
+                HAL_I2C_Mem_Read(&hi2c1, 0x68 << 1, std::to_underlying(RegAddress::GYRO_XOUT_H), 1, buffer, 2, 1000);
+
+                printf("gyro %d\n\r", ((int16_t)buffer[0] << 8) | (int16_t)buffer[1]);
                 sampling_timer_elapsed = false;
             }
         }
