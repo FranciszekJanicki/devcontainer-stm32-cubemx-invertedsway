@@ -152,10 +152,10 @@ namespace Tests {
 
         while (true) {
             if (sampling_timer_elapsed) {
-                auto const& [ax, ay, az]{mpu6050.get_acceleration_scaled()};
-                auto const& [gx, gy, gz]{mpu6050.get_rotation_scaled()};
-                printf("accel x: %f, y: %f, z: %f\n\r", ax, ay, az);
-                printf("gyro x: %f, y: %f, z: %f\n\r", gx, gy, gz);
+                float ax{mpu6050.get_acceleration_raw().x};
+                float gx{mpu6050.get_rotation_raw().x};
+                printf("accel %f\n\r", ax);
+                printf("gyro %f\n\r", gx);
                 sampling_timer_elapsed = false;
             }
         }
