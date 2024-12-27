@@ -146,6 +146,51 @@ namespace InvertedSway {
         this->mpu6050_.i2c_device_.write_word(std::to_underlying(RegAddress::ZG_OFFS_USRH), offset);
     }
 
+    void MPU6050_DMP::get_quaternion(std::int16_t* data, const std::uint8_t* packet) const noexcept
+    {
+        if (packet == 0)
+            packet = dmp_packet_buffer;
+        data[0] = ((packet[0] << 8) | packet[1]);
+        data[1] = ((packet[4] << 8) | packet[5]);
+        data[2] = ((packet[8] << 8) | packet[9]);
+        data[3] = ((packet[12] << 8) | packet[13]);
+    }
+
+    void MPU6050_DMP::get_quaternion(Quaternion* quaternion, const std::uint8_t* packet) const noexcept
+    {
+        std::int16_t qI[4];
+        get_quaternion(qI, packet);
+        quaternion->w = (float)qI[0] / mpu6050_.accel_scale_;
+        quaternion->x = (float)qI[1] / mpu6050_.accel_scale_;
+        quaternion->y = (float)qI[2] / mpu6050_.accel_scale_;
+        quaternion->z = (float)qI[3] / mpu6050_.accel_scale_;
+    }
+    void MPU6050_DMP::get_gravity(Vector* gravity, Quaternion* quaternion) const noexcept
+    {
+        // g = [0, 0, 1] vector rotation according to quaternion
+        gravity->x = 2 * (quaternion->x * quaternion->z - quaternion->w * quaternion->y);
+        gravity->y = 2 * (quaternion->w * quaternion->x + quaternion->y * quaternion->z);
+        gravity->z = quaternion->w * quaternion->w - quaternion->x * quaternion->x - quaternion->y * quaternion->y +
+                     quaternion->z * quaternion->z;
+    }
+    void MPU6050_DMP::get_roll_pitch_yaw(Vector* rpy, Quaternion* quaternion, Vector* gravity) const noexcept
+    {
+        // roll: (tilt left/right, about X axis)
+        rpy->x = atan2(gravity->y, gravity->z);
+        // pitch: (nose up/down, about Y axis)
+        rpy->y = atan2(gravity->x, sqrt(gravity->y * gravity->y + gravity->z * gravity->z));
+        // yaw: (about Z axis)
+        rpy->z = atan2(2 * quaternion->x * quaternion->y - 2 * quaternion->w * quaternion->z,
+                       2 * quaternion->w * quaternion->w + 2 * quaternion->x * quaternion->x - 1);
+        if (gravity->z < 0) {
+            if (rpy->y > 0) {
+                rpy->y = MPU6050::PI - rpy->y;
+            } else {
+                rpy->y = -MPU6050::PI - rpy->y;
+            }
+        }
+    }
+
     void MPU6050_DMP::set_int_pll_ready_enabled(bool const enabled) const noexcept
     {
         this->mpu6050_.i2c_device_.write_bit(std::to_underlying(RegAddress::INT_ENABLE),

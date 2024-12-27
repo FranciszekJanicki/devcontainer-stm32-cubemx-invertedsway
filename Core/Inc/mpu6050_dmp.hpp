@@ -2,6 +2,8 @@
 #define MPU6050_DMP_HPP
 
 #include "mpu6050.hpp"
+#include "quaternion3d.hpp"
+#include "vector3d.hpp"
 
 namespace InvertedSway {
 
@@ -28,6 +30,8 @@ namespace InvertedSway {
         using IntrClear = MPU6050::IntrClear;
         using IntrDMP = MPU6050::IntrDMP;
         using TC = MPU6050::TC;
+        using Quaternion = Linalg::Quaternion3D<float>;
+        using Vector = Linalg::Vector3D<float>;
 
         MPU6050_DMP() noexcept = default;
 
@@ -50,6 +54,7 @@ namespace InvertedSway {
         static constexpr std::size_t DMP_MEMORY_BANK_SIZE{256};
         static constexpr std::size_t DMP_MEMORY_CHUNK_SIZE{16};
         static constexpr auto FIFO_DEFAULT_TIMEOUT{11000};
+        std::uint8_t dmp_packet_buffer[64];
 
         void initialize() noexcept;
         void deinitialize() noexcept;
@@ -72,6 +77,12 @@ namespace InvertedSway {
         void set_gyro_x_offset(std::uint16_t const offset) const noexcept;
         void set_gyro_y_offset(std::uint16_t const offset) const noexcept;
         void set_gyro_z_offset(std::uint16_t const offset) const noexcept;
+
+        void get_quaternion(std::int16_t* data, const std::uint8_t* packet = 0) const noexcept;
+        void get_quaternion(Quaternion* quaternion, const std::uint8_t* packet = 0) const noexcept;
+
+        void get_gravity(Vector* gravity, Quaternion* quaternion) const noexcept;
+        void get_roll_pitch_yaw(Vector* rpy, Quaternion* quaternion, Vector* gravity) const noexcept;
 
         void set_int_pll_ready_enabled(bool const enabled) const noexcept;
         void set_int_dmp_enabled(bool const enabled) const noexcept;
