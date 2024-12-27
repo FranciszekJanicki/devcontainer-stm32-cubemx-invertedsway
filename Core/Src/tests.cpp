@@ -170,10 +170,8 @@ namespace Tests {
 
         while (true) {
             if (sampling_timer_elapsed) {
-                auto const& [ax, ay, az]{mpu6050_dmp.get_acceleration_scaled()};
-                auto const& [gx, gy, gz]{mpu6050_dmp.get_rotation_scaled()};
-                printf("accel x: %f, y: %f, z: %f\n\r", ax, ay, az);
-                printf("gyro x: %f, y: %f, z: %f\n\r", gx, gy, gz);
+                auto const& [roll, pitch, yaw]{mpu6050_dmp.get_acceleration_scaled()};
+                printf("roll: %f, pitch: %f, yaw: %f\n\r", roll, pitch, yaw);
                 sampling_timer_elapsed = false;
             }
         }

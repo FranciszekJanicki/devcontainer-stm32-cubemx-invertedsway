@@ -503,7 +503,7 @@ namespace InvertedSway {
         static Scaled accel_range_to_scale(AccelRange const accel_range) noexcept;
         static std::uint8_t get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept;
 
-        static Scaled accel_to_roll_pitch_yaw(AccelScaled const accel_scaled) noexcept;
+        static RollPitchYaw accel_to_roll_pitch_yaw(AccelScaled const accel_scaled) noexcept;
         static Scaled accel_to_roll(AccelScaled const accel_scaled) noexcept;
         static Scaled accel_to_pitch(AccelScaled const accel_scaled) noexcept;
         static Scaled accel_to_yaw(AccelScaled const accel_scaled) noexcept;

@@ -9,29 +9,15 @@ namespace InvertedSway {
 
     struct MPU6050_DMP {
     public:
-        using Scaled = MPU6050::Scaled;
-        using GyroScaled = MPU6050::GyroScaled;
-        using AccelScaled = MPU6050::AccelScaled;
-        using RollPitchYaw = MPU6050::RollPitchYaw;
-        using Raw = MPU6050::Raw;
-        using GyroRaw = MPU6050::GyroRaw;
-        using AccelRaw = MPU6050::AccelRaw;
-        using DevAddress = MPU6050::DevAddress;
-        using RegAddress = MPU6050::RegAddress;
-        using Power1 = MPU6050::Power1;
-        using Power2 = MPU6050::Power2;
-        using Clock = MPU6050::Clock;
-        using UserCtrl = MPU6050::UserCtrl;
+        using Scaled = float;
+        using Raw = std::int16_t;
+        using QuaternionRaw = Linalg::Quaternion3D<Raw>;
+        using QuaternionScaled = Linalg::Quaternion3D<Scaled>;
+        using RollPitchYaw = Linalg::Vector3D<Scaled>;
+        using Gravity = Linalg::Vector3D<Scaled>;
         using Interrupt = MPU6050::Interrupt;
-        using IntrLatch = MPU6050::IntrLatch;
-        using IntrDrive = MPU6050::IntrDrive;
-        using IntrMode = MPU6050::IntrMode;
-        using IntrCfg = MPU6050::IntrCfg;
-        using IntrClear = MPU6050::IntrClear;
         using IntrDMP = MPU6050::IntrDMP;
         using TC = MPU6050::TC;
-        using Quaternion = Linalg::Quaternion3D<float>;
-        using Vector = Linalg::Vector3D<float>;
 
         MPU6050_DMP() noexcept = default;
 
@@ -45,15 +31,20 @@ namespace InvertedSway {
 
         ~MPU6050_DMP() noexcept;
 
-        AccelScaled get_acceleration_scaled() const noexcept;
-        GyroScaled get_rotation_scaled() const noexcept;
-        RollPitchYaw get_roll_pitch_yaw() const noexcept;
+        QuaternionRaw get_quaternion_raw(std::uint8_t const* packet) const noexcept;
+        QuaternionScaled get_quaternion_scaled(std::uint8_t const* packet) const noexcept;
+        Gravity get_gravity(std::uint8_t const* packet) const noexcept;
+        RollPitchYaw get_roll_pitch_yaw(std::uint8_t const* packet) const noexcept;
 
     private:
+        static Gravity quaternion_to_gravity(QuaternionScaled const quaternion) noexcept;
+        static RollPitchYaw quaternion_to_roll_pitch_yaw(QuaternionScaled const quaternion) noexcept;
+
         static constexpr std::uint8_t DMP_MEMORY_BANKS{8};
         static constexpr std::size_t DMP_MEMORY_BANK_SIZE{256};
         static constexpr std::size_t DMP_MEMORY_CHUNK_SIZE{16};
         static constexpr auto FIFO_DEFAULT_TIMEOUT{11000};
+
         std::uint8_t dmp_packet_buffer[64];
 
         void initialize() noexcept;
@@ -77,12 +68,6 @@ namespace InvertedSway {
         void set_gyro_x_offset(std::uint16_t const offset) const noexcept;
         void set_gyro_y_offset(std::uint16_t const offset) const noexcept;
         void set_gyro_z_offset(std::uint16_t const offset) const noexcept;
-
-        void get_quaternion(std::int16_t* data, const std::uint8_t* packet = 0) const noexcept;
-        void get_quaternion(Quaternion* quaternion, const std::uint8_t* packet = 0) const noexcept;
-
-        void get_gravity(Vector* gravity, Quaternion* quaternion) const noexcept;
-        void get_roll_pitch_yaw(Vector* rpy, Quaternion* quaternion, Vector* gravity) const noexcept;
 
         void set_int_pll_ready_enabled(bool const enabled) const noexcept;
         void set_int_dmp_enabled(bool const enabled) const noexcept;
