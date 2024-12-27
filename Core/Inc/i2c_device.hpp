@@ -25,48 +25,48 @@ namespace InvertedSway {
         using DWords = std::array<DWord, SIZE>;
 
         template <std::size_t NUM_BITS>
-        static Bytes<NUM_BITS / 8> bits_to_bytes(Bits<NUM_BITS> const& bits) noexcept
+        Bytes<NUM_BITS / 8> bits_to_bytes(Bits<NUM_BITS> const& bits) noexcept
         {
             static_assert(NUM_BITS % 8 == 0);
-
             Bytes<NUM_BITS / 8> bytes{};
-            for (auto i{0}; i < bytes.size(); ++i) {
-                for (auto j{0}; j < 8; ++j) {
-                    bytes[i] |= (1 << bits[i * 8 + j]);
+            for (std::size_t i = 0; i < bytes.size(); ++i) {
+                for (std::size_t j = 0; j < 8; ++j) {
+                    if (bits[i * 8 + j]) {
+                        bytes[i] |= (1 << j);
+                    }
                 }
             }
             return bytes;
         }
 
         template <std::size_t NUM_BYTES>
-        static Bits<8 * NUM_BYTES> bytes_to_bits(Bytes<NUM_BYTES> const& bytes) noexcept
+        Bits<8 * NUM_BYTES> bytes_to_bits(Bytes<NUM_BYTES> const& bytes) noexcept
         {
             Bits<8 * NUM_BYTES> bits{};
-            for (auto i{0}; i < bits.size(); ++i) {
-                for (auto j{0}; j < 8; ++j) {
-                    bits[i * 8 + j] = (bytes[i] & (1 << j));
+            for (std::size_t i = 0; i < bytes.size(); ++i) {
+                for (std::size_t j = 0; j < 8; ++j) {
+                    bits[i * 8 + j] = (bytes[i] & (1 << j)) != 0;
                 }
             }
             return bits;
         }
 
         template <std::size_t NUM_BYTES>
-        static Words<NUM_BYTES / 2> bytes_to_words(Bytes<NUM_BYTES> const& bytes) noexcept
+        Words<NUM_BYTES / 2> bytes_to_words(Bytes<NUM_BYTES> const& bytes) noexcept
         {
             static_assert(NUM_BYTES % 2 == 0);
-
             Words<NUM_BYTES / 2> words{};
-            for (auto i{0}; i < words.size(); ++i) {
+            for (std::size_t i = 0; i < words.size(); ++i) {
                 words[i] = static_cast<Word>(bytes[2 * i] << 8) | static_cast<Word>(bytes[2 * i + 1]);
             }
             return words;
         }
 
         template <std::size_t NUM_WORDS>
-        static Bytes<2 * NUM_WORDS> words_to_bytes(Words<NUM_WORDS> const& words) noexcept
+        Bytes<2 * NUM_WORDS> words_to_bytes(Words<NUM_WORDS> const& words) noexcept
         {
             Bytes<2 * NUM_WORDS> bytes{};
-            for (auto i{0}; i < bytes.size(); ++i) {
+            for (std::size_t i = 0; i < words.size(); ++i) {
                 bytes[2 * i] = static_cast<Byte>(words[i] >> 8);
                 bytes[2 * i + 1] = static_cast<Byte>(words[i]);
             }
@@ -79,7 +79,7 @@ namespace InvertedSway {
             static_assert(NUM_WORDS % 2 == 0);
 
             DWords<NUM_WORDS / 2> dwords{};
-            for (auto i{0}; i < dwords.size(); ++i) {
+            for (std::size_t i = 0; i < dwords.size(); ++i) {
                 dwords[i] = static_cast<DWord>(words[2 * i] << 16) | static_cast<DWord>(words[2 * i + 1]);
             }
             return dwords;
@@ -89,7 +89,7 @@ namespace InvertedSway {
         static Words<2 * NUM_DWORDS> dwords_to_words(DWords<NUM_DWORDS> const& dwords) noexcept
         {
             Words<2 * NUM_DWORDS> words{};
-            for (auto i{0}; i < words.size(); ++i) {
+            for (std::size_t i = 0; i < words.size(); ++i) {
                 words[2 * i] = static_cast<Word>(words[i] >> 16);
                 words[2 * i + 1] = static_cast<Word>(words[i]);
             }
