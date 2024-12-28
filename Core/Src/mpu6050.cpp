@@ -234,58 +234,11 @@ namespace InvertedSway {
                              DHPF const dhpf) noexcept
     {
         if (this->is_valid_device_id()) {
-            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::PWR_MGMT_1),
-            //                             1U << std::to_underlying(Power1::DEVICE_RESET_BIT));
-            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::PWR_MGMT_1), 0U);
-            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::SMPLRT_DIV),
-            //                              get_sampling_divider(8000U, DLPF::BW_256));
-            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::CONFIG),
-            //                              std::to_underlying(DLPF::BW_256) & 0x7);
-            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::GYRO_CONFIG),
-            //                              (std::to_underlying(GyroRange::GYRO_FS_250) & 0x7) << 3);
-            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::ACCEL_CONFIG),
-            //                              (std::to_underlying(AccelRange::ACCEL_FS_2) & 0x7) << 3);
-            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::INT_PIN_CFG),
-            //                              std::to_underlying(IntrMode::ACTIVELOW)
-            //                                  << std::to_underlying(IntrCfg::INT_LEVEL_BIT));
-            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::INT_PIN_CFG),
-            //                              std::to_underlying(IntrLatch::PULSE50US)
-            //                                  << std::to_underlying(IntrCfg::INT_RD_CLEAR_BIT));
-            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::INT_PIN_CFG),
-            //                              std::to_underlying(IntrClear::ANYREAD)
-            //                                  << std::to_underlying(IntrCfg::INT_RD_CLEAR_BIT));
-            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::INT_ENABLE),
-            //                              1 << std::to_underlying(Interrupt::DATA_RDY_BIT));
-
             this->device_reset();
-            HAL_Delay(50);
-            this->device_wake_up();
-            HAL_Delay(50);
-            this->set_sampling_rate(sampling_rate, dlpf);
-            HAL_Delay(50);
-            this->set_dlpf_mode(dlpf);
-            HAL_Delay(50);
-            this->set_full_scale_accel_range(accel_range);
-            HAL_Delay(50);
-            this->set_full_scale_gyro_range(gyro_range);
-            HAL_Delay(50);
-            this->set_sleep_enabled(false);
-            HAL_Delay(50);
-            this->set_interrupt_mode(IntrMode::ACTIVEHIGH);
-            HAL_Delay(50);
-            this->set_interrupt_drive(IntrDrive::PUSHPULL);
-            HAL_Delay(50);
-            this->set_interrupt_latch(IntrLatch::PULSE50US);
-            HAL_Delay(50);
-            this->set_interrupt_latch_clear(IntrClear::ANYREAD);
-            HAL_Delay(50);
-            this->set_int_data_ready_enabled(true);
-            HAL_Delay(50);
-            // this->set_clock_source(Clock::PLL_XGYRO);
-            // this->initialize_base(gyro_range, accel_range);
-            // this->initialize_rest(sampling_rate, dlpf, dhpf);
-            // this->initialize_interrupt();
-            // this->initialize_motion_interrupt();
+            this->initialize_base(gyro_range, accel_range);
+            this->initialize_rest(sampling_rate, dlpf, dhpf);
+            this->initialize_interrupt();
+            this->initialize_motion_interrupt();
             this->initialized_ = true;
         }
     }
@@ -301,7 +254,8 @@ namespace InvertedSway {
         HAL_Delay(50);
         this->set_sleep_enabled(false);
         HAL_Delay(50);
-        // this->set_clock_source(Clock::PLL_XGYRO);
+        this->set_clock_source(Clock::PLL_XGYRO);
+        HAL_Delay(50);
     }
 
     void MPU6050::initialize_rest(std::uint32_t const sampling_rate, DLPF const dlpf, DHPF const dhpf) const noexcept
@@ -310,9 +264,9 @@ namespace InvertedSway {
         HAL_Delay(50);
         this->set_dlpf_mode(dlpf);
         HAL_Delay(50);
-        // this->set_dhpf_mode(dhpf);
+        this->set_dhpf_mode(dhpf);
         HAL_Delay(50);
-        // this->set_external_frame_sync(ExtSync::DISABLED);
+        this->set_external_frame_sync(ExtSync::DISABLED);
         HAL_Delay(50);
     }
 
@@ -333,14 +287,23 @@ namespace InvertedSway {
     void MPU6050::initialize_motion_interrupt() const noexcept
     {
         this->set_int_motion_enabled(true);
+        HAL_Delay(50);
         this->set_int_zero_motion_enabled(true);
+        HAL_Delay(50);
         this->set_int_free_fall_enabled(true);
+        HAL_Delay(50);
         this->set_free_fall_detection_duration(2);
+        HAL_Delay(50);
         this->set_free_fall_detection_threshold(5);
+        HAL_Delay(50);
         this->set_motion_detection_duration(5);
+        HAL_Delay(50);
         this->set_motion_detection_threshold(2);
+        HAL_Delay(50);
         this->set_zero_motion_detection_duration(2);
+        HAL_Delay(50);
         this->set_zero_motion_detection_threshold(4);
+        HAL_Delay(50);
     }
 
     void MPU6050::deinitialize() noexcept

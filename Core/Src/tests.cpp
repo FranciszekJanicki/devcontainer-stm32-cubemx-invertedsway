@@ -156,7 +156,6 @@ namespace Tests {
                 printf("accel x: %f, y: %f, z: %f\n\r", ax, ay, az);
                 printf("gyro x: %f, y: %f, z: %f\n\r", gx, gy, gz);
                 sampling_timer_elapsed = false;
-                HAL_Delay(100);
             }
         }
     }
