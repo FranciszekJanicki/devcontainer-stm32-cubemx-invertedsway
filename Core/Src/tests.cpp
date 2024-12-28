@@ -133,7 +133,7 @@ namespace Tests {
         I2CDevice i2c_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
         MPU6050 mpu6050{i2c_device,
-                        8000U,
+                        80U,
                         MPU6050::GyroRange::GYRO_FS_250,
                         MPU6050::AccelRange::ACCEL_FS_2,
                         MPU6050::DLPF::BW_256,
@@ -141,8 +141,8 @@ namespace Tests {
 
         while (true) {
             if (sampling_timer_elapsed) {
-                auto const& [ax, ay, az]{mpu6050.get_acceleration_raw()};
-                auto const& [gx, gy, gz]{mpu6050.get_rotation_raw()};
+                auto const& [ax, ay, az]{mpu6050.get_acceleration_scaled()};
+                auto const& [gx, gy, gz]{mpu6050.get_acceleration_scaled()};
                 printf("accel x: %f, y: %f, z: %f\n\r", ax, ay, az);
                 printf("gyro x: %f, y: %f, z: %f\n\r", gx, gy, gz);
                 sampling_timer_elapsed = false;

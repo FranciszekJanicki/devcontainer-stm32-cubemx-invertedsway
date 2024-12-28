@@ -65,8 +65,11 @@ namespace InvertedSway {
 
     std::uint8_t MPU6050::get_sampling_divider(std::uint32_t const sampling_rate, DLPF const dlpf) noexcept
     {
-        return static_cast<std::uint8_t>(
-            ((dlpf == DLPF::BW_256 ? GYRO_OUTPUT_RATE_DLPF_DIS_HZ : GYRO_OUTPUT_RATE_DLPF_EN_HZ) / sampling_rate) - 1U);
+        if (dlpf == DLPF::BW_256) {
+            return static_cast<std::uint8_t>((GYRO_OUTPUT_RATE_DLPF_DIS_HZ / sampling_rate) - 1U);
+        } else {
+            return static_cast<std::uint8_t>((GYRO_OUTPUT_RATE_DLPF_EN_HZ / sampling_rate) - 1U);
+        }
     }
 
     RollPitchYaw MPU6050::accel_to_roll_pitch_yaw(AccelScaled const accel_scaled) noexcept
@@ -232,7 +235,7 @@ namespace InvertedSway {
     {
         if (this->is_valid_device_id()) {
             // this->i2c_device_.write_byte(std::to_underlying(RegAddress::PWR_MGMT_1),
-            //                              1U << std::to_underlying(Power1::DEVICE_RESET_BIT));
+            //                             1U << std::to_underlying(Power1::DEVICE_RESET_BIT));
             // this->i2c_device_.write_byte(std::to_underlying(RegAddress::PWR_MGMT_1), 0U);
             // this->i2c_device_.write_byte(std::to_underlying(RegAddress::SMPLRT_DIV),
             //                              get_sampling_divider(8000U, DLPF::BW_256));
@@ -254,9 +257,9 @@ namespace InvertedSway {
             // this->i2c_device_.write_byte(std::to_underlying(RegAddress::INT_ENABLE),
             //                              1 << std::to_underlying(Interrupt::DATA_RDY_BIT));
 
-            this->device_reset();
-            this->initialize_rest(sampling_rate, dlpf, dhpf);
+            // this->device_reset();
             this->initialize_base(gyro_range, accel_range);
+            this->initialize_rest(sampling_rate, dlpf, dhpf);
             this->initialize_interrupt();
             // this->initialize_motion_interrupt();
             this->initialized_ = true;
@@ -282,8 +285,8 @@ namespace InvertedSway {
 
     void MPU6050::initialize_interrupt() const noexcept
     {
-        this->set_interrupt_mode(IntrMode::ACTIVELOW);
-        this->set_interrupt_drive(IntrDrive::PUSHPULL);
+        this->set_interrupt_mode(IntrMode::ACTIVEHIGH);
+        // this->set_interrupt_drive(IntrDrive::PUSHPULL);
         this->set_interrupt_latch(IntrLatch::PULSE50US);
         this->set_interrupt_latch_clear(IntrClear::ANYREAD);
         this->set_int_data_ready_enabled(true);
