@@ -25,14 +25,6 @@ using namespace Regulators;
 
 static bool sampling_timer_elapsed{false};
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
-{
-    if (htim->Instance == TIM2) {
-        sampling_timer_elapsed = true;
-    }
-    HAL_TIM_Base_Start_IT(htim);
-}
-
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == MPU6050_INTR_Pin) {
@@ -137,7 +129,6 @@ namespace Tests {
         MX_GPIO_Init();
         MX_USART2_UART_Init();
         MX_I2C1_Init();
-        MX_TIM2_Init();
 
         I2CDevice i2c_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
@@ -148,18 +139,14 @@ namespace Tests {
                         MPU6050::DLPF::BW_256,
                         MPU6050::DHPF::DHPF_RESET};
 
-        HAL_TIM_Base_Start_IT(&htim2);
-
         while (true) {
-            // if (sampling_timer_elapsed) {
-            if (HAL_GPIO_ReadPin(MPU6050_INTR_GPIO_Port, MPU6050_INTR_Pin) == GPIO_PinState::GPIO_PIN_SET) {
+            if (sampling_timer_elapsed) {
                 auto const& [ax, ay, az]{mpu6050.get_acceleration_raw()};
                 auto const& [gx, gy, gz]{mpu6050.get_rotation_raw()};
                 printf("accel x: %f, y: %f, z: %f\n\r", ax, ay, az);
                 printf("gyro x: %f, y: %f, z: %f\n\r", gx, gy, gz);
                 sampling_timer_elapsed = false;
             }
-            // }
         }
     }
 

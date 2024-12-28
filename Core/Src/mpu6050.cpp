@@ -255,8 +255,8 @@ namespace InvertedSway {
             //                              1 << std::to_underlying(Interrupt::DATA_RDY_BIT));
 
             this->device_reset();
-            this->initialize_base(gyro_range, accel_range);
             this->initialize_rest(sampling_rate, dlpf, dhpf);
+            this->initialize_base(gyro_range, accel_range);
             this->initialize_interrupt();
             // this->initialize_motion_interrupt();
             this->initialized_ = true;
@@ -282,7 +282,7 @@ namespace InvertedSway {
 
     void MPU6050::initialize_interrupt() const noexcept
     {
-        this->set_interrupt_mode(IntrMode::ACTIVEHIGH);
+        this->set_interrupt_mode(IntrMode::ACTIVELOW);
         this->set_interrupt_drive(IntrDrive::PUSHPULL);
         this->set_interrupt_latch(IntrLatch::PULSE50US);
         this->set_interrupt_latch_clear(IntrClear::ANYREAD);
