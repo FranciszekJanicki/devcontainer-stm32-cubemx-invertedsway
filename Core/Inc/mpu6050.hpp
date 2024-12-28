@@ -196,13 +196,6 @@ namespace InvertedSway {
             BW_5 = 0x06,
         };
 
-        enum struct TC : std::uint8_t {
-            PWR_MODE_BIT = 7,
-            OFFSET_BIT = 6,
-            OFFSET_LENGTH = 6,
-            OTP_BNK_VLD_BIT = 0,
-        };
-
         enum struct GyroConfig : std::uint8_t {
             FS_SEL_BIT = 4,
             FS_SEL_LENGTH = 2,
@@ -341,15 +334,6 @@ namespace InvertedSway {
             PLL_RDY_INT_BIT = 2,
             DMP_INT_BIT = 1,
             DATA_RDY_BIT = 0,
-        };
-
-        enum struct IntrDMP : std::uint8_t {
-            DMPINT_5_BIT = 5,
-            DMPINT_4_BIT = 4,
-            DMPINT_3_BIT = 3,
-            DMPINT_2_BIT = 2,
-            DMPINT_1_BIT = 1,
-            DMPINT_0_BIT = 0,
         };
 
         enum struct Motion : std::uint8_t {
@@ -501,7 +485,7 @@ namespace InvertedSway {
 
         static Scaled gyro_range_to_scale(GyroRange const gyro_range) noexcept;
         static Scaled accel_range_to_scale(AccelRange const accel_range) noexcept;
-        static std::uint8_t get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept;
+        static std::uint8_t get_sampling_divider(std::uint32_t const sampling_rate, DLPF const dlpf) noexcept;
 
         static RollPitchYaw accel_to_roll_pitch_yaw(AccelScaled const accel_scaled) noexcept;
         static Scaled accel_to_roll(AccelScaled const accel_scaled) noexcept;
@@ -531,7 +515,7 @@ namespace InvertedSway {
         void initialize_motion_interrupt() const noexcept;
         void deinitialize() noexcept;
 
-        void set_sampling_rate(std::uint32_t const divider, DLPF const dlpf) const noexcept;
+        void set_sampling_rate(std::uint32_t const sampling_rate, DLPF const dlpf) const noexcept;
         void set_external_frame_sync(ExtSync const frame_sync) const noexcept;
         void set_dlpf_mode(DLPF const dlpf) const noexcept;
         void set_full_scale_gyro_range(GyroRange const range) const noexcept;
@@ -657,6 +641,7 @@ namespace InvertedSway {
         void reset_sensors() const noexcept;
 
         void device_reset() const noexcept;
+        void device_wake_up() const noexcept;
         void set_clock_source(Clock const source) const noexcept;
         void set_sleep_enabled(bool const enabled) const noexcept;
         void set_wake_cycle_enabled(bool const enabled) const noexcept;

@@ -1,10 +1,10 @@
 #include "system_clock.h"
 #include "tests.hpp"
 
-using namespace Tests;
-
 int main()
 {
+    using namespace Tests;
+
     HAL_Init();
     SystemClock_Config();
 

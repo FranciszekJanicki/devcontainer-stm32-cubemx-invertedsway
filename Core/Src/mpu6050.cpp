@@ -28,8 +28,6 @@ using IntrDrive = MPU6050::IntrDrive;
 using IntrMode = MPU6050::IntrMode;
 using IntrCfg = MPU6050::IntrCfg;
 using IntrClear = MPU6050::IntrClear;
-using IntrDMP = MPU6050::IntrDMP;
-using TC = MPU6050::TC;
 
 namespace InvertedSway {
 
@@ -223,7 +221,7 @@ namespace InvertedSway {
 
     bool MPU6050::is_valid_device_id() const noexcept
     {
-        return this->get_device_id() == 0x68 << 1;
+        return this->get_device_id() == this->i2c_device_.device_address;
     }
 
     void MPU6050::initialize(std::uint32_t const sampling_rate,
@@ -233,29 +231,53 @@ namespace InvertedSway {
                              DHPF const dhpf) noexcept
     {
         if (this->is_valid_device_id()) {
+            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::PWR_MGMT_1),
+            //                              1U << std::to_underlying(Power1::DEVICE_RESET_BIT));
+            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::PWR_MGMT_1), 0U);
+            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::SMPLRT_DIV),
+            //                              get_sampling_divider(8000U, DLPF::BW_256));
+            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::CONFIG),
+            //                              std::to_underlying(DLPF::BW_256) & 0x7);
+            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::GYRO_CONFIG),
+            //                              (std::to_underlying(GyroRange::GYRO_FS_250) & 0x7) << 3);
+            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::ACCEL_CONFIG),
+            //                              (std::to_underlying(AccelRange::ACCEL_FS_2) & 0x7) << 3);
+            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::INT_PIN_CFG),
+            //                              std::to_underlying(IntrMode::ACTIVELOW)
+            //                                  << std::to_underlying(IntrCfg::INT_LEVEL_BIT));
+            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::INT_PIN_CFG),
+            //                              std::to_underlying(IntrLatch::PULSE50US)
+            //                                  << std::to_underlying(IntrCfg::INT_RD_CLEAR_BIT));
+            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::INT_PIN_CFG),
+            //                              std::to_underlying(IntrClear::ANYREAD)
+            //                                  << std::to_underlying(IntrCfg::INT_RD_CLEAR_BIT));
+            // this->i2c_device_.write_byte(std::to_underlying(RegAddress::INT_ENABLE),
+            //                              1 << std::to_underlying(Interrupt::DATA_RDY_BIT));
+
             this->device_reset();
             this->initialize_base(gyro_range, accel_range);
             this->initialize_rest(sampling_rate, dlpf, dhpf);
             this->initialize_interrupt();
-            this->initialize_motion_interrupt();
+            // this->initialize_motion_interrupt();
             this->initialized_ = true;
         }
     }
 
     void MPU6050::initialize_base(GyroRange const gyro_range, AccelRange const accel_range) const noexcept
     {
-        this->set_clock_source(Clock::PLL_XGYRO);
-        this->set_full_scale_gyro_range(gyro_range);
+        this->device_wake_up();
         this->set_full_scale_accel_range(accel_range);
-        this->set_sleep_enabled(false);
+        this->set_full_scale_gyro_range(gyro_range);
+        // this->set_sleep_enabled(false);
+        // this->set_clock_source(Clock::PLL_XGYRO);
     }
 
     void MPU6050::initialize_rest(std::uint32_t const sampling_rate, DLPF const dlpf, DHPF const dhpf) const noexcept
     {
         this->set_sampling_rate(sampling_rate, dlpf);
         this->set_dlpf_mode(dlpf);
-        this->set_dhpf_mode(dhpf);
-        this->set_external_frame_sync(ExtSync::DISABLED);
+        // this->set_dhpf_mode(dhpf);
+        // this->set_external_frame_sync(ExtSync::DISABLED);
     }
 
     void MPU6050::initialize_interrupt() const noexcept
@@ -269,16 +291,15 @@ namespace InvertedSway {
 
     void MPU6050::initialize_motion_interrupt() const noexcept
     {
-        // this->set_dhpf_mode(DHPF_5);
-        // this->set_int_motion_enabled(true);
-        // this->set_int_zero_motion_enabled(true);
-        // this->set_int_free_fall_enabled(true);
-        // this->set_free_fall_detection_duration(2);
-        // this->set_free_fall_detection_threshold(5);
-        // this->set_motion_detection_duration(5);
-        // this->set_motion_detection_threshold(2);
-        // this->set_zero_motion_detection_duration(2);
-        // this->set_zero_motion_detection_threshold(4);
+        this->set_int_motion_enabled(true);
+        this->set_int_zero_motion_enabled(true);
+        this->set_int_free_fall_enabled(true);
+        this->set_free_fall_detection_duration(2);
+        this->set_free_fall_detection_threshold(5);
+        this->set_motion_detection_duration(5);
+        this->set_motion_detection_threshold(2);
+        this->set_zero_motion_detection_duration(2);
+        this->set_zero_motion_detection_threshold(4);
     }
 
     void MPU6050::deinitialize() noexcept
@@ -827,7 +848,7 @@ namespace InvertedSway {
             std::unreachable();
         }
         auto buffer = this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::ACCEL_XOUT_H));
-        return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
+        return (static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1]);
     }
 
     Raw MPU6050::get_acceleration_y_raw() const noexcept
@@ -836,7 +857,7 @@ namespace InvertedSway {
             std::unreachable();
         }
         auto buffer = this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::ACCEL_YOUT_H));
-        return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
+        return (static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1]);
     }
 
     Raw MPU6050::get_acceleration_z_raw() const noexcept
@@ -845,7 +866,7 @@ namespace InvertedSway {
             std::unreachable();
         }
         auto buffer = this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::ACCEL_ZOUT_H));
-        return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
+        return (static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1]);
     }
 
     Raw MPU6050::get_temperature_raw() const noexcept
@@ -854,7 +875,7 @@ namespace InvertedSway {
             std::unreachable();
         }
         auto buffer = this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::TEMP_OUT_H));
-        return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
+        return (static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1]);
     }
 
     GyroRaw MPU6050::get_rotation_raw() const noexcept
@@ -874,7 +895,7 @@ namespace InvertedSway {
             std::unreachable();
         }
         auto buffer = this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::GYRO_XOUT_H));
-        return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
+        return (static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1]);
     }
 
     Raw MPU6050::get_rotation_y_raw() const noexcept
@@ -883,7 +904,7 @@ namespace InvertedSway {
             std::unreachable();
         }
         auto buffer = this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::GYRO_YOUT_H));
-        return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
+        return (static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1]);
     }
 
     Raw MPU6050::get_rotation_z_raw() const noexcept
@@ -892,7 +913,7 @@ namespace InvertedSway {
             std::unreachable();
         }
         auto buffer = this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::GYRO_ZOUT_H));
-        return ((static_cast<Raw>(buffer[0])) << 8) | buffer[1];
+        return (static_cast<Raw>(buffer[0]) << 8) | static_cast<Raw>(buffer[1]);
     }
 
     std::uint8_t MPU6050::get_external_sensor_byte(std::uint8_t const position) const noexcept
@@ -1059,6 +1080,11 @@ namespace InvertedSway {
         this->i2c_device_.write_bit(std::to_underlying(RegAddress::PWR_MGMT_1),
                                     true,
                                     std::to_underlying(Power1::DEVICE_RESET_BIT));
+    }
+
+    void MPU6050::device_wake_up() const noexcept
+    {
+        this->i2c_device_.write_byte(std::to_underlying(RegAddress::PWR_MGMT_1), 0x00);
     }
 
     void MPU6050::set_sleep_enabled(bool const enabled) const noexcept

@@ -187,7 +187,7 @@ namespace InvertedSway {
         I2CBusHandle i2c_bus{nullptr};
         std::uint16_t device_address{};
 
-        static constexpr auto I2C_TIMEOUT{1000};
+        static constexpr std::uint32_t I2C_TIMEOUT{100};
     };
 
 }; // namespace InvertedSway

@@ -25,19 +25,19 @@ using namespace Regulators;
 
 static bool sampling_timer_elapsed{false};
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-    if (GPIO_Pin == MPU6050_INTR_Pin) {
-        sampling_timer_elapsed = true;
-    }
-}
-
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
     if (htim->Instance == TIM2) {
         sampling_timer_elapsed = true;
     }
     HAL_TIM_Base_Start_IT(htim);
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == MPU6050_INTR_Pin) {
+        sampling_timer_elapsed = true;
+    }
 }
 
 namespace Tests {
@@ -139,33 +139,27 @@ namespace Tests {
         MX_I2C1_Init();
         MX_TIM2_Init();
 
-        using RegAddress = MPU6050::RegAddress;
+        I2CDevice i2c_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
-        I2CDevice i2c{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
-
-        i2c.write_byte(std::to_underlying(RegAddress::PWR_MGMT_1), 1 << 7);
-        i2c.write_byte(std::to_underlying(RegAddress::PWR_MGMT_1), 0);
-        i2c.write_byte(std::to_underlying(RegAddress::SMPLRT_DIV), 0);
-        i2c.write_byte(std::to_underlying(RegAddress::CONFIG), 0);
-        i2c.write_byte(std::to_underlying(RegAddress::GYRO_CONFIG), 0);
-        i2c.write_byte(std::to_underlying(RegAddress::ACCEL_CONFIG), 0);
-        i2c.write_byte(std::to_underlying(RegAddress::INT_PIN_CFG), (0 << 7) | (0 << 5) | (1 << 4));
-        i2c.write_byte(std::to_underlying(RegAddress::INT_ENABLE), 1);
+        MPU6050 mpu6050{i2c_device,
+                        8000U,
+                        MPU6050::GyroRange::GYRO_FS_250,
+                        MPU6050::AccelRange::ACCEL_FS_2,
+                        MPU6050::DLPF::BW_256,
+                        MPU6050::DHPF::DHPF_RESET};
 
         HAL_TIM_Base_Start_IT(&htim2);
 
         while (true) {
-            if (sampling_timer_elapsed) {
-                std::uint8_t buffer[2];
-
-                i2c.read_bytes(std::to_underlying(RegAddress::ACCEL_XOUT_H), buffer, sizeof(buffer));
-                printf("accel %d\n\r", ((int16_t)buffer[0] << 8) | (int16_t)buffer[1]);
-
-                i2c.read_bytes(std::to_underlying(RegAddress::GYRO_XOUT_H), buffer, sizeof(buffer));
-                printf("gyro %d\n\r", ((int16_t)buffer[0] << 8) | (int16_t)buffer[1]);
-
+            // if (sampling_timer_elapsed) {
+            if (HAL_GPIO_ReadPin(MPU6050_INTR_GPIO_Port, MPU6050_INTR_Pin) == GPIO_PinState::GPIO_PIN_SET) {
+                auto const& [ax, ay, az]{mpu6050.get_acceleration_raw()};
+                auto const& [gx, gy, gz]{mpu6050.get_rotation_raw()};
+                printf("accel x: %f, y: %f, z: %f\n\r", ax, ay, az);
+                printf("gyro x: %f, y: %f, z: %f\n\r", gx, gy, gz);
                 sampling_timer_elapsed = false;
             }
+            // }
         }
     }
 

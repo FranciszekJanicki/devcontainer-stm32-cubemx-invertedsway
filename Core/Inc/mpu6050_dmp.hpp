@@ -9,6 +9,22 @@ namespace InvertedSway {
 
     struct MPU6050_DMP {
     public:
+        enum struct IntrDMP : std::uint8_t {
+            DMPINT_5_BIT = 5,
+            DMPINT_4_BIT = 4,
+            DMPINT_3_BIT = 3,
+            DMPINT_2_BIT = 2,
+            DMPINT_1_BIT = 1,
+            DMPINT_0_BIT = 0,
+        };
+
+        enum struct TC : std::uint8_t {
+            PWR_MODE_BIT = 7,
+            OFFSET_BIT = 6,
+            OFFSET_LENGTH = 6,
+            OTP_BNK_VLD_BIT = 0,
+        };
+
         using Scaled = MPU6050::Scaled;
         using Raw = std::int16_t;
         using QuaternionRaw = Linalg::Quaternion3D<Raw>;
@@ -18,8 +34,6 @@ namespace InvertedSway {
         using UserCtrl = MPU6050::UserCtrl;
         using RegAddress = MPU6050::RegAddress;
         using Interrupt = MPU6050::Interrupt;
-        using IntrDMP = MPU6050::IntrDMP;
-        using TC = MPU6050::TC;
 
         MPU6050_DMP() noexcept = default;
 
