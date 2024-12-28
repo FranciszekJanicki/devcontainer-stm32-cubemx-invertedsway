@@ -257,10 +257,34 @@ namespace InvertedSway {
             // this->i2c_device_.write_byte(std::to_underlying(RegAddress::INT_ENABLE),
             //                              1 << std::to_underlying(Interrupt::DATA_RDY_BIT));
 
-            // this->device_reset();
-            this->initialize_base(gyro_range, accel_range);
-            this->initialize_rest(sampling_rate, dlpf, dhpf);
-            this->initialize_interrupt();
+            this->device_reset();
+            HAL_Delay(50);
+            this->device_wake_up();
+            HAL_Delay(50);
+            this->set_sampling_rate(sampling_rate, dlpf);
+            HAL_Delay(50);
+            this->set_dlpf_mode(dlpf);
+            HAL_Delay(50);
+            this->set_full_scale_accel_range(accel_range);
+            HAL_Delay(50);
+            this->set_full_scale_gyro_range(gyro_range);
+            HAL_Delay(50);
+            this->set_sleep_enabled(false);
+            HAL_Delay(50);
+            this->set_interrupt_mode(IntrMode::ACTIVEHIGH);
+            HAL_Delay(50);
+            this->set_interrupt_drive(IntrDrive::PUSHPULL);
+            HAL_Delay(50);
+            this->set_interrupt_latch(IntrLatch::PULSE50US);
+            HAL_Delay(50);
+            this->set_interrupt_latch_clear(IntrClear::ANYREAD);
+            HAL_Delay(50);
+            this->set_int_data_ready_enabled(true);
+            HAL_Delay(50);
+            // this->set_clock_source(Clock::PLL_XGYRO);
+            // this->initialize_base(gyro_range, accel_range);
+            // this->initialize_rest(sampling_rate, dlpf, dhpf);
+            // this->initialize_interrupt();
             // this->initialize_motion_interrupt();
             this->initialized_ = true;
         }
@@ -268,28 +292,42 @@ namespace InvertedSway {
 
     void MPU6050::initialize_base(GyroRange const gyro_range, AccelRange const accel_range) const noexcept
     {
+        HAL_Delay(50);
         this->device_wake_up();
+        HAL_Delay(50);
         this->set_full_scale_accel_range(accel_range);
+        HAL_Delay(50);
         this->set_full_scale_gyro_range(gyro_range);
-        // this->set_sleep_enabled(false);
+        HAL_Delay(50);
+        this->set_sleep_enabled(false);
+        HAL_Delay(50);
         // this->set_clock_source(Clock::PLL_XGYRO);
     }
 
     void MPU6050::initialize_rest(std::uint32_t const sampling_rate, DLPF const dlpf, DHPF const dhpf) const noexcept
     {
         this->set_sampling_rate(sampling_rate, dlpf);
+        HAL_Delay(50);
         this->set_dlpf_mode(dlpf);
+        HAL_Delay(50);
         // this->set_dhpf_mode(dhpf);
+        HAL_Delay(50);
         // this->set_external_frame_sync(ExtSync::DISABLED);
+        HAL_Delay(50);
     }
 
     void MPU6050::initialize_interrupt() const noexcept
     {
         this->set_interrupt_mode(IntrMode::ACTIVEHIGH);
-        // this->set_interrupt_drive(IntrDrive::PUSHPULL);
+        HAL_Delay(50);
+        this->set_interrupt_drive(IntrDrive::PUSHPULL);
+        HAL_Delay(50);
         this->set_interrupt_latch(IntrLatch::PULSE50US);
+        HAL_Delay(50);
         this->set_interrupt_latch_clear(IntrClear::ANYREAD);
+        HAL_Delay(50);
         this->set_int_data_ready_enabled(true);
+        HAL_Delay(50);
     }
 
     void MPU6050::initialize_motion_interrupt() const noexcept
@@ -315,8 +353,7 @@ namespace InvertedSway {
 
     void MPU6050::set_sampling_rate(std::uint32_t const sampling_rate, DLPF const dlpf) const noexcept
     {
-        this->i2c_device_.write_byte(std::to_underlying(RegAddress::SMPLRT_DIV),
-                                     get_sampling_divider(sampling_rate, dlpf));
+        this->i2c_device_.write_byte(std::to_underlying(RegAddress::SMPLRT_DIV), 39);
     }
 
     void MPU6050::set_external_frame_sync(ExtSync const frame_sync) const noexcept

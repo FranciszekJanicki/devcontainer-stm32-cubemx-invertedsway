@@ -1,5 +1,4 @@
 #include "tests.hpp"
-#include "balance_sway.hpp"
 #include "encoder.hpp"
 #include "filters.hpp"
 #include "gpio.h"
@@ -28,8 +27,16 @@ static bool sampling_timer_elapsed{false};
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == MPU6050_INTR_Pin) {
+        // sampling_timer_elapsed = true;
+    }
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+{
+    if (htim->Instance == TIM2) {
         sampling_timer_elapsed = true;
     }
+    HAL_TIM_Base_Start_IT(htim);
 }
 
 namespace Tests {
@@ -129,23 +136,27 @@ namespace Tests {
         MX_GPIO_Init();
         MX_USART2_UART_Init();
         MX_I2C1_Init();
+        MX_TIM2_Init();
 
         I2CDevice i2c_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
         MPU6050 mpu6050{i2c_device,
-                        80U,
+                        1000U,
                         MPU6050::GyroRange::GYRO_FS_250,
                         MPU6050::AccelRange::ACCEL_FS_2,
                         MPU6050::DLPF::BW_256,
                         MPU6050::DHPF::DHPF_RESET};
 
+        HAL_TIM_Base_Start_IT(&htim2);
+
         while (true) {
             if (sampling_timer_elapsed) {
                 auto const& [ax, ay, az]{mpu6050.get_acceleration_scaled()};
-                auto const& [gx, gy, gz]{mpu6050.get_acceleration_scaled()};
+                auto const& [gx, gy, gz]{mpu6050.get_rotation_scaled()};
                 printf("accel x: %f, y: %f, z: %f\n\r", ax, ay, az);
                 printf("gyro x: %f, y: %f, z: %f\n\r", gx, gy, gz);
                 sampling_timer_elapsed = false;
+                HAL_Delay(100);
             }
         }
     }
@@ -155,6 +166,7 @@ namespace Tests {
         MX_GPIO_Init();
         MX_USART2_UART_Init();
         MX_I2C1_Init();
+        MX_TIM2_Init();
 
         I2CDevice i2c_mpu_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
@@ -166,6 +178,8 @@ namespace Tests {
                         MPU6050::DHPF::DHPF_RESET};
 
         MPU6050_DMP mpu6050_dmp{std::move(mpu6050)};
+
+        HAL_TIM_Base_Start_IT(&htim2);
 
         while (true) {
             if (sampling_timer_elapsed) {
@@ -181,6 +195,7 @@ namespace Tests {
         MX_GPIO_Init();
         MX_USART2_UART_Init();
         MX_I2C1_Init();
+        MX_TIM2_Init();
 
         I2CDevice i2c_mpu_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
@@ -194,6 +209,8 @@ namespace Tests {
         auto kalman{make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
 
         auto const sampling_time{1.0f / 8000.0f};
+
+        HAL_TIM_Base_Start_IT(&htim2);
 
         while (true) {
             if (sampling_timer_elapsed) {
