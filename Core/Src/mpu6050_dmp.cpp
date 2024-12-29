@@ -1,5 +1,6 @@
 #include "mpu6050_dmp.hpp"
 #include "mpu6050.hpp"
+#include "mpu6050_dmp_memory.hpp"
 
 using namespace InvertedSway;
 using Scaled = MPU6050_DMP::Scaled;
@@ -13,6 +14,7 @@ using RegAddress = MPU6050_DMP::RegAddress;
 using Interrupt = MPU6050_DMP::Interrupt;
 using IntrDMP = MPU6050_DMP::IntrDMP;
 using TC = MPU6050_DMP::TC;
+using DMP_Packet = MPU6050_DMP::DMP_Packet;
 
 namespace InvertedSway {
 
@@ -54,32 +56,76 @@ namespace InvertedSway {
 
     void MPU6050_DMP::initialize() noexcept
     {
+        if (this->mpu6050_.initialized_) {
+            this->initialize_dmp();
+            this->initialize_offsets();
+            this->initialized_ = true;
+        }
+    }
+
+    void MPU6050_DMP::initialize_dmp() const noexcept
+    {
         this->set_memory_bank(0x10, true, true);
+        HAL_Delay(50);
         this->set_memory_start_address(0x06);
+        HAL_Delay(50);
         this->set_memory_bank(0, false, false);
+        HAL_Delay(50);
         this->get_otp_bank_valid();
+        HAL_Delay(50);
 
         this->mpu6050_.set_slave_address(0, 0x7F);
+        HAL_Delay(50);
         this->mpu6050_.set_i2c_master_mode_enabled(false);
+        HAL_Delay(50);
         this->mpu6050_.set_slave_address(0, 0x68);
+        HAL_Delay(50);
         this->mpu6050_.reset_i2c_master();
-        this->write_memory_block(dmp_memory, sizeof(dmp_memory), 0x00, 0x00);
+        HAL_Delay(50);
+        this->write_memory_block(dmp_memory.data(), dmp_memory.size(), 0x00, 0x00);
+        HAL_Delay(50);
 
-        std::uint8_t dmp_update[]{0x00, 0x01};
-        this->write_memory_block(dmp_update, sizeof(dmp_update), 0x02, 0x16);
+        std::array<std::uint8_t, 2UL> dmp_update{0x00, 0x01};
+        HAL_Delay(50);
+        this->write_memory_block(dmp_update.data(), dmp_update.size(), 0x02, 0x16);
+        HAL_Delay(50);
         this->set_dmp_config1(0x03);
+        HAL_Delay(50);
         this->set_dmp_config2(0x00);
+        HAL_Delay(50);
         this->set_otp_bank_valid(false);
+        HAL_Delay(50);
 
         this->mpu6050_.set_fifo_enabled(true);
+        HAL_Delay(50);
         this->reset_dmp();
+        HAL_Delay(50);
         this->set_dmp_enabled(false);
+        HAL_Delay(50);
         this->mpu6050_.reset_fifo();
+        HAL_Delay(50);
         this->mpu6050_.get_int_status();
+        HAL_Delay(50);
+        this->set_dmp_enabled(true);
+        HAL_Delay(50);
+    }
+
+    void MPU6050_DMP::initialize_offsets() const noexcept
+    {
+        this->set_x_gyro_offset(220);
+        HAL_Delay(50);
+        this->set_y_gyro_offset(76);
+        HAL_Delay(50);
+        this->set_z_gyro_offset(-85);
+        HAL_Delay(50);
+        this->set_z_accel_offset(1788);
+        HAL_Delay(50);
     }
 
     void MPU6050_DMP::deinitialize() noexcept
-    {}
+    {
+        this->initialized_ = false;
+    }
 
     bool MPU6050_DMP::get_otp_bank_valid() const noexcept
     {
@@ -94,7 +140,7 @@ namespace InvertedSway {
                                              std::to_underlying(TC::OTP_BNK_VLD_BIT));
     }
 
-    void MPU6050_DMP::set_gyro_x_offset_tc(std::uint8_t const offset) const noexcept
+    void MPU6050_DMP::set_x_gyro_offset_tc(std::uint8_t const offset) const noexcept
     {
         this->mpu6050_.i2c_device_.write_bits(std::to_underlying(RegAddress::XG_OFFS_TC),
                                               offset,
@@ -102,7 +148,7 @@ namespace InvertedSway {
                                               std::to_underlying(TC::OFFSET_LENGTH));
     }
 
-    void MPU6050_DMP::set_gyro_y_offset_tc(std::uint8_t const offset) const noexcept
+    void MPU6050_DMP::set_y_gyro_offset_tc(std::uint8_t const offset) const noexcept
     {
         this->mpu6050_.i2c_device_.write_bits(std::to_underlying(RegAddress::YG_OFFS_TC),
                                               offset,
@@ -110,7 +156,7 @@ namespace InvertedSway {
                                               std::to_underlying(TC::OFFSET_LENGTH));
     }
 
-    void MPU6050_DMP::set_gyro_z_offset_tc(std::uint8_t const offset) const noexcept
+    void MPU6050_DMP::set_z_gyro_offset_tc(std::uint8_t const offset) const noexcept
     {
         this->mpu6050_.i2c_device_.write_bits(std::to_underlying(RegAddress::ZG_OFFS_TC),
                                               offset,
@@ -133,40 +179,50 @@ namespace InvertedSway {
         this->mpu6050_.i2c_device_.write_byte(std::to_underlying(RegAddress::Z_FINE_GAIN), gain);
     }
 
-    void MPU6050_DMP::set_accel_x_offset(std::uint16_t const offset) const noexcept
+    void MPU6050_DMP::set_x_accel_offset(std::int16_t const offset) const noexcept
     {
         this->mpu6050_.i2c_device_.write_word(std::to_underlying(RegAddress::XA_OFFS_H), offset);
     }
 
-    void MPU6050_DMP::set_accel_y_offset(std::uint16_t const offset) const noexcept
+    void MPU6050_DMP::set_y_accel_offset(std::int16_t const offset) const noexcept
     {
         this->mpu6050_.i2c_device_.write_word(std::to_underlying(RegAddress::YA_OFFS_H), offset);
     }
 
-    void MPU6050_DMP::set_accel_z_offset(std::uint16_t const offset) const noexcept
+    void MPU6050_DMP::set_z_accel_offset(std::int16_t const offset) const noexcept
     {
         this->mpu6050_.i2c_device_.write_word(std::to_underlying(RegAddress::ZA_OFFS_H), offset);
     }
 
-    void MPU6050_DMP::set_gyro_x_offset(std::uint16_t const offset) const noexcept
+    void MPU6050_DMP::set_x_gyro_offset(std::int16_t const offset) const noexcept
     {
         this->mpu6050_.i2c_device_.write_word(std::to_underlying(RegAddress::XG_OFFS_USRH), offset);
     }
 
-    void MPU6050_DMP::set_gyro_y_offset(std::uint16_t const offset) const noexcept
+    void MPU6050_DMP::set_y_gyro_offset(std::int16_t const offset) const noexcept
     {
         this->mpu6050_.i2c_device_.write_word(std::to_underlying(RegAddress::YG_OFFS_USRH), offset);
     }
 
-    void MPU6050_DMP::set_gyro_z_offset(std::uint16_t const offset) const noexcept
+    void MPU6050_DMP::set_z_gyro_offset(std::int16_t const offset) const noexcept
     {
         this->mpu6050_.i2c_device_.write_word(std::to_underlying(RegAddress::ZG_OFFS_USRH), offset);
     }
 
+    DMP_Packet MPU6050_DMP::get_dmp_packet() const noexcept
+    {
+        DMP_Packet dmp_packet{};
+        if (this->get_int_dmp_status()) {
+            while (this->mpu6050_.get_fifo_count() < DMP_PACKET_SIZE) {
+            }
+            this->mpu6050_.get_fifo_bytes(dmp_packet.data(), dmp_packet.size());
+        }
+        return dmp_packet;
+    }
+
     QuaternionRaw MPU6050_DMP::get_quaternion_raw() const noexcept
     {
-        std::uint8_t packet[14];
-        this->mpu6050_.get_fifo_bytes(packet, sizeof(packet));
+        auto packet{this->get_dmp_packet()};
         return QuaternionRaw{(static_cast<Raw>(packet[0]) << 8) | static_cast<Raw>(packet[1]),
                              (static_cast<Raw>(packet[4]) << 8) | static_cast<Raw>(packet[5]),
                              (static_cast<Raw>(packet[8]) << 8) | static_cast<Raw>(packet[9]),
@@ -299,7 +355,7 @@ namespace InvertedSway {
         this->set_memory_bank(bank);
         this->set_memory_start_address(address);
 
-        for (std::uint16_t i = 0; i < read_size;) {
+        for (std::int16_t i = 0; i < read_size;) {
             std::uint8_t chunk_size = DMP_MEMORY_CHUNK_SIZE;
 
             if (i + chunk_size > read_size) {
@@ -331,7 +387,7 @@ namespace InvertedSway {
         this->set_memory_bank(bank);
         this->set_memory_start_address(address);
 
-        for (std::uint16_t i = 0; i < write_size;) {
+        for (std::int16_t i = 0; i < write_size;) {
             std::uint8_t chunk_size = DMP_MEMORY_CHUNK_SIZE;
 
             if (i + chunk_size > write_size) {
@@ -357,7 +413,7 @@ namespace InvertedSway {
 
     void MPU6050_DMP::write_dmp_configuration_set(std::uint8_t* write_data, std::size_t const write_size) const noexcept
     {
-        for (std::uint16_t i = 0; i < write_size;) {
+        for (std::int16_t i = 0; i < write_size;) {
             std::uint8_t bank = write_data[i++];
             std::uint8_t offset = write_data[i++];
             std::uint8_t length = write_data[i++];

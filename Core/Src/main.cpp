@@ -8,7 +8,7 @@ int main()
     HAL_Init();
     SystemClock_Config();
 
-    MPU_TEST();
+    MPU_DMP_TEST();
 
     return 0;
 }
