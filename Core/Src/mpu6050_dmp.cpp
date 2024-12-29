@@ -66,60 +66,35 @@ namespace InvertedSway {
     void MPU6050_DMP::initialize_dmp() const noexcept
     {
         this->set_memory_bank(0x10, true, true);
-        HAL_Delay(50);
         this->set_memory_start_address(0x06);
-        HAL_Delay(50);
         this->set_memory_bank(0, false, false);
-        HAL_Delay(50);
         this->get_otp_bank_valid();
-        HAL_Delay(50);
 
         this->mpu6050_.set_slave_address(0, 0x7F);
-        HAL_Delay(50);
         this->mpu6050_.set_i2c_master_mode_enabled(false);
-        HAL_Delay(50);
         this->mpu6050_.set_slave_address(0, 0x68);
-        HAL_Delay(50);
         this->mpu6050_.reset_i2c_master();
-        HAL_Delay(50);
         this->write_memory_block(dmp_memory.data(), dmp_memory.size(), 0x00, 0x00);
-        HAL_Delay(50);
 
         std::array<std::uint8_t, 2UL> dmp_update{0x00, 0x01};
-        HAL_Delay(50);
         this->write_memory_block(dmp_update.data(), dmp_update.size(), 0x02, 0x16);
-        HAL_Delay(50);
         this->set_dmp_config1(0x03);
-        HAL_Delay(50);
         this->set_dmp_config2(0x00);
-        HAL_Delay(50);
         this->set_otp_bank_valid(false);
-        HAL_Delay(50);
 
         this->mpu6050_.set_fifo_enabled(true);
-        HAL_Delay(50);
         this->reset_dmp();
-        HAL_Delay(50);
         this->set_dmp_enabled(false);
-        HAL_Delay(50);
-        this->mpu6050_.reset_fifo();
-        HAL_Delay(50);
         this->mpu6050_.get_int_status();
-        HAL_Delay(50);
         this->set_dmp_enabled(true);
-        HAL_Delay(50);
     }
 
     void MPU6050_DMP::initialize_offsets() const noexcept
     {
         this->set_x_gyro_offset(220);
-        HAL_Delay(50);
         this->set_y_gyro_offset(76);
-        HAL_Delay(50);
         this->set_z_gyro_offset(-85);
-        HAL_Delay(50);
         this->set_z_accel_offset(1788);
-        HAL_Delay(50);
     }
 
     void MPU6050_DMP::deinitialize() noexcept
