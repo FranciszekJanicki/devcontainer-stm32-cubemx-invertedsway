@@ -18,7 +18,6 @@ clean:
 cmake:
 	cd ${PROJECT_DIR} && make clean && mkdir build && cmake -S . -B build
 
-
 .PHONY: flash
 flash: 
 	STM32_Programmer_CLI -c port=swd -d ${BUILD_DIR}/devcontainer-stm32-cubemx-invertedsway.elf -rst
@@ -26,7 +25,6 @@ flash:
 .PHONY: serial
 serial:
 	minicom -D /dev/ttyACM0 -b 115200
-
 
 .PHONY: clang-format
 clang-format:

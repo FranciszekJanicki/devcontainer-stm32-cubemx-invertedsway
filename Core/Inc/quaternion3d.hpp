@@ -55,11 +55,7 @@ namespace Linalg {
 
         constexpr Quaternion3D& operator-=(Quaternion3D const& other) noexcept
         {
-            this->w -= other.w;
-            this->x -= other.x;
-            this->y -= other.y;
-            this->z -= other.z;
-            return *this;
+            *this += (-1 * other);
         }
 
         constexpr Quaternion3D& operator*=(Quaternion3D const& other) noexcept

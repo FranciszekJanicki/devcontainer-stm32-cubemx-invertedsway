@@ -234,76 +234,75 @@ namespace InvertedSway {
                              DHPF const dhpf) noexcept
     {
         if (this->is_valid_device_id()) {
-            this->device_reset();
+            // this->device_reset();
+            this->device_wake_up();
+            HAL_Delay(100);
             this->initialize_base(gyro_range, accel_range);
-            this->initialize_rest(sampling_rate, dlpf, dhpf);
+            this->initialize_advanced(sampling_rate, dlpf, dhpf);
             this->initialize_interrupt();
-            this->initialize_motion_interrupt();
             this->initialized_ = true;
         }
     }
 
     void MPU6050::initialize_base(GyroRange const gyro_range, AccelRange const accel_range) const noexcept
     {
-        HAL_Delay(50);
-        this->device_wake_up();
-        HAL_Delay(50);
         this->set_full_scale_accel_range(accel_range);
-        HAL_Delay(50);
         this->set_full_scale_gyro_range(gyro_range);
-        HAL_Delay(50);
         this->set_sleep_enabled(false);
-        HAL_Delay(50);
         this->set_clock_source(Clock::PLL_XGYRO);
-        HAL_Delay(50);
     }
 
-    void MPU6050::initialize_rest(std::uint32_t const sampling_rate, DLPF const dlpf, DHPF const dhpf) const noexcept
+    void
+    MPU6050::initialize_advanced(std::uint32_t const sampling_rate, DLPF const dlpf, DHPF const dhpf) const noexcept
     {
         this->set_sampling_rate(sampling_rate, dlpf);
-        HAL_Delay(50);
         this->set_dlpf_mode(dlpf);
-        HAL_Delay(50);
         this->set_dhpf_mode(dhpf);
-        HAL_Delay(50);
         this->set_external_frame_sync(ExtSync::DISABLED);
-        HAL_Delay(50);
     }
 
     void MPU6050::initialize_interrupt() const noexcept
     {
-        this->set_interrupt_mode(IntrMode::ACTIVEHIGH);
-        HAL_Delay(50);
-        this->set_interrupt_drive(IntrDrive::PUSHPULL);
-        HAL_Delay(50);
+        this->initialize_f_sync_interrupt();
+        this->initialize_data_ready_interrupt();
+        this->initialize_motion_interrupt();
+    }
+
+    void MPU6050::initialize_f_sync_interrupt() const noexcept
+    {
+        this->set_f_sync_interrupt_mode(IntrMode::ACTIVEHIGH);
+        this->set_f_sync_interrupt_enabled(true);
+    }
+
+    void MPU6050::initialize_data_ready_interrupt() const noexcept
+    {
         this->set_interrupt_latch(IntrLatch::PULSE50US);
-        HAL_Delay(50);
-        this->set_interrupt_latch_clear(IntrClear::ANYREAD);
-        HAL_Delay(50);
-        this->set_int_data_ready_enabled(true);
-        HAL_Delay(50);
+        this->set_interrupt_latch_clear(IntrClear::STATUSREAD);
+        this->set_interrupt_drive(IntrDrive::PUSHPULL);
+        this->set_interrupt_mode(IntrMode::ACTIVEHIGH);
+        // this->set_int_data_ready_enabled(true);
     }
 
     void MPU6050::initialize_motion_interrupt() const noexcept
     {
+        this->set_motion_detection_duration(40);
+        this->set_motion_detection_threshold(20);
+        this->set_motion_detection_control(0x15);
         this->set_int_motion_enabled(true);
-        HAL_Delay(50);
-        this->set_int_zero_motion_enabled(true);
-        HAL_Delay(50);
-        this->set_int_free_fall_enabled(true);
-        HAL_Delay(50);
-        this->set_free_fall_detection_duration(2);
-        HAL_Delay(50);
-        this->set_free_fall_detection_threshold(5);
-        HAL_Delay(50);
-        this->set_motion_detection_duration(5);
-        HAL_Delay(50);
-        this->set_motion_detection_threshold(2);
-        HAL_Delay(50);
+    }
+
+    void MPU6050::initialize_zero_motion_interrupt() const noexcept
+    {
         this->set_zero_motion_detection_duration(2);
-        HAL_Delay(50);
         this->set_zero_motion_detection_threshold(4);
-        HAL_Delay(50);
+        this->set_int_zero_motion_enabled(true);
+    }
+
+    void MPU6050::initialize_free_fall_interrupt() const noexcept
+    {
+        this->set_free_fall_detection_duration(2);
+        this->set_free_fall_detection_threshold(5);
+        this->set_int_free_fall_enabled(true);
     }
 
     void MPU6050::deinitialize() noexcept
@@ -718,10 +717,10 @@ namespace InvertedSway {
                                     std::to_underlying(IntrCfg::INT_RD_CLEAR_BIT));
     }
 
-    void MPU6050::set_f_sync_interrupt_level(bool const level) const noexcept
+    void MPU6050::set_f_sync_interrupt_mode(IntrMode const mode) const noexcept
     {
         this->i2c_device_.write_bit(std::to_underlying(RegAddress::INT_PIN_CFG),
-                                    level,
+                                    std::to_underlying(mode),
                                     std::to_underlying(IntrCfg::FSYNC_INT_LEVEL_BIT));
     }
 
@@ -1017,6 +1016,11 @@ namespace InvertedSway {
         this->i2c_device_.write_bit(std::to_underlying(RegAddress::SIGNAL_PATH_RESET),
                                     true,
                                     std::to_underlying(PathReset::TEMP_RESET_BIT));
+    }
+
+    void MPU6050::set_motion_detection_control(std::uint8_t const control) const noexcept
+    {
+        this->i2c_device_.write_byte(std::to_underlying(RegAddress::MOT_DETECT_CTRL), control);
     }
 
     void MPU6050::set_accel_power_on_delay(Delay const delay) const noexcept

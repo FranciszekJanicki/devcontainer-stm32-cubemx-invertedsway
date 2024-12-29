@@ -510,9 +510,13 @@ namespace InvertedSway {
                         DLPF const dlpf,
                         DHPF const dhpf) noexcept;
         void initialize_base(GyroRange const gyro_range, AccelRange const accel_range) const noexcept;
-        void initialize_rest(std::uint32_t const sampling_rate, DLPF const dlpf, DHPF const dhpf) const noexcept;
+        void initialize_advanced(std::uint32_t const sampling_rate, DLPF const dlpf, DHPF const dhpf) const noexcept;
         void initialize_interrupt() const noexcept;
+        void initialize_data_ready_interrupt() const noexcept;
+        void initialize_f_sync_interrupt() const noexcept;
         void initialize_motion_interrupt() const noexcept;
+        void initialize_zero_motion_interrupt() const noexcept;
+        void initialize_free_fall_interrupt() const noexcept;
         void deinitialize() noexcept;
 
         void set_sampling_rate(std::uint32_t const sampling_rate, DLPF const dlpf) const noexcept;
@@ -576,7 +580,7 @@ namespace InvertedSway {
         void set_interrupt_drive(IntrDrive const drive) const noexcept;
         void set_interrupt_latch(IntrLatch const latch) const noexcept;
         void set_interrupt_latch_clear(IntrClear const clear) const noexcept;
-        void set_f_sync_interrupt_level(bool const level) const noexcept;
+        void set_f_sync_interrupt_mode(IntrMode const mode) const noexcept;
         void set_f_sync_interrupt_enabled(bool const enabled) const noexcept;
         void set_i2c_bypass_enabled(bool const enabled) const noexcept;
         void set_clock_output_enabled(bool const enabled) const noexcept;
@@ -630,6 +634,7 @@ namespace InvertedSway {
         void reset_accel_path() const noexcept;
         void reset_temperature_path() const noexcept;
 
+        void set_motion_detection_control(std::uint8_t const control) const noexcept;
         void set_accel_power_on_delay(Delay const delay) const noexcept;
         void set_free_fall_detection_counter_decrement(DetectDecrement const decrement) const noexcept;
         void set_motion_detection_counter_decrement(DetectDecrement const decrement) const noexcept;

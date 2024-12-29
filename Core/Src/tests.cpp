@@ -27,14 +27,14 @@ static bool sampling_timer_elapsed{false};
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == MPU6050_INTR_Pin) {
-        // sampling_timer_elapsed = true;
+        sampling_timer_elapsed = true;
     }
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
     if (htim->Instance == TIM2) {
-        sampling_timer_elapsed = true;
+        // sampling_timer_elapsed = true;
     }
     HAL_TIM_Base_Start_IT(htim);
 }
@@ -141,11 +141,11 @@ namespace Tests {
         I2CDevice i2c_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
         MPU6050 mpu6050{i2c_device,
-                        1000U,
+                        200U,
                         MPU6050::GyroRange::GYRO_FS_250,
                         MPU6050::AccelRange::ACCEL_FS_2,
                         MPU6050::DLPF::BW_256,
-                        MPU6050::DHPF::DHPF_RESET};
+                        MPU6050::DHPF::DHPF_5};
 
         HAL_TIM_Base_Start_IT(&htim2);
 
