@@ -44,6 +44,7 @@ namespace InvertedSway {
 
     private:
         static Angle count_to_angle(Count const count) noexcept;
+        static Angle get_angle_difference(Count const count, Count const last_count) noexcept;
 
         void initialize() noexcept;
         void deinitialize() noexcept;

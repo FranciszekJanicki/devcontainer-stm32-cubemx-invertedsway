@@ -3,6 +3,7 @@
 #include "filters.hpp"
 #include "gpio.h"
 #include "i2c.h"
+#include "i2c_device.hpp"
 #include "l298n.hpp"
 #include "main.h"
 #include "mpu6050.hpp"
@@ -12,12 +13,14 @@
 #include "usart.h"
 #include <utility>
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-    if (GPIO_Pin == MPU6050_INTR_Pin) {
-        sampling_timer_elapsed = true;
-    }
-}
+static bool sampling_timer_elapsed{false};
+
+// void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+// {
+//     if (GPIO_Pin == MPU6050_INTR_Pin) {
+//         sampling_timer_elapsed = true;
+//     }
+// }
 
 void balance_sway()
 {
@@ -36,11 +39,14 @@ void balance_sway()
 
     L298N l298n{std::move(motor_channels)};
 
-    MPU6050 mpu6050{&hi2c1,
-                    MPU6050::DevAddress::AD0_LOW,
+    I2CDevice i2c_mpu_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
+
+    MPU6050 mpu6050{i2c_mpu_device,
+                    8000U,
                     MPU6050::GyroRange::GYRO_FS_250,
                     MPU6050::AccelRange::ACCEL_FS_2,
-                    sampling_rate_hz};
+                    MPU6050::DLPF::BW_256,
+                    MPU6050::DHPF::DHPF_RESET};
 
     auto kalman{make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
 

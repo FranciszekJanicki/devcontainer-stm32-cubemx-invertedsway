@@ -85,20 +85,18 @@ namespace InvertedSway {
         if (this->regulator_ != nullptr) {
             return std::invoke(*this->regulator_, error_speed, dt);
         }
-        std::unreachable();
 #elif defined(REGULATOR_VARIANT)
         if (!this->regulator_.valueless_by_exception()) {
             return std::visit([error_speed, dt]<typename Regulator>(
                                   Regulator&& regulator) { return std::invoke(regulator, error_speed, dt); },
                               this->regulator_);
         }
-        std::unreachable();
 #elif defined(REGULATOR_LAMBDA)
         if (this->regulator_) {
             return std::invoke(this->regulator_, error_speed, dt);
         }
-        std::unreachable();
 #endif
+        std::unreachable();
     }
 
     Value MotorDriver::get_error_speed(Value const input_speed, Value const dt) noexcept

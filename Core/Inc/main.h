@@ -71,6 +71,7 @@ void Error_Handler(void);
 #define ENCODER_BC7_GPIO_Port GPIOC
 #define MPU6050_INTR_Pin GPIO_PIN_9
 #define MPU6050_INTR_GPIO_Port GPIOA
+#define MPU6050_INTR_EXTI_IRQn EXTI9_5_IRQn
 #define L298N_ENA_Pin GPIO_PIN_6
 #define L298N_ENA_GPIO_Port GPIOB
 

@@ -17,6 +17,17 @@ namespace InvertedSway {
                static_cast<Angle>(COUNTS_PER_REVOLUTION);
     }
 
+    Angle Encoder::get_angle_difference(Count const count, Count const last_count) noexcept
+    {
+        auto const difference{count_to_angle(count - last_count)};
+        if (difference > 0.0f) {
+            return difference - 360.0f;
+        } else if (difference < 0.0f) {
+            return difference + 360.0f;
+        }
+        return difference;
+    }
+
     Encoder::Encoder(TimerHandle const timer) noexcept : timer_{timer}
     {
         this->initialize();
@@ -66,16 +77,6 @@ namespace InvertedSway {
         if (!this->initialized_) {
             return Unexpected{Error::INIT};
         }
-
-        auto const get_angle_difference{[](Count const count, Count const last_count) {
-            auto const difference{count_to_angle(count - last_count)};
-            if (difference > 0.0f) {
-                return difference - 360.0f;
-            } else if (difference < 0.0f) {
-                return difference + 360.0f;
-            }
-            return difference;
-        }};
 
         this->count_ = (this->count_ - this->last_count_ + static_cast<Count>(__HAL_TIM_GetCounter(this->timer_))) %
                        COUNTER_PERIOD;

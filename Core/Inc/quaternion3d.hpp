@@ -55,23 +55,43 @@ namespace Linalg {
 
         constexpr Quaternion3D& operator-=(Quaternion3D const& other) noexcept
         {
-            this->w -= other.w;
-            this->x -= other.x;
-            this->y -= other.y;
-            this->z -= other.z;
-            return *this;
+            *this += (-1 * other);
         }
 
         constexpr Quaternion3D& operator*=(Quaternion3D const& other) noexcept
         {
-            const auto& [left_w, left_x, left_y, left_z] = std::forward_as_tuple(this->w, this->x, this->y, this->z);
-            const auto& [right_w, right_x, right_y, right_z] =
-                std::forward_as_tuple(other.w, other.x, other.y, other.z);
-            this->w = left_w * right_w - left_x * right_x - left_y * right_y - left_z * right_z;
-            this->x = left_w * right_x + left_x * right_w + left_y * right_z - left_z * right_y;
-            this->y = left_w * right_y - left_x * right_z + left_y * right_w + left_z * right_x;
-            this->z = left_w * right_z + left_x * right_y - left_y * right_x + left_z * right_w;
+            this->w = this->w * other.w - this->x * other.x - this->y * other.y - this->z * other.z;
+            this->x = this->w * other.x + this->x * other.w + this->y * other.z - this->z * other.y;
+            this->y = this->w * other.y - this->x * other.z + this->y * other.w + this->z * other.x;
+            this->z = this->w * other.z + this->x * other.y - this->y * other.x + this->z * other.w;
             return *this;
+        }
+
+        constexpr Quaternion3D& operator*=(Value const factor) noexcept
+        {
+            this->w *= factor;
+            this->x *= factor;
+            this->y *= factor;
+            this->z *= factor;
+            return *this;
+        }
+
+        constexpr Quaternion3D& operator/=(Value const factor) noexcept
+        {
+            if (factor == 0) {
+                std::unreachable();
+            }
+            *this *= (1 / factor);
+            return *this;
+        }
+
+        template <Arithmetic Converted>
+        [[nodiscard]] explicit constexpr operator Quaternion3D<Converted>() const noexcept
+        {
+            return Quaternion3D<Converted>{static_cast<Converted>(this->w),
+                                           static_cast<Converted>(this->x),
+                                           static_cast<Converted>(this->y),
+                                           static_cast<Converted>(this->z)};
         }
 
         [[nodiscard]] constexpr bool operator<=>(Quaternion3D const& other) const noexcept = default;
@@ -95,15 +115,38 @@ namespace Linalg {
     }
 
     template <Arithmetic Value>
-    constexpr auto operator*(Quaternion3D<Value> const& left, Quaternion3D<Value> const& other) noexcept
+    constexpr auto operator*(Quaternion3D<Value> const& left, Quaternion3D<Value> const& right) noexcept
     {
-        const auto& [left_w, left_x, left_y, left_z] = std::forward_as_tuple(left.w, left.x, left.y, left.z);
-        const auto& [right_w, right_x, right_y, right_z] = std::forward_as_tuple(other.w, other.x, other.y, other.z);
-        return Quaternion3D<Value>{left_w * right_w - left_x * right_x - left_y * right_y - left_z * right_z,
-                                   left_w * right_x + left_x * right_w + left_y * right_z - left_z * right_y,
-                                   left_w * right_y - left_x * right_z + left_y * right_w + left_z * right_x,
-                                   left_w * right_z + left_x * right_y - left_y * right_x + left_z * right_w};
+        return Quaternion3D<Value>{left.w * right.w - left.x * right.x - left.y * right.y - left.z * right.z,
+                                   left.w * right.x + left.x * right.w + left.y * right.z - left.z * right.y,
+                                   left.w * right.y - left.x * right.z + left.y * right.w + left.z * right.x,
+                                   left.w * right.z + left.x * right.y - left.y * right.x + left.z * right.w};
     }
+
+    template <Arithmetic Value>
+    constexpr auto operator*(Quaternion3D<Value> const& quaternion, Value const factor) noexcept
+    {
+        return Quaternion3D<Value>{quaternion.w * factor,
+                                   quaternion.x * factor,
+                                   quaternion.y * factor,
+                                   quaternion.z * factor};
+    }
+
+    template <Arithmetic Value>
+    constexpr auto operator*(Value const factor, Quaternion3D<Value> const& quaternion) noexcept
+    {
+        return quaternion * factor;
+    }
+
+    template <Arithmetic Value>
+    constexpr auto operator/(Quaternion3D<Value> const& quaternion, Value const factor) noexcept
+    {
+        if (factor == 0) {
+            std::unreachable();
+        }
+        return quaternion * (1 / factor);
+    }
+
 }; // namespace Linalg
 
 #endif // QUATERNION3D_HPP

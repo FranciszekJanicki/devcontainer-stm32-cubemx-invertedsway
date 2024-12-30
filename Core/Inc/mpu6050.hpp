@@ -2,6 +2,7 @@
 #define MPU6050_HPP
 
 #include "common.hpp"
+#include "i2c_device.hpp"
 #include "stm32l4xx_hal.h"
 #include "vector3d.hpp"
 #include <cstddef>
@@ -50,7 +51,7 @@ namespace InvertedSway {
             XG_OFFS_USRL = 0x14,
             YG_OFFS_USRH = 0x15,
             YG_OFFS_USRL = 0x16,
-            ZG_OFFS_USRH = 0x1,
+            ZG_OFFS_USRH = 0x17,
             ZG_OFFS_USRL = 0x18,
             SMPLRT_DIV = 0x19,
             CONFIG = 0x1A,
@@ -195,13 +196,6 @@ namespace InvertedSway {
             BW_5 = 0x06,
         };
 
-        enum struct TC : std::uint8_t {
-            PWR_MODE_BIT = 7,
-            OFFSET_BIT = 6,
-            OFFSET_LENGTH = 6,
-            OTP_BNK_VLD_BIT = 0,
-        };
-
         enum struct GyroConfig : std::uint8_t {
             FS_SEL_BIT = 4,
             FS_SEL_LENGTH = 2,
@@ -260,6 +254,7 @@ namespace InvertedSway {
             SLV_RW_BIT = 7,
             SLV_ADDR_BIT = 6,
             SLV_ADDR_LENGTH = 7,
+            SLV_SW_BIT = 6,
             SLV_EN_BIT = 7,
             SLV_BYTE_SW_BIT = 6,
             SLV_REG_DIS_BIT = 5,
@@ -307,6 +302,7 @@ namespace InvertedSway {
             FSYNC_INT_LEVEL_BIT = 3,
             FSYNC_INT_EN_BIT = 2,
             I2C_BYPASS_EN_BIT = 1,
+            CLK_OUT_BIT = 0,
         };
 
         enum struct IntrMode : std::uint8_t {
@@ -338,15 +334,6 @@ namespace InvertedSway {
             PLL_RDY_INT_BIT = 2,
             DMP_INT_BIT = 1,
             DATA_RDY_BIT = 0,
-        };
-
-        enum struct IntrDMP : std::uint8_t {
-            DMPINT_5_BIT = 5,
-            DMPINT_4_BIT = 4,
-            DMPINT_3_BIT = 3,
-            DMPINT_2_BIT = 2,
-            DMPINT_1_BIT = 1,
-            DMPINT_0_BIT = 0,
         };
 
         enum struct Motion : std::uint8_t {
@@ -454,19 +441,21 @@ namespace InvertedSway {
         using GyroScaled = Linalg::Vector3D<Scaled>;   // radians
         using AccelScaled = Linalg::Vector3D<Scaled>;  // m/s^2
         using RollPitchYaw = Linalg::Vector3D<Scaled>; // degrees
-        using TempScaled = float;                      // celsius
-        using Raw = std::uint16_t;
+        using Raw = std::int16_t;
         using GyroRaw = Linalg::Vector3D<Raw>;
         using AccelRaw = Linalg::Vector3D<Raw>;
-        using TempRaw = std::uint16_t;
+
+        template <std::size_t PACKET_SIZE>
+        using FIFOPacket = std::array<std::uint8_t, PACKET_SIZE>;
 
         MPU6050() noexcept = default;
 
-        MPU6050(I2CHandle const i2c_bus,
-                DevAddress const device_address,
+        MPU6050(I2CDevice const i2c_device,
+                std::uint32_t const sampling_rate,
                 GyroRange const gyro_range,
                 AccelRange const accel_range,
-                std::uint32_t const sampling_rate) noexcept;
+                DLPF const dlpf,
+                DHPF const dhpf) noexcept;
 
         MPU6050(MPU6050 const& other) noexcept = delete;
         MPU6050(MPU6050&& other) noexcept = default;
@@ -477,7 +466,7 @@ namespace InvertedSway {
         ~MPU6050() noexcept;
 
         /* celsius */
-        [[nodiscard]] TempScaled get_temperature_celsius() const noexcept;
+        [[nodiscard]] Scaled get_temperature_celsius() const noexcept;
 
         /* meters per square second */
         [[nodiscard]] AccelScaled get_acceleration_scaled() const noexcept;
@@ -497,98 +486,109 @@ namespace InvertedSway {
         [[nodiscard]] Scaled get_pitch() const noexcept;
         [[nodiscard]] Scaled get_yaw() const noexcept;
 
-    private:
         static Scaled gyro_range_to_scale(GyroRange const gyro_range) noexcept;
         static Scaled accel_range_to_scale(AccelRange const accel_range) noexcept;
+        static std::uint8_t get_sampling_divider(std::uint32_t const sampling_rate, DLPF const dlpf) noexcept;
 
-        static std::uint8_t get_sampling_divider(std::uint32_t const rate, DLPF const dlpf) noexcept;
+        static RollPitchYaw accel_to_roll_pitch_yaw(AccelScaled const accel_scaled) noexcept;
+        static Scaled accel_to_roll(AccelScaled const accel_scaled) noexcept;
+        static Scaled accel_to_pitch(AccelScaled const accel_scaled) noexcept;
+        static Scaled accel_to_yaw(AccelScaled const accel_scaled) noexcept;
+
+        static std::uint8_t slave_num_to_address(std::uint8_t const num) noexcept;
+        static std::uint8_t slave_num_to_register(std::uint8_t const num) noexcept;
+        static std::uint8_t slave_num_to_control(std::uint8_t const num) noexcept;
+        static std::uint8_t slave_num_to_output_byte(std::uint8_t const num) noexcept;
 
         static constexpr Scaled PI{3.1415f};
-        static constexpr std::uint32_t I2C_TIMEOUT{100};
         static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_EN_HZ{1000};
         static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_DIS_HZ{8000};
         static constexpr std::uint32_t ACCEL_OUTPUT_RATE_HZ{1000};
 
-        static constexpr std::uint8_t DMP_MEMORY_BANKS{8};
-        static constexpr std::size_t DMP_MEMORY_BANK_SIZE{256};
-        static constexpr std::size_t DMP_MEMORY_CHUNK_SIZE{16};
-        static constexpr auto FIFO_DEFAULT_TIMEOUT{11000};
+        bool is_valid_device_id() const noexcept;
 
-        void initialize(std::uint32_t const sampling_rate) noexcept;
+        void initialize(std::uint32_t const sampling_rate,
+                        GyroRange const gyro_range,
+                        AccelRange const accel_range,
+                        DLPF const dlpf,
+                        DHPF const dhpf) noexcept;
+        void initialize_base(GyroRange const gyro_range, AccelRange const accel_range) const noexcept;
+        void initialize_advanced(std::uint32_t const sampling_rate, DLPF const dlpf, DHPF const dhpf) const noexcept;
+        void initialize_interrupt() const noexcept;
+        void initialize_data_ready_interrupt() const noexcept;
+        void initialize_f_sync_interrupt() const noexcept;
+        void initialize_motion_interrupt() const noexcept;
+        void initialize_zero_motion_interrupt() const noexcept;
+        void initialize_free_fall_interrupt() const noexcept;
         void deinitialize() noexcept;
 
-        void i2c_write_words(RegAddress const reg_address,
-                             std::uint16_t* write_data,
-                             std::uint8_t write_size) const noexcept;
-
-        void i2c_write_word(RegAddress const reg_address, std::uint16_t write_data) const noexcept;
-
-        void i2c_write_bytes(RegAddress const reg_address,
-                             std::uint8_t* write_data,
-                             std::size_t const write_size) const noexcept;
-
-        void i2c_write_byte(RegAddress const reg_address, std::uint8_t write_data) const noexcept;
-
-        void i2c_write_bit(RegAddress const reg_address,
-                           bool const write_data,
-                           std::uint8_t const write_position) const noexcept;
-
-        void i2c_write_bits(RegAddress const reg_address,
-                            std::uint8_t const write_data,
-                            std::uint8_t const write_position,
-                            std::size_t const write_size) const noexcept;
-
-        void i2c_read_words(RegAddress const reg_address,
-                            std::uint16_t* read_data,
-                            std::size_t const read_size) const noexcept;
-
-        std::uint16_t i2c_read_word(RegAddress const reg_address) const noexcept;
-
-        void i2c_read_bytes(RegAddress const reg_address,
-                            std::uint8_t* read_data,
-                            std::size_t const read_size) const noexcept;
-
-        std::uint8_t i2c_read_byte(RegAddress const reg_address) const noexcept;
-
-        bool i2c_read_bit(RegAddress const reg_address, std::uint8_t const read_position) const noexcept;
-
-        std::uint8_t i2c_read_bits(RegAddress const reg_address,
-                                   std::uint8_t const read_position,
-                                   std::size_t const read_size) const noexcept;
-
-        void set_sampling_divider(std::uint8_t const divider) const noexcept;
-
-        void set_external_frame_sync(std::uint8_t const frame_sync) const noexcept;
+        void set_sampling_rate(std::uint8_t const sampling_rate, DLPF const dlpf) const noexcept;
+        void set_external_frame_sync(ExtSync const frame_sync) const noexcept;
         void set_dlpf_mode(DLPF const dlpf) const noexcept;
-
         void set_full_scale_gyro_range(GyroRange const range) const noexcept;
-
         void set_full_scale_accel_range(AccelRange const range) const noexcept;
         void set_dhpf_mode(DHPF const dhpf) const noexcept;
 
         void set_free_fall_detection_threshold(std::uint8_t const threshold) const noexcept;
         void set_free_fall_detection_duration(std::uint8_t const duration) const noexcept;
-
         void set_motion_detection_threshold(std::uint8_t const threshold) const noexcept;
         void set_motion_detection_duration(std::uint8_t const duration) const noexcept;
-
         void set_zero_motion_detection_threshold(std::uint8_t const threshold) const noexcept;
         void set_zero_motion_detection_duration(std::uint8_t const duration) const noexcept;
 
+        void set_fifo_enabled(std::uint8_t const fifo_enabled) const noexcept;
         void set_temp_fifo_enabled(bool const enabled) const noexcept;
-        void set_gyro_x_fifo_enabled(bool const enabled) const noexcept;
-        void set_gyro_y_fifo_enabled(bool const enabled) const noexcept;
-        void set_gyro_z_fifo_enabled(bool const enabled) const noexcept;
+        void set_x_gyro_fifo_enabled(bool const enabled) const noexcept;
+        void set_y_gyro_fifo_enabled(bool const enabled) const noexcept;
+        void set_z_gyro_fifo_enabled(bool const enabled) const noexcept;
         void set_accel_fifo_enabled(bool const enabled) const noexcept;
+        void set_slave2_fifo_enabled(bool const enabled) const noexcept;
+        void set_slave1_fifo_enabled(bool const enabled) const noexcept;
+        void set_slave0_fifo_enabled(bool const enabled) const noexcept;
 
-        void set_interrupt() const noexcept;
+        void set_multi_master_enabled(bool const enabled) const noexcept;
+        void set_wait_for_external_sensor_enabled(bool const enabled) const noexcept;
+        void set_slave3_fifo_enabled(bool const enabled) const noexcept;
+        void set_slave_read_write_transition_enabled(bool const enabled) const noexcept;
+        void set_master_clock_speed(std::uint8_t const speed) const noexcept;
+
+        void set_slave_address(std::uint8_t const num, std::uint8_t const address) const noexcept;
+        void set_slave_register(std::uint8_t const num, std::uint8_t const reg) const noexcept;
+        void set_slave_enabled(std::uint8_t const num, bool const enabled) const noexcept;
+        void set_slave_word_byte_swap(std::uint8_t const num, bool const enabled) const noexcept;
+        void set_slave_write_mode(std::uint8_t const num, bool const mode) const noexcept;
+        void set_slave_word_group_offset(std::uint8_t const num, bool const enabled) const noexcept;
+        void set_slave_data_length(std::uint8_t const num, std::uint8_t const length) const noexcept;
+
+        void set_slave4_address(std::uint8_t const address) const noexcept;
+        void set_slave4_register(std::uint8_t const reg) const noexcept;
+        void set_slave4_output_byte(std::uint8_t const data) const noexcept;
+        void set_slave4_enabled(bool const enabled) const noexcept;
+        void set_slave4_interrupt_enabled(bool const enabled) const noexcept;
+        void set_slave4_write_mode(bool const mode) const noexcept;
+        void set_slave4_master_delay(std::uint8_t const delay) const noexcept;
+        std::uint8_t get_slave4_input_byte() const noexcept;
+
+        bool get_passthrough_status() const noexcept;
+        bool get_slave4_is_done() const noexcept;
+        bool get_lost_arbitration() const noexcept;
+        bool get_slave4_nack() const noexcept;
+        bool get_slave3_nack() const noexcept;
+        bool get_slave2_nack() const noexcept;
+        bool get_slave1_nack() const noexcept;
+        bool get_slave0_nack() const noexcept;
+
+        void set_interrupt(std::uint8_t const interrupt) const noexcept;
         void set_interrupt_mode(IntrMode const mode) const noexcept;
         void set_interrupt_drive(IntrDrive const drive) const noexcept;
         void set_interrupt_latch(IntrLatch const latch) const noexcept;
         void set_interrupt_latch_clear(IntrClear const clear) const noexcept;
+        void set_f_sync_interrupt_mode(IntrMode const mode) const noexcept;
+        void set_f_sync_interrupt_enabled(bool const enabled) const noexcept;
+        void set_i2c_bypass_enabled(bool const enabled) const noexcept;
+        void set_clock_output_enabled(bool const enabled) const noexcept;
 
-        void set_motion_interrupt() const noexcept;
-        void set_int_enabled(std::uint8_t const enabled) const noexcept;
+        void set_int_enabled(std::uint8_t const int_enabled) const noexcept;
         void set_int_free_fall_enabled(bool const enabled) const noexcept;
         void set_int_motion_enabled(bool const enabled) const noexcept;
         void set_int_zero_motion_enabled(bool const enabled) const noexcept;
@@ -616,6 +616,10 @@ namespace InvertedSway {
         Raw get_rotation_y_raw() const noexcept;
         Raw get_rotation_z_raw() const noexcept;
 
+        std::uint8_t get_external_sensor_byte(std::uint8_t const position) const noexcept;
+        std::uint16_t get_external_sensor_word(std::uint8_t const position) const noexcept;
+        std::uint32_t get_external_sensor_dword(std::uint8_t const position) const noexcept;
+
         std::uint8_t get_motion_status() const noexcept;
         bool get_x_neg_motion_detected() const noexcept;
         bool get_x_pos_motion_detected() const noexcept;
@@ -623,11 +627,17 @@ namespace InvertedSway {
         bool get_y_pos_motion_detected() const noexcept;
         bool get_z_neg_motion_detected() const noexcept;
         bool get_z_pos_motion_detected() const noexcept;
+        bool get_zero_motion_detected() const noexcept;
+
+        void set_slave_output_byte(std::uint8_t const num, std::uint8_t const data) const noexcept;
+        void set_external_shadow_delay_enabled(bool const enabled) const noexcept;
+        void set_slave_delay_enabled(std::uint8_t const num, bool const enabled) const noexcept;
 
         void reset_gyro_path() const noexcept;
         void reset_accel_path() const noexcept;
         void reset_temperature_path() const noexcept;
 
+        void set_motion_detection_control(std::uint8_t const control) const noexcept;
         void set_accel_power_on_delay(Delay const delay) const noexcept;
         void set_free_fall_detection_counter_decrement(DetectDecrement const decrement) const noexcept;
         void set_motion_detection_counter_decrement(DetectDecrement const decrement) const noexcept;
@@ -639,94 +649,47 @@ namespace InvertedSway {
         void reset_sensors() const noexcept;
 
         void device_reset() const noexcept;
+        void device_wake_up() const noexcept;
         void set_clock_source(Clock const source) const noexcept;
         void set_sleep_enabled(bool const enabled) const noexcept;
         void set_wake_cycle_enabled(bool const enabled) const noexcept;
         void set_temperature_sensor_enabled(bool const enabled) const noexcept;
 
         void set_wake_up_frequency(WakeFreq const frequency) const noexcept;
-        void set_accel_x_axis_standby(bool const standby) const noexcept;
-        void set_accel_y_axis_standby(bool const standby) const noexcept;
-        void set_accel_z_axis_standby(bool const standby) const noexcept;
-        void set_gyro_x_axis_standby(bool const standby) const noexcept;
-        void set_gyro_y_axis_standby(bool const standby) const noexcept;
-        void set_gyro_z_axis_standby(bool const standby) const noexcept;
+        void set_x_accel_standby(bool const standby) const noexcept;
+        void set_y_accel_standby(bool const standby) const noexcept;
+        void set_z_accel_standby(bool const standby) const noexcept;
+        void set_x_gyro_standby(bool const standby) const noexcept;
+        void set_y_gyro_standby(bool const standby) const noexcept;
+        void set_z_gyro_standby(bool const standby) const noexcept;
 
         std::uint16_t get_fifo_count() const noexcept;
         std::uint8_t get_fifo_byte() const noexcept;
-        void get_fifo_bytes(std::uint8_t* read_data, std::size_t const read_size) const noexcept;
         void set_fifo_byte(std::uint8_t const write_data) const noexcept;
-        void set_fifo_bytes(std::uint8_t* write_data, std::size_t const write_size) const noexcept;
+
+        template <std::size_t PACKET_SIZE>
+        FIFOPacket<PACKET_SIZE> get_current_fifo_packet() const noexcept;
+
+        template <std::size_t PACKET_SIZE>
+        FIFOPacket<PACKET_SIZE> get_fifo_bytes() const noexcept
+        {
+            return this->i2c_device_.read_bytes<PACKET_SIZE>(std::to_underlying(RegAddress::FIFO_R_W));
+        }
+
+        template <std::size_t PACKET_SIZE>
+        void set_fifo_bytes(FIFOPacket<PACKET_SIZE> const& packet) const noexcept
+        {
+            this->i2c_device_.write_bytes(std::to_underlying(RegAddress::FIFO_R_W), packet);
+        }
 
         std::uint8_t get_device_id() const noexcept;
 
-        bool get_otp_bank_valid() const noexcept;
-        void set_otp_bank_valid(bool const enabled) const noexcept;
-
-        void set_gyro_x_offset_tc(std::uint8_t const offset) const noexcept;
-        void set_gyro_y_offset_tc(std::uint8_t const offset) const noexcept;
-        void set_gyro_z_offset_tc(std::uint8_t const offset) const noexcept;
-
-        void set_x_fine_gain(std::uint8_t const gain) const noexcept;
-        void set_y_fine_gain(std::uint8_t const gain) const noexcept;
-        void set_z_fine_gain(std::uint8_t const gain) const noexcept;
-
-        void set_accel_x_offset(std::uint16_t const offset) const noexcept;
-        void set_accel_y_offset(std::uint16_t const offset) const noexcept;
-        void set_accel_z_offset(std::uint16_t const offset) const noexcept;
-
-        void set_gyro_x_offset(std::uint16_t const offset) const noexcept;
-        void set_gyro_y_offset(std::uint16_t const offset) const noexcept;
-        void set_gyro_z_offset(std::uint16_t const offset) const noexcept;
-
-        void set_int_pll_ready_enabled(bool const enabled) const noexcept;
-        void set_int_dmp_enabled(bool const enabled) const noexcept;
-
-        bool get_dmp_int_5_status() const noexcept;
-        bool get_dmp_int_4_status() const noexcept;
-        bool get_dmp_int_3_status() const noexcept;
-        bool get_dmp_int_2_status() const noexcept;
-        bool get_dmp_int_1_status() const noexcept;
-        bool get_dmp_int_0_status() const noexcept;
-
-        bool get_int_pll_ready_status() const noexcept;
-        bool get_int_dmp_status() const noexcept;
-
-        void set_dmp_enabled(bool const enabled) const noexcept;
-        void reset_dmp() const noexcept;
-
-        void set_memory_bank(std::uint8_t const bank,
-                             bool const prefetch_enabled = false,
-                             bool const user_bank = false) const noexcept;
-        void set_memory_start_address(std::uint8_t const address) const noexcept;
-
-        std::uint8_t read_memory_byte() const noexcept;
-
-        void write_memory_byte(std::uint8_t write_data) const noexcept;
-
-        void read_memory_block(std::uint8_t* read_data,
-                               std::size_t const read_size,
-                               std::uint8_t bank,
-                               std::uint8_t address) const noexcept;
-
-        void write_memory_block(std::uint8_t* write_data,
-                                std::size_t const write_size,
-                                std::uint8_t bank,
-                                std::uint8_t address) const noexcept;
-
-        void write_dmp_configuration_set(std::uint8_t* write_data, std::size_t const write_size) const noexcept;
-
-        void set_dmp_config1(std::uint8_t const config) const noexcept;
-
-        void set_dmp_config2(std::uint8_t const config) const noexcept;
-
         bool initialized_{false};
 
-        I2CHandle i2c_bus_{nullptr};
-        DevAddress device_address_{};
+        I2CDevice i2c_device_{};
 
-        GyroRange gyro_range_{};
-        AccelRange accel_range_{};
+        Scaled gyro_scale_{};
+        Scaled accel_scale_{};
     };
 
 }; // namespace InvertedSway

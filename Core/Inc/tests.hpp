@@ -1,26 +1,21 @@
 #ifndef TESTS_HPP
 #define TESTS_HPP
 
-#include "encoder.hpp"
-#include "kalman.hpp"
-#include "motor.hpp"
-#include "motor_driver.hpp"
-#include "mpu6050.hpp"
-
 namespace Tests {
 
-    using namespace InvertedSway;
-    using Kalman = Filters::Kalman<float>;
+    void MOTOR_TEST() noexcept;
 
-    void MOTOR_TEST(Motor motor) noexcept;
+    void MOTOR_BOOST_TEST() noexcept;
 
-    void MOTOR_BOOST_TEST(Motor motor, float const voltage_start_threshold) noexcept;
+    void MOTOR_DRIVER_TEST() noexcept;
 
-    void MOTOR_DRIVER_TEST(MotorDriver motor_driver) noexcept;
+    void MPU_TEST() noexcept;
 
-    void KALMAN_TEST(MPU6050 mpu6050, Kalman kalman, std::uint32_t const sampling_rate) noexcept;
+    void MPU_DMP_TEST() noexcept;
 
-    void ENCODER_TEST(Encoder encoder, Motor motor) noexcept;
+    void KALMAN_TEST() noexcept;
+
+    void ENCODER_TEST() noexcept;
 
     void DUTKIEWICZ_TEST() noexcept;
 
