@@ -234,7 +234,6 @@ namespace InvertedSway {
                              DHPF const dhpf) noexcept
     {
         if (this->is_valid_device_id()) {
-            // this->device_reset();
             this->device_wake_up();
             HAL_Delay(100);
             this->initialize_base(gyro_range, accel_range);
@@ -246,16 +245,16 @@ namespace InvertedSway {
 
     void MPU6050::initialize_base(GyroRange const gyro_range, AccelRange const accel_range) const noexcept
     {
-        this->set_full_scale_accel_range(accel_range);
-        this->set_full_scale_gyro_range(gyro_range);
-        this->set_sleep_enabled(false);
         this->set_clock_source(Clock::PLL_XGYRO);
+        this->set_full_scale_gyro_range(GyroRange::GYRO_FS_250);
+        this->set_full_scale_accel_range(AccelRange::ACCEL_FS_2);
+        this->set_sleep_enabled(false);
     }
 
     void
     MPU6050::initialize_advanced(std::uint32_t const sampling_rate, DLPF const dlpf, DHPF const dhpf) const noexcept
     {
-        this->set_sampling_rate(sampling_rate, dlpf);
+        this->set_sampling_rate(sampling_rate);
         this->set_dlpf_mode(dlpf);
         this->set_dhpf_mode(dhpf);
         this->set_external_frame_sync(ExtSync::DISABLED);
@@ -313,9 +312,9 @@ namespace InvertedSway {
         }
     }
 
-    void MPU6050::set_sampling_rate(std::uint32_t const sampling_rate, DLPF const dlpf) const noexcept
+    void MPU6050::set_sampling_rate(std::uint8_t const sampling_rate) const noexcept
     {
-        this->i2c_device_.write_byte(std::to_underlying(RegAddress::SMPLRT_DIV), 39);
+        this->i2c_device_.write_byte(std::to_underlying(RegAddress::SMPLRT_DIV), sampling_rate);
     }
 
     void MPU6050::set_external_frame_sync(ExtSync const frame_sync) const noexcept
@@ -388,7 +387,7 @@ namespace InvertedSway {
         this->i2c_device_.write_byte(std::to_underlying(RegAddress::ZRMOT_DUR), duration);
     }
 
-    void MPU6050::set_fifo_enabled(std::uint8_t const fifo_enabled) const noexcept
+    void MPU6050::set_fifo_sensors_enabled(std::uint8_t const fifo_enabled) const noexcept
     {
         this->i2c_device_.write_byte(std::to_underlying(RegAddress::FIFO_EN), fifo_enabled);
     }

@@ -519,7 +519,7 @@ namespace InvertedSway {
         void initialize_free_fall_interrupt() const noexcept;
         void deinitialize() noexcept;
 
-        void set_sampling_rate(std::uint32_t const sampling_rate, DLPF const dlpf) const noexcept;
+        void set_sampling_rate(std::uint8_t const sampling_rate) const noexcept;
         void set_external_frame_sync(ExtSync const frame_sync) const noexcept;
         void set_dlpf_mode(DLPF const dlpf) const noexcept;
         void set_full_scale_gyro_range(GyroRange const range) const noexcept;
@@ -533,7 +533,7 @@ namespace InvertedSway {
         void set_zero_motion_detection_threshold(std::uint8_t const threshold) const noexcept;
         void set_zero_motion_detection_duration(std::uint8_t const duration) const noexcept;
 
-        void set_fifo_enabled(std::uint8_t const fifo_enabled) const noexcept;
+        void set_fifo_sensors_enabled(std::uint8_t const fifo_enabled) const noexcept;
         void set_temp_fifo_enabled(bool const enabled) const noexcept;
         void set_x_gyro_fifo_enabled(bool const enabled) const noexcept;
         void set_y_gyro_fifo_enabled(bool const enabled) const noexcept;

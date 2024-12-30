@@ -65,27 +65,43 @@ namespace InvertedSway {
 
     void MPU6050_DMP::initialize_dmp() const noexcept
     {
+        this->mpu6050_.device_wake_up();
+        HAL_Delay(200);
+        this->mpu6050_.set_sleep_enabled(false);
         this->set_memory_bank(0x10, true, true);
         this->set_memory_start_address(0x06);
         this->set_memory_bank(0, false, false);
-        this->get_otp_bank_valid();
+        if (!get_otp_bank_valid()) {
+            printf("Invalid OTP bank!\n\r");
+            return;
+        }
 
         this->mpu6050_.set_slave_address(0, 0x7F);
         this->mpu6050_.set_i2c_master_mode_enabled(false);
         this->mpu6050_.set_slave_address(0, 0x68);
         this->mpu6050_.reset_i2c_master();
-        this->write_memory_block(dmp_memory.data(), dmp_memory.size(), 0x00, 0x00);
+        this->mpu6050_.set_clock_source(MPU6050::Clock::PLL_ZGYRO);
+        this->set_int_dmp_enabled(true);
+        this->mpu6050_.set_int_fifo_overflow_enabled(true);
+        this->mpu6050_.set_sampling_rate(4); // 1 / (1 + 4) = 200 Hz
+        this->mpu6050_.set_external_frame_sync(MPU6050::ExtSync::TEMP_OUT_L);
+        this->mpu6050_.set_dlpf_mode(MPU6050::DLPF::BW_42);
+        this->mpu6050_.set_full_scale_gyro_range(MPU6050::GyroRange::GYRO_FS_2000);
 
+        this->write_memory_block(dmp_memory.data(), dmp_memory.size(), 0x00, 0x00);
         std::array<std::uint8_t, 2UL> dmp_update{0x00, 0x01};
-        this->write_memory_block(dmp_update.data(), dmp_update.size(), 0x02, 0x16);
+        this->write_memory_block(dmp_update.data(), 0x02, 0x02, 0x16);
         this->set_dmp_config1(0x03);
         this->set_dmp_config2(0x00);
         this->set_otp_bank_valid(false);
 
+        this->mpu6050_.set_motion_detection_threshold(2);
+        this->mpu6050_.set_zero_motion_detection_threshold(156);
+        this->mpu6050_.set_motion_detection_duration(80);
+        this->mpu6050_.set_zero_motion_detection_duration(0);
         this->mpu6050_.set_fifo_enabled(true);
         this->reset_dmp();
-        this->set_dmp_enabled(false);
-        this->mpu6050_.get_int_status();
+        this->mpu6050_.reset_fifo();
         this->set_dmp_enabled(true);
     }
 
@@ -188,9 +204,16 @@ namespace InvertedSway {
     {
         DMP_Packet dmp_packet{};
         if (this->get_int_dmp_status()) {
-            while (this->mpu6050_.get_fifo_count() < DMP_PACKET_SIZE) {
+            uint16_t fifo_count = this->mpu6050_.get_fifo_count();
+            if (fifo_count == 1024) { // reset in case of overflow
+                this->mpu6050_.reset_fifo();
             }
-            this->mpu6050_.get_fifo_bytes(dmp_packet.data(), dmp_packet.size());
+            while (fifo_count < DEFAULT_DMP_PACKET_SIZE) { // wait for data
+            }
+            for (int i = 0; i < fifo_count / DEFAULT_DMP_PACKET_SIZE; i++) // get latest data
+            {
+                this->mpu6050_.get_fifo_bytes(dmp_packet.data(), DEFAULT_DMP_PACKET_SIZE);
+            }
         }
         return dmp_packet;
     }

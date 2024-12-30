@@ -4,7 +4,7 @@
 #include <array>
 #include <cstdint>
 
-static constexpr auto DMP_MEMORY_SIZE{1928UL};
+static constexpr auto DMP_MEMORY_SIZE{1929UL};
 
 static constinit inline std::array<std::uint8_t, DMP_MEMORY_SIZE> dmp_memory{/* bank # 0 */
                                                                              0xFB,

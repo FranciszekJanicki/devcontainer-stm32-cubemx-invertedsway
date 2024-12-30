@@ -182,8 +182,8 @@ namespace Tests {
 
         while (true) {
             if (sampling_timer_elapsed) {
-                auto const& [roll, pitch, yaw]{mpu6050_dmp.get_roll_pitch_yaw()};
-                printf("roll: %f, pitch: %f, yaw: %f\n\r", roll, pitch, yaw);
+                MPU6050_DMP::RollPitchYaw rpy = mpu6050_dmp.get_roll_pitch_yaw();
+                printf("RPY: %f, %f, %f\n\r", rpy.x, rpy.y, rpy.z);
                 sampling_timer_elapsed = false;
             }
         }
