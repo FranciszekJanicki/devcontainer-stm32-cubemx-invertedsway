@@ -171,9 +171,9 @@ namespace Tests {
 
         MPU6050 mpu6050{i2c_mpu_device,
                         8000U,
-                        MPU6050::GyroRange::GYRO_FS_250,
+                        MPU6050::GyroRange::GYRO_FS_2000,
                         MPU6050::AccelRange::ACCEL_FS_2,
-                        MPU6050::DLPF::BW_256,
+                        MPU6050::DLPF::BW_42,
                         MPU6050::DHPF::DHPF_RESET};
 
         MPU6050_DMP mpu6050_dmp{std::move(mpu6050)};
@@ -182,8 +182,8 @@ namespace Tests {
 
         while (true) {
             if (sampling_timer_elapsed) {
-                MPU6050_DMP::RollPitchYaw rpy = mpu6050_dmp.get_roll_pitch_yaw();
-                printf("RPY: %f, %f, %f\n\r", rpy.x, rpy.y, rpy.z);
+                auto const& [r, p, y]{mpu6050_dmp.get_roll_pitch_yaw()};
+                printf("RPY: %f, %f, %f\n\r", r, p, y);
                 sampling_timer_elapsed = false;
             }
         }

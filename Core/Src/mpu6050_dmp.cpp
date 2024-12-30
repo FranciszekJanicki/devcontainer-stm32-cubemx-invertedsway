@@ -65,28 +65,17 @@ namespace InvertedSway {
 
     void MPU6050_DMP::initialize_dmp() const noexcept
     {
-        this->mpu6050_.device_wake_up();
-        HAL_Delay(200);
-        this->mpu6050_.set_sleep_enabled(false);
         this->set_memory_bank(0x10, true, true);
         this->set_memory_start_address(0x06);
         this->set_memory_bank(0, false, false);
-        if (!get_otp_bank_valid()) {
-            printf("Invalid OTP bank!\n\r");
-            return;
-        }
+        this->get_otp_bank_valid();
 
         this->mpu6050_.set_slave_address(0, 0x7F);
         this->mpu6050_.set_i2c_master_mode_enabled(false);
         this->mpu6050_.set_slave_address(0, 0x68);
         this->mpu6050_.reset_i2c_master();
-        this->mpu6050_.set_clock_source(MPU6050::Clock::PLL_ZGYRO);
         this->set_int_dmp_enabled(true);
         this->mpu6050_.set_int_fifo_overflow_enabled(true);
-        this->mpu6050_.set_sampling_rate(4); // 1 / (1 + 4) = 200 Hz
-        this->mpu6050_.set_external_frame_sync(MPU6050::ExtSync::TEMP_OUT_L);
-        this->mpu6050_.set_dlpf_mode(MPU6050::DLPF::BW_42);
-        this->mpu6050_.set_full_scale_gyro_range(MPU6050::GyroRange::GYRO_FS_2000);
 
         this->write_memory_block(dmp_memory.data(), dmp_memory.size(), 0x00, 0x00);
         std::array<std::uint8_t, 2UL> dmp_update{0x00, 0x01};
@@ -95,10 +84,6 @@ namespace InvertedSway {
         this->set_dmp_config2(0x00);
         this->set_otp_bank_valid(false);
 
-        this->mpu6050_.set_motion_detection_threshold(2);
-        this->mpu6050_.set_zero_motion_detection_threshold(156);
-        this->mpu6050_.set_motion_detection_duration(80);
-        this->mpu6050_.set_zero_motion_detection_duration(0);
         this->mpu6050_.set_fifo_enabled(true);
         this->reset_dmp();
         this->mpu6050_.reset_fifo();
@@ -202,20 +187,21 @@ namespace InvertedSway {
 
     DMP_Packet MPU6050_DMP::get_dmp_packet() const noexcept
     {
-        DMP_Packet dmp_packet{};
         if (this->get_int_dmp_status()) {
-            uint16_t fifo_count = this->mpu6050_.get_fifo_count();
-            if (fifo_count == 1024) { // reset in case of overflow
+            auto fifo_count{this->mpu6050_.get_fifo_count()};
+
+            if (fifo_count == FIFO_MAX_COUNT) {
                 this->mpu6050_.reset_fifo();
             }
-            while (fifo_count < DEFAULT_DMP_PACKET_SIZE) { // wait for data
+
+            DMP_Packet dmp_packet{};
+            for (auto i{0}; i < fifo_count / DMP_PACKET_SIZE; ++i) {
+                dmp_packet = this->mpu6050_.get_fifo_bytes<DMP_PACKET_SIZE>();
             }
-            for (int i = 0; i < fifo_count / DEFAULT_DMP_PACKET_SIZE; i++) // get latest data
-            {
-                this->mpu6050_.get_fifo_bytes(dmp_packet.data(), DEFAULT_DMP_PACKET_SIZE);
-            }
+            return dmp_packet;
         }
-        return dmp_packet;
+
+        return DMP_Packet{};
     }
 
     QuaternionRaw MPU6050_DMP::get_quaternion_raw() const noexcept

@@ -37,8 +37,8 @@ namespace InvertedSway {
         using RegAddress = MPU6050::RegAddress;
         using Interrupt = MPU6050::Interrupt;
 
-        static constexpr auto DEFAULT_DMP_PACKET_SIZE{42UL};
-        using DMP_Packet = std::array<std::uint8_t, DEFAULT_DMP_PACKET_SIZE>;
+        static constexpr auto DMP_PACKET_SIZE{42UL};
+        using DMP_Packet = std::array<std::uint8_t, DMP_PACKET_SIZE>;
 
         MPU6050_DMP() noexcept = default;
 
@@ -65,6 +65,7 @@ namespace InvertedSway {
         static constexpr auto DMP_MEMORY_BANK_SIZE{256UL};
         static constexpr auto DMP_MEMORY_CHUNK_SIZE{16UL};
         static constexpr auto FIFO_DEFAULT_TIMEOUT{11000};
+        static constexpr auto FIFO_MAX_COUNT{1024UL};
         static constexpr auto PI{MPU6050::PI};
 
         void initialize() noexcept;

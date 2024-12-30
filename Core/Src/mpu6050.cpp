@@ -235,7 +235,7 @@ namespace InvertedSway {
     {
         if (this->is_valid_device_id()) {
             this->device_wake_up();
-            HAL_Delay(100);
+            HAL_Delay(200);
             this->initialize_base(gyro_range, accel_range);
             this->initialize_advanced(sampling_rate, dlpf, dhpf);
             this->initialize_interrupt();
@@ -245,19 +245,19 @@ namespace InvertedSway {
 
     void MPU6050::initialize_base(GyroRange const gyro_range, AccelRange const accel_range) const noexcept
     {
-        this->set_clock_source(Clock::PLL_XGYRO);
-        this->set_full_scale_gyro_range(GyroRange::GYRO_FS_250);
-        this->set_full_scale_accel_range(AccelRange::ACCEL_FS_2);
+        this->set_clock_source(Clock::PLL_ZGYRO);
+        this->set_full_scale_gyro_range(gyro_range);
+        this->set_full_scale_accel_range(accel_range);
         this->set_sleep_enabled(false);
     }
 
     void
     MPU6050::initialize_advanced(std::uint32_t const sampling_rate, DLPF const dlpf, DHPF const dhpf) const noexcept
     {
-        this->set_sampling_rate(sampling_rate);
+        this->set_sampling_rate(sampling_rate, dlpf);
         this->set_dlpf_mode(dlpf);
         this->set_dhpf_mode(dhpf);
-        this->set_external_frame_sync(ExtSync::DISABLED);
+        this->set_external_frame_sync(ExtSync::TEMP_OUT_L);
     }
 
     void MPU6050::initialize_interrupt() const noexcept
@@ -284,17 +284,17 @@ namespace InvertedSway {
 
     void MPU6050::initialize_motion_interrupt() const noexcept
     {
-        this->set_motion_detection_duration(40);
-        this->set_motion_detection_threshold(20);
+        this->set_motion_detection_duration(80);
+        this->set_motion_detection_threshold(2);
         this->set_motion_detection_control(0x15);
-        this->set_int_motion_enabled(true);
+        // this->set_int_motion_enabled(true);
     }
 
     void MPU6050::initialize_zero_motion_interrupt() const noexcept
     {
-        this->set_zero_motion_detection_duration(2);
-        this->set_zero_motion_detection_threshold(4);
-        this->set_int_zero_motion_enabled(true);
+        this->set_zero_motion_detection_duration(0);
+        this->set_zero_motion_detection_threshold(156);
+        // this->set_int_zero_motion_enabled(true);
     }
 
     void MPU6050::initialize_free_fall_interrupt() const noexcept
@@ -312,9 +312,10 @@ namespace InvertedSway {
         }
     }
 
-    void MPU6050::set_sampling_rate(std::uint8_t const sampling_rate) const noexcept
+    void MPU6050::set_sampling_rate(std::uint8_t const sampling_rate, DLPF const dlpf) const noexcept
     {
-        this->i2c_device_.write_byte(std::to_underlying(RegAddress::SMPLRT_DIV), sampling_rate);
+        this->i2c_device_.write_byte(std::to_underlying(RegAddress::SMPLRT_DIV),
+                                     get_sampling_divider(sampling_rate, dlpf));
     }
 
     void MPU6050::set_external_frame_sync(ExtSync const frame_sync) const noexcept
@@ -387,7 +388,7 @@ namespace InvertedSway {
         this->i2c_device_.write_byte(std::to_underlying(RegAddress::ZRMOT_DUR), duration);
     }
 
-    void MPU6050::set_fifo_sensors_enabled(std::uint8_t const fifo_enabled) const noexcept
+    void MPU6050::set_fifo_enabled(std::uint8_t const fifo_enabled) const noexcept
     {
         this->i2c_device_.write_byte(std::to_underlying(RegAddress::FIFO_EN), fifo_enabled);
     }
@@ -1176,7 +1177,7 @@ namespace InvertedSway {
     {
         auto buffer = this->i2c_device_.read_bytes<2>(std::to_underlying(RegAddress::FIFO_COUNTH));
 
-        return ((static_cast<std::uint16_t>(buffer[0]) << 8) | buffer[1]);
+        return (static_cast<std::uint16_t>(buffer[0]) << 8) | static_cast<std::uint16_t>(buffer[1]);
     }
 
     std::uint8_t MPU6050::get_fifo_byte() const noexcept
@@ -1184,22 +1185,9 @@ namespace InvertedSway {
         return this->i2c_device_.read_byte(std::to_underlying(RegAddress::FIFO_R_W));
     }
 
-    void MPU6050::get_current_fifo_packet(std::uint8_t* packet_data, std::size_t const packet_size) const noexcept
-    {}
-
-    void MPU6050::get_fifo_bytes(std::uint8_t* read_data, std::size_t const read_size) const noexcept
-    {
-        this->i2c_device_.read_bytes(std::to_underlying(RegAddress::FIFO_R_W), read_data, read_size);
-    }
-
     void MPU6050::set_fifo_byte(std::uint8_t const write_data) const noexcept
     {
         this->i2c_device_.write_byte(std::to_underlying(RegAddress::FIFO_R_W), write_data);
-    }
-
-    void MPU6050::set_fifo_bytes(std::uint8_t* write_data, std::size_t const write_size) const noexcept
-    {
-        this->i2c_device_.write_bytes(std::to_underlying(RegAddress::FIFO_R_W), write_data, write_size);
     }
 
     std::uint8_t MPU6050::get_device_id() const noexcept

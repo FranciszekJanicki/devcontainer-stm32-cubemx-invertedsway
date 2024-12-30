@@ -445,6 +445,9 @@ namespace InvertedSway {
         using GyroRaw = Linalg::Vector3D<Raw>;
         using AccelRaw = Linalg::Vector3D<Raw>;
 
+        template <std::size_t PACKET_SIZE>
+        using FIFOPacket = std::array<std::uint8_t, PACKET_SIZE>;
+
         MPU6050() noexcept = default;
 
         MPU6050(I2CDevice const i2c_device,
@@ -519,7 +522,7 @@ namespace InvertedSway {
         void initialize_free_fall_interrupt() const noexcept;
         void deinitialize() noexcept;
 
-        void set_sampling_rate(std::uint8_t const sampling_rate) const noexcept;
+        void set_sampling_rate(std::uint8_t const sampling_rate, DLPF const dlpf) const noexcept;
         void set_external_frame_sync(ExtSync const frame_sync) const noexcept;
         void set_dlpf_mode(DLPF const dlpf) const noexcept;
         void set_full_scale_gyro_range(GyroRange const range) const noexcept;
@@ -533,7 +536,7 @@ namespace InvertedSway {
         void set_zero_motion_detection_threshold(std::uint8_t const threshold) const noexcept;
         void set_zero_motion_detection_duration(std::uint8_t const duration) const noexcept;
 
-        void set_fifo_sensors_enabled(std::uint8_t const fifo_enabled) const noexcept;
+        void set_fifo_enabled(std::uint8_t const fifo_enabled) const noexcept;
         void set_temp_fifo_enabled(bool const enabled) const noexcept;
         void set_x_gyro_fifo_enabled(bool const enabled) const noexcept;
         void set_y_gyro_fifo_enabled(bool const enabled) const noexcept;
@@ -662,10 +665,22 @@ namespace InvertedSway {
 
         std::uint16_t get_fifo_count() const noexcept;
         std::uint8_t get_fifo_byte() const noexcept;
-        void get_current_fifo_packet(std::uint8_t* packet_data, std::size_t const packet_size) const noexcept;
-        void get_fifo_bytes(std::uint8_t* read_data, std::size_t const read_size) const noexcept;
         void set_fifo_byte(std::uint8_t const write_data) const noexcept;
-        void set_fifo_bytes(std::uint8_t* write_data, std::size_t const write_size) const noexcept;
+
+        template <std::size_t PACKET_SIZE>
+        FIFOPacket<PACKET_SIZE> get_current_fifo_packet() const noexcept;
+
+        template <std::size_t PACKET_SIZE>
+        FIFOPacket<PACKET_SIZE> get_fifo_bytes() const noexcept
+        {
+            return this->i2c_device_.read_bytes<PACKET_SIZE>(std::to_underlying(RegAddress::FIFO_R_W));
+        }
+
+        template <std::size_t PACKET_SIZE>
+        void set_fifo_bytes(FIFOPacket<PACKET_SIZE> const& packet) const noexcept
+        {
+            this->i2c_device_.write_bytes(std::to_underlying(RegAddress::FIFO_R_W), packet);
+        }
 
         std::uint8_t get_device_id() const noexcept;
 
