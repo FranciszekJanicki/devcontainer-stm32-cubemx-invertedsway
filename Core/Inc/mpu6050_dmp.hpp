@@ -52,14 +52,17 @@ namespace InvertedSway {
 
         ~MPU6050_DMP() noexcept;
 
-        QuaternionRaw get_quaternion_raw() const noexcept;
-        QuaternionScaled get_quaternion_scaled() const noexcept;
-        Gravity get_gravity() const noexcept;
-        RollPitchYaw get_roll_pitch_yaw() const noexcept;
+        [[nodiscard]] Scaled get_roll() const noexcept;
+        [[nodiscard]] Scaled get_pitch() const noexcept;
+        [[nodiscard]] Scaled get_yaw() const noexcept;
+        [[nodiscard]] RollPitchYaw get_roll_pitch_yaw() const noexcept;
 
     private:
-        static Gravity quaternion_to_gravity(QuaternionScaled const quaternion) noexcept;
-        static RollPitchYaw quaternion_to_roll_pitch_yaw(QuaternionScaled const quaternion) noexcept;
+        static Gravity quaternion_to_gravity(QuaternionScaled const& quaternion) noexcept;
+        static RollPitchYaw quaternion_to_roll_pitch_yaw(QuaternionScaled const& quaternion) noexcept;
+        static Scaled quaternion_to_roll(QuaternionScaled const& quaternion) noexcept;
+        static Scaled quaternion_to_pitch(QuaternionScaled const& quaternion) noexcept;
+        static Scaled quaternion_to_yaw(QuaternionScaled const& quaternion) noexcept;
 
         static constexpr auto DMP_MEMORY_BANKS{8};
         static constexpr auto DMP_MEMORY_BANK_SIZE{256UL};
@@ -67,6 +70,10 @@ namespace InvertedSway {
         static constexpr auto FIFO_DEFAULT_TIMEOUT{11000};
         static constexpr auto FIFO_MAX_COUNT{1024UL};
         static constexpr auto PI{MPU6050::PI};
+
+        QuaternionRaw get_quaternion_raw() const noexcept;
+        QuaternionScaled get_quaternion_scaled() const noexcept;
+        Gravity get_gravity() const noexcept;
 
         void initialize() noexcept;
         void initialize_dmp() const noexcept;

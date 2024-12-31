@@ -4,7 +4,7 @@
 #include "encoder.hpp"
 #include "kalman.hpp"
 #include "l298n.hpp"
-#include "mpu6050.hpp"
+#include "mpu6050_dmp.hpp"
 #include "regulators.hpp"
 #include <functional>
 #include <memory>
@@ -23,7 +23,11 @@ namespace InvertedSway {
 
         Sway() = delete;
 
-        Sway(MPU6050&& mpu6050, L298N&& l298n, Kalman&& kalman, Regulator&& regulator, Encoder&& encoder) noexcept;
+        Sway(MPU6050_DMP&& mpu6050_dmp,
+             L298N&& l298n,
+             Kalman&& kalman,
+             Regulator&& regulator,
+             Encoder&& encoder) noexcept;
 
         Sway(Sway const& other) = delete;
         Sway(Sway&& other) noexcept = default;
@@ -36,7 +40,6 @@ namespace InvertedSway {
         void operator()(Value const input_angle, Value const dt) noexcept;
 
     private:
-        static Value voltage_to_angle(Value const voltage) noexcept;
         static Value angle_to_voltage(Value const angle) noexcept;
         static Direction angle_to_direction(Value const angle) noexcept;
 
@@ -60,11 +63,9 @@ namespace InvertedSway {
         void deinitialize() noexcept;
         void initialize() noexcept;
 
-        Value gx_{};
-        Value roll_{};
         Value last_control_voltage_{};
 
-        MPU6050 mpu6050_{};
+        MPU6050_DMP mpu6050_dmp_{};
         L298N l298n_{};
         Kalman kalman_{};
         Regulator regulator_{};

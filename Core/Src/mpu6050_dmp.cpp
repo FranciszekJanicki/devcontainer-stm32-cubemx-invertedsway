@@ -18,7 +18,7 @@ using DMP_Packet = MPU6050_DMP::DMP_Packet;
 
 namespace InvertedSway {
 
-    Gravity MPU6050_DMP::quaternion_to_gravity(QuaternionScaled const quaternion) noexcept
+    Gravity MPU6050_DMP::quaternion_to_gravity(QuaternionScaled const& quaternion) noexcept
     {
         return Gravity{2 * (quaternion.x * quaternion.z - quaternion.w * quaternion.y),
                        2 * (quaternion.w * quaternion.x + quaternion.y * quaternion.z),
@@ -26,22 +26,30 @@ namespace InvertedSway {
                            quaternion.z * quaternion.z};
     }
 
-    RollPitchYaw MPU6050_DMP::quaternion_to_roll_pitch_yaw(QuaternionScaled const quaternion) noexcept
+    RollPitchYaw MPU6050_DMP::quaternion_to_roll_pitch_yaw(QuaternionScaled const& quaternion) noexcept
     {
-        auto gravity{quaternion_to_gravity(quaternion)};
+        return RollPitchYaw{quaternion_to_roll(quaternion),
+                            quaternion_to_pitch(quaternion),
+                            quaternion_to_yaw(quaternion)};
+    }
 
-        RollPitchYaw rpy{std::atan2(gravity.y, gravity.z),
-                         std::atan2(gravity.x, sqrt(gravity.y * gravity.y + gravity.z * gravity.z)),
-                         std::atan2(2 * quaternion.x * quaternion.y - 2 * quaternion.w * quaternion.z,
-                                    2 * quaternion.w * quaternion.w + 2 * quaternion.x * quaternion.x - 1)};
-        if (gravity.z < 0) {
-            if (rpy.y > 0) {
-                rpy.y = PI - rpy.y;
-            } else {
-                rpy.y = -PI - rpy.y;
-            }
-        }
-        return rpy;
+    Scaled MPU6050_DMP::quaternion_to_roll(QuaternionScaled const& quaternion) noexcept
+    {
+        auto const gravity{quaternion_to_gravity(quaternion)};
+        return std::atan2(gravity.y, gravity.z);
+    }
+
+    Scaled MPU6050_DMP::quaternion_to_pitch(QuaternionScaled const& quaternion) noexcept
+    {
+        auto const gravity{quaternion_to_gravity(quaternion)};
+        auto const pitch{std::atan2(gravity.x, sqrt(gravity.y * gravity.y + gravity.z * gravity.z))};
+        return (gravity.z < 0) ? (pitch > 0 ? PI - pitch : -PI - pitch) : pitch;
+    }
+
+    Scaled MPU6050_DMP::quaternion_to_yaw(QuaternionScaled const& quaternion) noexcept
+    {
+        return std::atan2(2 * quaternion.x * quaternion.y - 2 * quaternion.w * quaternion.z,
+                          2 * quaternion.w * quaternion.w + 2 * quaternion.x * quaternion.x - 1);
     }
 
     MPU6050_DMP::MPU6050_DMP(MPU6050&& mpu6050) noexcept : mpu6050_{std::forward<MPU6050>(mpu6050)}
@@ -57,8 +65,8 @@ namespace InvertedSway {
     void MPU6050_DMP::initialize() noexcept
     {
         if (this->mpu6050_.initialized_) {
-            this->initialize_dmp();
             this->initialize_offsets();
+            this->initialize_dmp();
             this->initialized_ = true;
         }
     }
@@ -76,8 +84,8 @@ namespace InvertedSway {
         this->mpu6050_.reset_i2c_master();
         this->set_int_dmp_enabled(true);
         this->mpu6050_.set_int_fifo_overflow_enabled(true);
-
         this->write_memory_block(dmp_memory.data(), dmp_memory.size(), 0x00, 0x00);
+
         std::array<std::uint8_t, 2UL> dmp_update{0x00, 0x01};
         this->write_memory_block(dmp_update.data(), 0x02, 0x02, 0x16);
         this->set_dmp_config1(0x03);
@@ -187,21 +195,20 @@ namespace InvertedSway {
 
     DMP_Packet MPU6050_DMP::get_dmp_packet() const noexcept
     {
+        DMP_Packet dmp_packet{};
+
         if (this->get_int_dmp_status()) {
             auto fifo_count{this->mpu6050_.get_fifo_count()};
-
             if (fifo_count == FIFO_MAX_COUNT) {
                 this->mpu6050_.reset_fifo();
             }
 
-            DMP_Packet dmp_packet{};
-            for (auto i{0}; i < fifo_count / DMP_PACKET_SIZE; ++i) {
-                dmp_packet = this->mpu6050_.get_fifo_bytes<DMP_PACKET_SIZE>();
+            for (auto i{0}; i < fifo_count / dmp_packet.size(); ++i) {
+                this->mpu6050_.get_fifo_bytes(dmp_packet.data(), dmp_packet.size());
             }
-            return dmp_packet;
         }
 
-        return DMP_Packet{};
+        return dmp_packet;
     }
 
     QuaternionRaw MPU6050_DMP::get_quaternion_raw() const noexcept
@@ -221,6 +228,21 @@ namespace InvertedSway {
     Gravity MPU6050_DMP::get_gravity() const noexcept
     {
         return quaternion_to_gravity(this->get_quaternion_scaled());
+    }
+
+    Scaled MPU6050_DMP::get_roll() const noexcept
+    {
+        return quaternion_to_roll(this->get_quaternion_scaled());
+    }
+
+    Scaled MPU6050_DMP::get_pitch() const noexcept
+    {
+        return quaternion_to_pitch(this->get_quaternion_scaled());
+    }
+
+    Scaled MPU6050_DMP::get_yaw() const noexcept
+    {
+        return quaternion_to_yaw(this->get_quaternion_scaled());
     }
 
     RollPitchYaw MPU6050_DMP::get_roll_pitch_yaw() const noexcept

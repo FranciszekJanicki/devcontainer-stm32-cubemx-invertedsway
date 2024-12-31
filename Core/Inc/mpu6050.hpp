@@ -10,7 +10,6 @@
 
 namespace InvertedSway {
     struct MPU6050 {
-    public:
         enum struct DevAddress : std::uint16_t {
             AD0_LOW = 0x68,
             AD0_HIGH = 0x69,
@@ -445,9 +444,6 @@ namespace InvertedSway {
         using GyroRaw = Linalg::Vector3D<Raw>;
         using AccelRaw = Linalg::Vector3D<Raw>;
 
-        template <std::size_t PACKET_SIZE>
-        using FIFOPacket = std::array<std::uint8_t, PACKET_SIZE>;
-
         MPU6050() noexcept = default;
 
         MPU6050(I2CDevice const i2c_device,
@@ -490,10 +486,10 @@ namespace InvertedSway {
         static Scaled accel_range_to_scale(AccelRange const accel_range) noexcept;
         static std::uint8_t get_sampling_divider(std::uint32_t const sampling_rate, DLPF const dlpf) noexcept;
 
-        static RollPitchYaw accel_to_roll_pitch_yaw(AccelScaled const accel_scaled) noexcept;
-        static Scaled accel_to_roll(AccelScaled const accel_scaled) noexcept;
-        static Scaled accel_to_pitch(AccelScaled const accel_scaled) noexcept;
-        static Scaled accel_to_yaw(AccelScaled const accel_scaled) noexcept;
+        static RollPitchYaw accel_to_roll_pitch_yaw(AccelScaled const& accel_scaled) noexcept;
+        static Scaled accel_to_roll(AccelScaled const& accel_scaled) noexcept;
+        static Scaled accel_to_pitch(AccelScaled const& accel_scaled) noexcept;
+        static Scaled accel_to_yaw(AccelScaled const& accel_scaled) noexcept;
 
         static std::uint8_t slave_num_to_address(std::uint8_t const num) noexcept;
         static std::uint8_t slave_num_to_register(std::uint8_t const num) noexcept;
@@ -665,22 +661,10 @@ namespace InvertedSway {
 
         std::uint16_t get_fifo_count() const noexcept;
         std::uint8_t get_fifo_byte() const noexcept;
+        void get_current_fifo_packet(std::uint8_t* packet_data, std::size_t const packet_size) const noexcept;
+        void get_fifo_bytes(std::uint8_t* read_data, std::size_t const read_size) const noexcept;
         void set_fifo_byte(std::uint8_t const write_data) const noexcept;
-
-        template <std::size_t PACKET_SIZE>
-        FIFOPacket<PACKET_SIZE> get_current_fifo_packet() const noexcept;
-
-        template <std::size_t PACKET_SIZE>
-        FIFOPacket<PACKET_SIZE> get_fifo_bytes() const noexcept
-        {
-            return this->i2c_device_.read_bytes<PACKET_SIZE>(std::to_underlying(RegAddress::FIFO_R_W));
-        }
-
-        template <std::size_t PACKET_SIZE>
-        void set_fifo_bytes(FIFOPacket<PACKET_SIZE> const& packet) const noexcept
-        {
-            this->i2c_device_.write_bytes(std::to_underlying(RegAddress::FIFO_R_W), packet);
-        }
+        void set_fifo_bytes(std::uint8_t* write_data, std::size_t const write_size) const noexcept;
 
         std::uint8_t get_device_id() const noexcept;
 

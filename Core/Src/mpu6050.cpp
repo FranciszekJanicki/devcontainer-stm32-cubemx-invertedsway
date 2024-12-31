@@ -72,30 +72,25 @@ namespace InvertedSway {
         }
     }
 
-    RollPitchYaw MPU6050::accel_to_roll_pitch_yaw(AccelScaled const accel_scaled) noexcept
+    RollPitchYaw MPU6050::accel_to_roll_pitch_yaw(AccelScaled const& accel_scaled) noexcept
     {
-        return RollPitchYaw{
-            std::atan2(accel_scaled.y, accel_scaled.z) * 180.0f / PI,
-            -(std::atan2(accel_scaled.x, std::sqrt(accel_scaled.y * accel_scaled.y + accel_scaled.z * accel_scaled.z)) *
-              180.0f) /
-                PI,
-            {}};
+        return RollPitchYaw{accel_to_roll(accel_scaled), accel_to_pitch(accel_scaled), accel_to_yaw(accel_scaled)};
     }
 
-    Scaled MPU6050::accel_to_roll(AccelScaled const accel_scaled) noexcept
+    Scaled MPU6050::accel_to_roll(AccelScaled const& accel_scaled) noexcept
     {
-        return std::atan2(accel_scaled.y, accel_scaled.z) * 180.0f / PI;
+        return std::atan2(accel_scaled.y, accel_scaled.z) * 180.0F / PI;
     }
 
-    Scaled MPU6050::accel_to_pitch(AccelScaled const accel_scaled) noexcept
+    Scaled MPU6050::accel_to_pitch(AccelScaled const& accel_scaled) noexcept
     {
         return -(std::atan2(accel_scaled.x,
                             std::sqrt(accel_scaled.y * accel_scaled.y + accel_scaled.z * accel_scaled.z)) *
-                 180.0f) /
+                 180.0F) /
                PI;
     }
 
-    Scaled MPU6050::accel_to_yaw(AccelScaled const accel_scaled) noexcept
+    Scaled MPU6050::accel_to_yaw(AccelScaled const& accel_scaled) noexcept
     {
         return {};
     }
@@ -1185,14 +1180,23 @@ namespace InvertedSway {
         return this->i2c_device_.read_byte(std::to_underlying(RegAddress::FIFO_R_W));
     }
 
+    void MPU6050::get_fifo_bytes(std::uint8_t* read_data, std::size_t const read_size) const noexcept
+    {
+        this->i2c_device_.read_bytes(std::to_underlying(RegAddress::FIFO_R_W), read_data, read_size);
+    }
+
     void MPU6050::set_fifo_byte(std::uint8_t const write_data) const noexcept
     {
         this->i2c_device_.write_byte(std::to_underlying(RegAddress::FIFO_R_W), write_data);
+    }
+
+    void MPU6050::set_fifo_bytes(std::uint8_t* write_data, std::size_t const write_size) const noexcept
+    {
+        this->i2c_device_.write_bytes(std::to_underlying(RegAddress::FIFO_R_W), write_data, write_size);
     }
 
     std::uint8_t MPU6050::get_device_id() const noexcept
     {
         return this->i2c_device_.read_byte(std::to_underlying(RegAddress::WHO_AM_I));
     }
-
 }; // namespace InvertedSway

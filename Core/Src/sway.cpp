@@ -2,7 +2,7 @@
 #include "kalman.hpp"
 #include "l298n.hpp"
 #include "main.h"
-#include "mpu6050.hpp"
+#include "mpu6050_dmp.hpp"
 #include "regulators.hpp"
 #include <cstdio>
 #include <functional>
@@ -20,12 +20,8 @@ namespace InvertedSway {
 
     Value Sway::angle_to_voltage(Value const angle) noexcept
     {
-        return SWAY_MASS_KG * EARTH_ACCELERATION * MOTOR_RESISTANCE * std::sin(angle) / MOTOR_VELOCITY_CONSTANT;
-    }
-
-    Value Sway::voltage_to_angle(Value const voltage) noexcept
-    {
-        return std::asin((voltage * MOTOR_VELOCITY_CONSTANT) / (SWAY_MASS_KG * EARTH_ACCELERATION * MOTOR_RESISTANCE));
+        // return SWAY_MASS_KG * EARTH_ACCELERATION * MOTOR_RESISTANCE * std::sin(angle) / MOTOR_VELOCITY_CONSTANT;
+        return angle;
     }
 
     Direction Sway::angle_to_direction(Value const angle) noexcept
@@ -37,8 +33,12 @@ namespace InvertedSway {
         }
     }
 
-    Sway::Sway(MPU6050&& mpu6050, L298N&& l298n, Kalman&& kalman, Regulator&& regulator, Encoder&& encoder) noexcept :
-        mpu6050_{std::forward<MPU6050>(mpu6050)},
+    Sway::Sway(MPU6050_DMP&& mpu6050_dmp,
+               L298N&& l298n,
+               Kalman&& kalman,
+               Regulator&& regulator,
+               Encoder&& encoder) noexcept :
+        mpu6050_dmp_{std::forward<MPU6050_DMP>(mpu6050_dmp)},
         l298n_{std::forward<L298N>(l298n)},
         kalman_{std::forward<Kalman>(kalman)},
         regulator_{std::forward<Regulator>(regulator)},
@@ -59,14 +59,8 @@ namespace InvertedSway {
 
     Value Sway::get_measured_angle(Value const dt) noexcept
     {
-        if (HAL_GPIO_ReadPin(MPU6050_INTR_GPIO_Port, MPU6050_INTR_Pin) == GPIO_PinState::GPIO_PIN_SET) {
-            this->roll_ = this->mpu6050_.get_pitch();
-            this->gx_ = this->mpu6050_.get_rotation_y_scaled();
-        }
-        // printf("mpu angle: %f, %f\n\r", this->gx_, this->roll_);
-        // printf("kalman angle: %f\n\r", this->output_signal_);
-        // printf("encoder angle: %f\n\r", this->encoder_.get_angle().value());
-        return this->kalman_(this->gx_, this->roll_, dt);
+        return this->mpu6050_dmp_.get_pitch();
+        // return this->kalman_(this->gx_, this->roll_, dt);
     }
 
     Value Sway::get_error_angle(Value const input_angle, Value const dt) noexcept
@@ -108,7 +102,7 @@ namespace InvertedSway {
 
     void Sway::set_voltage(Value const control_angle) const noexcept
     {
-        this->l298n_.set_compare_voltage(L298N::Channel::CHANNEL1, std::abs(control_angle));
+        this->l298n_.set_compare_voltage(L298N::Channel::CHANNEL1, angle_to_voltage(std::abs(control_angle)));
     }
 
     void Sway::try_motor_boost(Value const control_angle) noexcept
