@@ -246,15 +246,4 @@ namespace Tests {
         }
     }
 
-    void DUTKIEWICZ_TEST() noexcept
-    {
-        MX_USART2_UART_Init();
-
-        while (true) {
-            for (auto i{0}; i < 8; ++i)
-                printf("DUTKIEWICZ SIGMA\t");
-            printf("\n\r");
-        }
-    }
-
 }; // namespace Tests
