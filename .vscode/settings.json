@@ -96,7 +96,8 @@
         "cfloat": "cpp",
         "climits": "cpp",
         "iostream": "cpp",
-        "i2c_device.hpp": "c"
+        "i2c_device.hpp": "c",
+        "mpu6050_registers.hpp": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "editor.formatOnSave": true

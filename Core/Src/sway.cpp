@@ -2,7 +2,7 @@
 #include "kalman.hpp"
 #include "l298n.hpp"
 #include "main.h"
-#include "mpu6050_dmp.hpp"
+#include "mpu_dmp.hpp"
 #include "regulators.hpp"
 #include <cstdio>
 #include <functional>
@@ -33,12 +33,8 @@ namespace InvertedSway {
         }
     }
 
-    Sway::Sway(MPU6050_DMP&& mpu6050_dmp,
-               L298N&& l298n,
-               Kalman&& kalman,
-               Regulator&& regulator,
-               Encoder&& encoder) noexcept :
-        mpu6050_dmp_{std::forward<MPU6050_DMP>(mpu6050_dmp)},
+    Sway::Sway(MPU_DMP&& mpu_dmp, L298N&& l298n, Kalman&& kalman, Regulator&& regulator, Encoder&& encoder) noexcept :
+        mpu_dmp_{std::forward<MPU_DMP>(mpu_dmp)},
         l298n_{std::forward<L298N>(l298n)},
         kalman_{std::forward<Kalman>(kalman)},
         regulator_{std::forward<Regulator>(regulator)},
@@ -59,7 +55,7 @@ namespace InvertedSway {
 
     Value Sway::get_measured_angle(Value const dt) noexcept
     {
-        return this->mpu6050_dmp_.get_pitch();
+        return this->mpu_dmp_.get_pitch();
         // return this->kalman_(this->gx_, this->roll_, dt);
     }
 

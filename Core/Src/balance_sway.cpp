@@ -48,7 +48,7 @@ void balance_sway()
                     MPU6050::DLPF::BW_256,
                     MPU6050::DHPF::DHPF_RESET};
 
-    MPU6050_DMP mpu6050_dmp{std::move(mpu6050)};
+    MPU_DMP mpu6050_dmp{std::move(mpu6050)};
 
     auto kalman{make_kalman(0.0F, 0.0F, 0.1F, 0.3F, 0.03F)};
 

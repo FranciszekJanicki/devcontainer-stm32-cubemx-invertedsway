@@ -1,5 +1,5 @@
-#ifndef MPU6050_DMP_HPP
-#define MPU6050_DMP_HPP
+#ifndef MPU_DMP_HPP
+#define MPU_DMP_HPP
 
 #include "mpu6050.hpp"
 #include "quaternion3d.hpp"
@@ -9,48 +9,27 @@
 
 namespace InvertedSway {
 
-    struct MPU6050_DMP {
+    struct MPU_DMP {
     public:
-        enum struct IntrDMP : std::uint8_t {
-            DMPINT_5_BIT = 5,
-            DMPINT_4_BIT = 4,
-            DMPINT_3_BIT = 3,
-            DMPINT_2_BIT = 2,
-            DMPINT_1_BIT = 1,
-            DMPINT_0_BIT = 0,
-        };
-
-        enum struct TC : std::uint8_t {
-            PWR_MODE_BIT = 7,
-            OFFSET_BIT = 6,
-            OFFSET_LENGTH = 6,
-            OTP_BNK_VLD_BIT = 0,
-        };
-
         using Scaled = MPU6050::Scaled;
         using Raw = MPU6050::Raw;
         using QuaternionRaw = Linalg::Quaternion3D<Raw>;
         using QuaternionScaled = Linalg::Quaternion3D<Scaled>;
         using RollPitchYaw = Linalg::Vector3D<Scaled>;
         using Gravity = Linalg::Vector3D<Scaled>;
-        using UserCtrl = MPU6050::UserCtrl;
-        using RegAddress = MPU6050::RegAddress;
-        using Interrupt = MPU6050::Interrupt;
+        using DMP_Packet = std::array<std::uint8_t, 42UL>;
 
-        static constexpr auto DMP_PACKET_SIZE{42UL};
-        using DMP_Packet = std::array<std::uint8_t, DMP_PACKET_SIZE>;
+        MPU_DMP() noexcept = default;
 
-        MPU6050_DMP() noexcept = default;
+        MPU_DMP(MPU6050&& mpu6050) noexcept;
 
-        MPU6050_DMP(MPU6050&& mpu6050) noexcept;
+        MPU_DMP(MPU_DMP const& other) noexcept = delete;
+        MPU_DMP(MPU_DMP&& other) noexcept = default;
 
-        MPU6050_DMP(MPU6050_DMP const& other) noexcept = delete;
-        MPU6050_DMP(MPU6050_DMP&& other) noexcept = default;
+        MPU_DMP& operator=(MPU_DMP const& other) noexcept = delete;
+        MPU_DMP& operator=(MPU_DMP&& other) noexcept = default;
 
-        MPU6050_DMP& operator=(MPU6050_DMP const& other) noexcept = delete;
-        MPU6050_DMP& operator=(MPU6050_DMP&& other) noexcept = default;
-
-        ~MPU6050_DMP() noexcept;
+        ~MPU_DMP() noexcept;
 
         [[nodiscard]] Scaled get_roll() const noexcept;
         [[nodiscard]] Scaled get_pitch() const noexcept;
@@ -144,4 +123,4 @@ namespace InvertedSway {
 
 }; // namespace InvertedSway
 
-#endif // MPU6050_DMP_HPP
+#endif // MPU_DMP_HPP
