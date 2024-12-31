@@ -15,12 +15,12 @@
 
 static bool sampling_timer_elapsed{false};
 
-// void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-// {
-//     if (GPIO_Pin == MPU6050_INTR_Pin) {
-//         sampling_timer_elapsed = true;
-//     }
-// }
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == MPU6050_INTR_Pin) {
+        sampling_timer_elapsed = true;
+    }
+}
 
 void balance_sway()
 {
@@ -32,6 +32,13 @@ void balance_sway()
     auto const sampling_time{1.0f / static_cast<float>(sampling_rate_hz)};
     auto const balance_angle{0.0F};
 
+    MX_GPIO_Init();
+    MX_USART2_UART_Init();
+    MX_I2C1_Init();
+    MX_TIM3_Init();
+    MX_TIM4_Init();
+
+    printf("DUPA\n\r");
     L298N::MotorChannels motor_channels{
         L298N::MotorChannel{L298N::Channel::CHANNEL1,
                             Motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin}},
@@ -43,12 +50,12 @@ void balance_sway()
 
     MPU6050 mpu6050{i2c_mpu_device,
                     sampling_rate_hz,
-                    MPU6050::GyroRange::GYRO_FS_250,
+                    MPU6050::GyroRange::GYRO_FS_2000,
                     MPU6050::AccelRange::ACCEL_FS_2,
-                    MPU6050::DLPF::BW_256,
+                    MPU6050::DLPF::BW_42,
                     MPU6050::DHPF::DHPF_RESET};
 
-    MPU_DMP mpu6050_dmp{std::move(mpu6050)};
+    MPU_DMP mpu_dmp{std::move(mpu6050)};
 
     auto kalman{make_kalman(0.0F, 0.0F, 0.1F, 0.3F, 0.03F)};
 
@@ -56,7 +63,7 @@ void balance_sway()
 
     Encoder encoder{&htim3};
 
-    Sway sway{std::move(mpu6050_dmp), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
+    Sway sway{std::move(mpu_dmp), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
 
     while (true) {
         if (sampling_timer_elapsed) {

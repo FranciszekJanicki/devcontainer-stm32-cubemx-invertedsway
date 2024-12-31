@@ -1,5 +1,5 @@
-#ifndef KALMAN_Hangle_covarangle_covar
-#define KALMAN_Hangle_covarangle_covar
+#ifndef KALMAN_HPP
+#define KALMAN_HPP
 
 #include "arithmetic.hpp"
 #include <array>
@@ -8,56 +8,54 @@
 namespace InvertedSway {
 
     namespace Filters {
+
         template <Linalg::Arithmetic Value>
         struct Kalman {
-            using Vector = std::array<Value, 2>;
-            using Matrix = std::array<std::array<Value, 2>, 2>;
-
-            auto operator()(Value const gyro, Value const accel, Value const dt) noexcept -> Value
+            constexpr Value operator()(Value const gyro, Value const accel, Value const dt) noexcept
             {
                 this->predict(gyro, dt);
                 this->update(accel);
-                return this->kalman_angle;
+                return this->k_angle;
             }
 
-            auto predict(Value const gyro, Value const dt) noexcept -> Value
+            constexpr void predict(Value const gyro, Value const dt) noexcept
             {
-                this->kalman_angle += dt * (gyro - this->kalman_bias);
+                this->k_angle += dt * (gyro - this->k_bias);
 
-                this->angle_covar[0][0] += dt * (dt * this->angle_covar[1][1] - this->angle_covar[0][1] -
-                                                 this->angle_covar[1][0] + this->angle_noise);
-                this->angle_covar[0][1] -= dt * this->angle_covar[1][1];
-                this->angle_covar[1][0] -= dt * this->angle_covar[1][1];
-                this->angle_covar[1][1] += dt * this->angle_noise;
+                this->P[0][0] += dt * (dt * this->P[1][1] - this->P[0][1] - this->P[1][0] + this->Q_angle);
+                this->P[0][1] -= dt * this->P[1][1];
+                this->P[1][0] -= dt * this->P[1][1];
+                this->P[1][1] += dt * this->Q_angle;
+
+                Value const S{1 / (this->P[0][0] + this->R)};
+                this->K[0] = this->P[0][0] * S;
+                this->K[1] = this->P[1][0] * S;
             }
 
             constexpr void update(Value const accel) noexcept
             {
-                Value const innovation_angle{accel - this->kalman_angle};
+                Value const dy{accel - this->k_angle};
+                this->k_angle += K[0] * dy;
+                this->k_bias += K[1] * dy;
 
-                Vector const residual_covar{this->angle_covar[0][0] + this->accel_deviation,
-                                            this->angle_covar[0][0] + this->accel_deviation};
-
-                Vector const kalman_gain{this->angle_covar[0][0] / residual_covar[0],
-                                         this->angle_covar[1][0] / residual_covar[1]};
-
-                this->kalman_angle += kalman_gain[0] * innovation_angle;
-                this->kalman_bias += kalman_gain[1] * innovation_angle;
-
-                this->angle_covar[0][0] *= (1 - kalman_gain[0]);
-                this->angle_covar[0][1] *= (1 - kalman_gain[0]);
-                this->angle_covar[1][0] -= kalman_gain[1] * this->angle_covar[0][0];
-                this->angle_covar[1][1] -= kalman_gain[1] * this->angle_covar[0][1];
+                this->P[0][0] *= (Value{1} - this->K[0]);
+                this->P[0][1] *= (Value{1} - this->K[0]);
+                this->P[1][0] -= this->K[1] * this->P[0][0];
+                this->P[1][1] -= this->K[1] * this->P[0][1];
             }
 
-            Value kalman_angle{};
-            Value kalman_bias{};
-            Value angle_noise{};
-            Value accel_deviation{};
-            Matrix angle_covar{};
+            Value k_angle;
+            Value k_bias;
+            Value Q_angle;
+            Value Q_bias;
+            Value R;
+
+            std::array<Value, 2> K{};
+            std::array<std::array<Value, 2>, 2> P{};
         };
 
     }; // namespace Filters
+
 }; // namespace InvertedSway
 
-#endif // KALMAN_Hangle_covarangle_covar
+#endif // KALMAN_HPP
