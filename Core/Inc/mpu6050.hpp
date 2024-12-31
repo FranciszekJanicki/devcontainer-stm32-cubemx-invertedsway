@@ -3,6 +3,7 @@
 
 #include "common.hpp"
 #include "i2c_device.hpp"
+#include "mpu6050_register_map.hpp"
 #include "stm32l4xx_hal.h"
 #include "vector3d.hpp"
 #include <cstddef>

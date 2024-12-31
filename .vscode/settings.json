@@ -95,7 +95,8 @@
         "cerrno": "cpp",
         "cfloat": "cpp",
         "climits": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "i2c_device.hpp": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "editor.formatOnSave": true

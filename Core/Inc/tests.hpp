@@ -49,6 +49,6 @@ namespace Tests {
     //         }
     //     }
 
-} // namespace Tests
+}; // namespace Tests
 
 #endif // TESTS_HPP
