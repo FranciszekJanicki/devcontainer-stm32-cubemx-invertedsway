@@ -26,7 +26,7 @@ namespace InvertedSway {
 
     Direction Sway::angle_to_direction(Value const angle) noexcept
     {
-        if (angle > 0.0f) {
+        if (angle < 0.0f) {
             return Direction::FORWARD;
         } else {
             return Direction::BACKWARD;
@@ -55,8 +55,7 @@ namespace InvertedSway {
 
     Value Sway::get_measured_angle(Value const dt) noexcept
     {
-        return this->mpu_dmp_.get_pitch();
-        // return this->kalman_(this->gx_, this->roll_, dt);
+        return this->mpu_dmp_.get_pitch() + 0.07f;
     }
 
     Value Sway::get_error_angle(Value const input_angle, Value const dt) noexcept

@@ -15,12 +15,12 @@
 
 static bool sampling_timer_elapsed{false};
 
-// void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-// {
-//     if (GPIO_Pin == MPU6050_INTR_Pin) {
-//         sampling_timer_elapsed = true;
-//     }
-// }
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == MPU6050_INTR_Pin) {
+        sampling_timer_elapsed = true;
+    }
+}
 
 void balance_sway()
 {
@@ -59,7 +59,7 @@ void balance_sway()
 
     auto kalman{make_kalman(0.0F, 0.0F, 0.1F, 0.3F, 0.03F)};
 
-    auto regulator{make_regulator<Algorithm::PID>(0.1F, 0.0F, 0.0F, 0.0F)};
+    auto regulator{make_regulator<Algorithm::PID>(120.F, 450.0F, 6.2F, 6.0F)};
 
     Encoder encoder{&htim3};
 
