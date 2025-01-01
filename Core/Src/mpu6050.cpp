@@ -3,14 +3,13 @@
 #include "i2c.h"
 #include "i2c_device.hpp"
 #include "main.h"
-#include "mpu_reg_map_enum.hpp"
+#include "mpu_register_map.hpp"
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <utility>
 
 using namespace InvertedSway;
-using namespace Enum;
 using Scaled = MPU6050::Scaled;
 using GyroScaled = MPU6050::GyroScaled;
 using AccelScaled = MPU6050::AccelScaled;
@@ -21,10 +20,10 @@ using GyroRaw = MPU6050::GyroRaw;
 using AccelRaw = MPU6050::AccelRaw;
 using DevAddress = MPU6050::DevAddress;
 using Clock = MPU6050::Clock;
-using IntrLatch = MPU6050::IntrLatch;
-using IntrDrive = MPU6050::IntrDrive;
-using IntrMode = MPU6050::IntrMode;
-using IntrClear = MPU6050::IntrClear;
+using IntLatch = MPU6050::IntLatch;
+using IntDrive = MPU6050::IntDrive;
+using IntMode = MPU6050::IntMode;
+using IntClear = MPU6050::IntClear;
 
 namespace InvertedSway {
 
@@ -261,16 +260,16 @@ namespace InvertedSway {
 
     void MPU6050::initialize_f_sync_interrupt() const noexcept
     {
-        this->set_f_sync_interrupt_mode(IntrMode::ACTIVEHIGH);
+        this->set_f_sync_interrupt_mode(IntMode::ACTIVEHIGH);
         this->set_f_sync_interrupt_enabled(true);
     }
 
     void MPU6050::initialize_data_ready_interrupt() const noexcept
     {
-        this->set_interrupt_latch(IntrLatch::PULSE50US);
-        this->set_interrupt_latch_clear(IntrClear::STATUSREAD);
-        this->set_interrupt_drive(IntrDrive::PUSHPULL);
-        this->set_interrupt_mode(IntrMode::ACTIVEHIGH);
+        this->set_interrupt_latch(IntLatch::PULSE50US);
+        this->set_interrupt_latch_clear(IntClear::STATUSREAD);
+        this->set_interrupt_drive(IntDrive::PUSHPULL);
+        this->set_interrupt_mode(IntMode::ACTIVEHIGH);
         // this->set_int_data_ready_enabled(true);
     }
 
@@ -664,35 +663,35 @@ namespace InvertedSway {
         this->i2c_device_.write_byte(std::to_underlying(RA::INT_PIN_CFG), interrupt);
     }
 
-    void MPU6050::set_interrupt_mode(IntrMode const mode) const noexcept
+    void MPU6050::set_interrupt_mode(IntMode const mode) const noexcept
     {
         this->i2c_device_.write_bit(std::to_underlying(RA::INT_PIN_CFG),
                                     std::to_underlying(mode),
                                     std::to_underlying(INT_PIN_CFG::INT_LEVEL_BIT));
     }
 
-    void MPU6050::set_interrupt_drive(IntrDrive const drive) const noexcept
+    void MPU6050::set_interrupt_drive(IntDrive const drive) const noexcept
     {
         this->i2c_device_.write_bit(std::to_underlying(RA::INT_PIN_CFG),
                                     std::to_underlying(drive),
                                     std::to_underlying(INT_PIN_CFG::INT_OPEN_BIT));
     }
 
-    void MPU6050::set_interrupt_latch(IntrLatch const latch) const noexcept
+    void MPU6050::set_interrupt_latch(IntLatch const latch) const noexcept
     {
         this->i2c_device_.write_bit(std::to_underlying(RA::INT_PIN_CFG),
                                     std::to_underlying(latch),
                                     std::to_underlying(INT_PIN_CFG::INT_RD_CLEAR_BIT));
     }
 
-    void MPU6050::set_interrupt_latch_clear(IntrClear const clear) const noexcept
+    void MPU6050::set_interrupt_latch_clear(IntClear const clear) const noexcept
     {
         this->i2c_device_.write_bit(std::to_underlying(RA::INT_PIN_CFG),
                                     std::to_underlying(clear),
                                     std::to_underlying(INT_PIN_CFG::INT_RD_CLEAR_BIT));
     }
 
-    void MPU6050::set_f_sync_interrupt_mode(IntrMode const mode) const noexcept
+    void MPU6050::set_f_sync_interrupt_mode(IntMode const mode) const noexcept
     {
         this->i2c_device_.write_bit(std::to_underlying(RA::INT_PIN_CFG),
                                     std::to_underlying(mode),
@@ -1176,4 +1175,5 @@ namespace InvertedSway {
     {
         return this->i2c_device_.read_byte(std::to_underlying(RA::WHO_AM_I));
     }
+
 }; // namespace InvertedSway

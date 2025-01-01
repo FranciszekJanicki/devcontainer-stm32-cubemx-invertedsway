@@ -24,12 +24,12 @@ using namespace Regulators;
 
 static bool sampling_timer_elapsed{false};
 
-// void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-// {
-//     if (GPIO_Pin == MPU6050_INTR_Pin) {
-//         sampling_timer_elapsed = true;
-//     }
-// }
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == MPU6050_INTR_Pin) {
+        sampling_timer_elapsed = true;
+    }
+}
 
 namespace Tests {
 
@@ -133,10 +133,10 @@ namespace Tests {
 
         MPU6050 mpu6050{i2c_device,
                         200U,
-                        MPU6050::GyroRange::GYRO_FS_250,
+                        MPU6050::GyroRange::GYRO_FS_2000,
                         MPU6050::AccelRange::ACCEL_FS_2,
-                        MPU6050::DLPF::BW_256,
-                        MPU6050::DHPF::DHPF_5};
+                        MPU6050::DLPF::BW_42,
+                        MPU6050::DHPF::DHPF_RESET};
 
         while (true) {
             if (sampling_timer_elapsed) {

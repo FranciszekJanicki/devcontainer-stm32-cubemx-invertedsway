@@ -3,6 +3,7 @@
 
 #include "common.hpp"
 #include "i2c_device.hpp"
+#include "mpu_register_map.hpp"
 #include "stm32l4xx_hal.h"
 #include "vector3d.hpp"
 #include <cstddef>
@@ -78,22 +79,22 @@ namespace InvertedSway {
             DIV_258 = 0x8,
         };
 
-        enum struct IntrMode : std::uint8_t {
+        enum struct IntMode : std::uint8_t {
             ACTIVEHIGH = 0x00,
             ACTIVELOW = 0x01,
         };
 
-        enum struct IntrDrive : std::uint8_t {
+        enum struct IntDrive : std::uint8_t {
             PUSHPULL = 0x00,
             OPENDRAIN = 0x01,
         };
 
-        enum struct IntrLatch : std::uint8_t {
+        enum struct IntLatch : std::uint8_t {
             PULSE50US = 0x00,
             WAITCLEAR = 0x01,
         };
 
-        enum struct IntrClear : std::uint8_t {
+        enum struct IntClear : std::uint8_t {
             STATUSREAD = 0x00,
             ANYREAD = 0x01,
         };
@@ -268,11 +269,11 @@ namespace InvertedSway {
         bool get_slave0_nack() const noexcept;
 
         void set_interrupt(std::uint8_t const interrupt) const noexcept;
-        void set_interrupt_mode(IntrMode const mode) const noexcept;
-        void set_interrupt_drive(IntrDrive const drive) const noexcept;
-        void set_interrupt_latch(IntrLatch const latch) const noexcept;
-        void set_interrupt_latch_clear(IntrClear const clear) const noexcept;
-        void set_f_sync_interrupt_mode(IntrMode const mode) const noexcept;
+        void set_interrupt_mode(IntMode const mode) const noexcept;
+        void set_interrupt_drive(IntDrive const drive) const noexcept;
+        void set_interrupt_latch(IntLatch const latch) const noexcept;
+        void set_interrupt_latch_clear(IntClear const clear) const noexcept;
+        void set_f_sync_interrupt_mode(IntMode const mode) const noexcept;
         void set_f_sync_interrupt_enabled(bool const enabled) const noexcept;
         void set_i2c_bypass_enabled(bool const enabled) const noexcept;
         void set_clock_output_enabled(bool const enabled) const noexcept;

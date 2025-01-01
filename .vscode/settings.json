@@ -97,7 +97,9 @@
         "climits": "cpp",
         "iostream": "cpp",
         "i2c_device.hpp": "c",
-        "mpu6050_registers.hpp": "c"
+        "mpu6050_registers.hpp": "c",
+        "mpu_reg_map_enum.hpp": "c",
+        "mpu_register_map.hpp": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "editor.formatOnSave": true

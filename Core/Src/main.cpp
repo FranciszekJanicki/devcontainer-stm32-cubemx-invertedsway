@@ -7,7 +7,7 @@ int main()
     HAL_Init();
     SystemClock_Config();
 
-    balance_sway();
+    Tests::MPU_DMP_TEST();
 
     return 0;
 }

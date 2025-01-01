@@ -1,9 +1,8 @@
 #include "mpu_dmp.hpp"
-#include "dmp_memory.hpp"
 #include "mpu6050.hpp"
-#include "mpu_reg_map_enum.hpp"
+#include "mpu_dmp_memory.hpp"
+#include "mpu_register_map.hpp"
 
-using namespace Enum;
 using namespace InvertedSway;
 using Scaled = MPU_DMP::Scaled;
 using Raw = MPU_DMP::Raw;

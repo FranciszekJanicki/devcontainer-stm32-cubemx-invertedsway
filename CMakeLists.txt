@@ -51,6 +51,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Src/mpu_dmp.cpp"
     "Core/Inc/i2c_device.hpp"
     "Core/Inc/utility.hpp"
+    "Core/Src/mpu6050_bitfields.cpp"
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
