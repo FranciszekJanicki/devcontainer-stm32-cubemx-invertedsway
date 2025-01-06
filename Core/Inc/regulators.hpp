@@ -58,11 +58,25 @@ namespace InvertedSway {
             : public Base<Value>
 #endif
         {
-            Value operator()(Value const error, [[maybe_unused]] Value const dt) noexcept
+            Value operator()(Value const position, Value const dt) noexcept
+            {
+                return 0;
+            }
+            Value operator()(Value const position, Value const tilt, Value const dt) noexcept
             {
                 // implement lqr algorithm here
-                return error;
+                Value dot_position = (position - std::exchange(this->previous_position, position)) * dt;
+                Value dot_tilt = (tilt - std::exchange(this->previous_tilt, tilt)) * dt;
+                return k1 * position + k2 * dot_position + k3 * tilt + k4 * previous_tilt;
             }
+
+            Value k1{};
+            Value k2{};
+            Value k3{};
+            Value k4{};
+
+            Value previous_position{0};
+            Value previous_tilt{0};
         };
 
         template <Linalg::Arithmetic Value>

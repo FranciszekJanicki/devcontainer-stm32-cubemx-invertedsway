@@ -33,7 +33,7 @@ namespace InvertedSway {
 
         ~Sway() noexcept;
 
-        void operator()(Value const input_angle, Value const dt) noexcept;
+        void operator()(Value const position, Value const tilt, Value const dt) noexcept;
 
     private:
         static Value angle_to_voltage(Value const angle) noexcept;
@@ -48,7 +48,7 @@ namespace InvertedSway {
         static constexpr Value MAX_CONTROL_SIGNAL_V{Motor::MAX_VOLTAGE_V};
 
         Value get_measured_angle(Value const dt) noexcept;
-        Value get_control_angle(Value const error_angle, Value const dt) noexcept;
+        Value get_control_angle(Value const position, Value const tilt, Value const dt) noexcept;
         Value get_error_angle(Value const input_angle, Value const dt) noexcept;
 
         void set_angle(Value const control_angle) noexcept;

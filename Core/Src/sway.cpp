@@ -48,9 +48,9 @@ namespace InvertedSway {
         this->deinitialize();
     }
 
-    void Sway::operator()(Value const input_angle, Value const dt) noexcept
+    void Sway::operator()(Value const position, Value const tilt, Value const dt) noexcept
     {
-        this->set_angle(this->get_control_angle(this->get_error_angle(input_angle, dt), dt));
+        this->set_angle(this->get_control_angle(position, tilt, dt));
     }
 
     Value Sway::get_measured_angle(Value const dt) noexcept
@@ -63,21 +63,13 @@ namespace InvertedSway {
         return input_angle - this->get_measured_angle(dt);
     }
 
-    Value Sway::get_control_angle(Value const error_angle, Value const dt) noexcept
+    Value Sway::get_control_angle(Value const position, Value const tilt, Value const dt) noexcept
     {
-#if defined(REGULATOR_PTR)
-        if (this->regulator_ != nullptr) {
-            return std::invoke(*this->regulator_, error_angle, dt);
-        }
-#elif defined(REGULATOR_VARIANT)
+#if defined(REGULATOR_VARIANT)
         if (!this->regulator_.valueless_by_exception()) {
-            return std::visit([error_angle, dt]<typename Regulator>(
-                                  Regulator&& regulator) { return std::invoke(regulator, error_angle, dt); },
+            return std::visit([position, tilt, dt]<typename Regulator>(
+                                  Regulator&& regulator) { return std::invoke(regulator, position, tilt, dt); },
                               this->regulator_);
-        }
-#elif defined(REGULATOR_LAMBDA)
-        if (this->regulator_) {
-            return std::invoke(this->regulator_, error_angle, dt);
         }
 #endif
         std::unreachable();

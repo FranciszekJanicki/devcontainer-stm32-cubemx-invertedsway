@@ -59,7 +59,7 @@ void balance_sway()
 
     auto kalman{make_kalman(0.0F, 0.0F, 0.1F, 0.3F, 0.03F)};
 
-    auto regulator{make_regulator<Algorithm::PID>(120.F, 450.0F, 6.2F, 6.0F)};
+    auto regulator{make_regulator<Algorithm::LQR>(120.F, 450.0F, 6.2F, 6.0F)};
 
     Encoder encoder{&htim3};
 
@@ -67,7 +67,7 @@ void balance_sway()
 
     while (true) {
         if (sampling_timer_elapsed) {
-            sway(balance_angle, sampling_time);
+            sway(encoder.get_angle().value(), balance_angle, sampling_time);
             sampling_timer_elapsed = false;
         }
     }
