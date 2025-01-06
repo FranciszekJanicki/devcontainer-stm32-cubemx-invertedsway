@@ -21,7 +21,7 @@ namespace InvertedSway {
     Value Sway::angle_to_voltage(Value const angle) noexcept
     {
         // return SWAY_MASS_KG * EARTH_ACCELERATION * MOTOR_RESISTANCE * std::sin(angle) / MOTOR_VELOCITY_CONSTANT;
-        return angle;
+        return angle * 30;
     }
 
     Direction Sway::angle_to_direction(Value const angle) noexcept
@@ -50,12 +50,12 @@ namespace InvertedSway {
 
     void Sway::operator()(Value const position, Value const tilt, Value const dt) noexcept
     {
-        this->set_angle(this->get_control_angle(position, tilt, dt));
+        this->set_angle(this->get_control_angle(-position, -get_measured_angle(dt), dt));
     }
 
     Value Sway::get_measured_angle(Value const dt) noexcept
     {
-        return this->mpu_dmp_.get_pitch() + 0.07f;
+        return this->mpu_dmp_.get_pitch() + 0.03f;
     }
 
     Value Sway::get_error_angle(Value const input_angle, Value const dt) noexcept
@@ -65,6 +65,7 @@ namespace InvertedSway {
 
     Value Sway::get_control_angle(Value const position, Value const tilt, Value const dt) noexcept
     {
+        // printf("controller: %f, %f\n\r", position, tilt);
 #if defined(REGULATOR_VARIANT)
         if (!this->regulator_.valueless_by_exception()) {
             return std::visit([position, tilt, dt]<typename Regulator>(
@@ -89,6 +90,7 @@ namespace InvertedSway {
 
     void Sway::set_voltage(Value const control_angle) const noexcept
     {
+        printf("u(t): %f\n\r", control_angle);
         this->l298n_.set_compare_voltage(L298N::Channel::CHANNEL1, angle_to_voltage(std::abs(control_angle)));
     }
 
