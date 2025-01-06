@@ -59,7 +59,7 @@ void balance_sway()
 
     auto kalman{make_kalman(0.0F, 0.0F, 0.1F, 0.3F, 0.03F)};
 
-    auto regulator{make_regulator<Algorithm::LQR>(120.F, 450.0F, 6.2F, 6.0F)};
+    auto regulator{make_regulator<Algorithm::LQR>(-0.1F, -0.05411494F, 2.48377699F, 0.26213147F)};
 
     Encoder encoder{&htim3};
 
