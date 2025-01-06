@@ -68,7 +68,7 @@ namespace InvertedSway {
 #if defined(REGULATOR_VARIANT)
         if (!this->regulator_.valueless_by_exception()) {
             return std::visit([position, tilt, dt]<typename Regulator>(
-                                  Regulator&& regulator) { return std::invoke(regulator, position, tilt, dt); },
+                                  Regulator& regulator) { return std::invoke(regulator, position, tilt, dt); },
                               this->regulator_);
         }
 #endif

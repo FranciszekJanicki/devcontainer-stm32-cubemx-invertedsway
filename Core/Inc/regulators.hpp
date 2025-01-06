@@ -43,6 +43,11 @@ namespace InvertedSway {
                        this->ki * this->sum;
             }
 
+            Value operator()(Value const position, Value const tilt, Value const dt) noexcept
+            {
+                return position;
+            }
+
             Value kp{};
             Value ki{};
             Value kd{};
@@ -62,6 +67,7 @@ namespace InvertedSway {
             {
                 return 0;
             }
+
             Value operator()(Value const position, Value const tilt, Value const dt) noexcept
             {
                 // implement lqr algorithm here
@@ -90,6 +96,11 @@ namespace InvertedSway {
                 // implement adrc algorithm here
                 return error;
             }
+
+            Value operator()(Value const position, Value const tilt, Value const dt) noexcept
+            {
+                return position;
+            }
         };
 
         template <Linalg::Arithmetic Value>
@@ -106,6 +117,13 @@ namespace InvertedSway {
             Value operator()(Value const error, [[maybe_unused]] Value const dt) noexcept
             {
                 return error;
+            }
+
+            Value operator()(Value const position,
+                             [[maybe_unused]] Value const tilt,
+                             [[maybe_unused]] Value const dt) noexcept
+            {
+                return position;
             }
 
             State operator()(Value const error) noexcept
@@ -152,6 +170,13 @@ namespace InvertedSway {
             Value operator()(Value const error, [[maybe_unused]] Value const dt) noexcept
             {
                 return error;
+            }
+
+            Value operator()(Value const position,
+                             [[maybe_unused]] Value const tilt,
+                             [[maybe_unused]] Value const dt) noexcept
+            {
+                return position;
             }
 
             State operator()(Value const error) noexcept
