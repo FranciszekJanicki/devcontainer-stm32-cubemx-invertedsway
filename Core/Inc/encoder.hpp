@@ -20,7 +20,7 @@ namespace InvertedSway {
             DEINIT,
         };
 
-        using Count = std::uint32_t;
+        using Count = std::int32_t;
         using Angle = std::float_t;
         using Speed = std::float_t;
         using ExpectedAngle = std::expected<Angle, Error>;

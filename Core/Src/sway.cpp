@@ -55,7 +55,7 @@ namespace InvertedSway {
 
     Value Sway::get_measured_angle(Value const dt) noexcept
     {
-        return this->mpu_dmp_.get_pitch() + 0.07f;
+        return this->mpu_dmp_.get_pitch() + 0.05f;
     }
 
     Value Sway::get_error_angle(Value const input_angle, Value const dt) noexcept

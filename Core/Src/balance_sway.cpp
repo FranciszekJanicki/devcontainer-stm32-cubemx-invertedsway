@@ -30,7 +30,7 @@ void balance_sway()
 
     auto const sampling_rate_hz{200U};
     auto const sampling_time{1.0f / static_cast<float>(sampling_rate_hz)};
-    auto const balance_angle{0.0F};
+    auto balance_angle{0.0F};
 
     MX_GPIO_Init();
     MX_USART2_UART_Init();
@@ -59,14 +59,18 @@ void balance_sway()
 
     auto kalman{make_kalman(0.0F, 0.0F, 0.1F, 0.3F, 0.03F)};
 
-    auto regulator{make_regulator<Algorithm::PID>(120.F, 450.0F, 6.2F, 6.0F)};
+    auto regulator{make_regulator<Algorithm::PID>(120.F, 500.0F, 6.2F, 6.0F)};
 
     Encoder encoder{&htim3};
 
     Sway sway{std::move(mpu_dmp), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
-
+    auto prev_val = 0.f;
     while (true) {
         if (sampling_timer_elapsed) {
+            // auto val = encoder.get_angle().value();
+            // auto dot_val = (val - prev_val) * sampling_time;
+            // prev_val = val;
+            // balance_angle = 0.005 * val + dot_val;
             sway(balance_angle, sampling_time);
             sampling_timer_elapsed = false;
         }

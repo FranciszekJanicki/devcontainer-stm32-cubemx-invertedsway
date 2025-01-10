@@ -13,8 +13,7 @@ namespace InvertedSway {
 
     Angle Encoder::count_to_angle(Count const count) noexcept
     {
-        return static_cast<Angle>(std::clamp(count, Count{0}, COUNTS_PER_REVOLUTION)) * 360.0f /
-               static_cast<Angle>(COUNTS_PER_REVOLUTION);
+        return static_cast<Angle>(count) * 3.1416 / static_cast<Angle>(180);
     }
 
     Angle Encoder::get_angle_difference(Count const count, Count const last_count) noexcept
@@ -69,7 +68,7 @@ namespace InvertedSway {
         // this->last_count_ = this->count_;
 
         // return ExpectedAngle{count_to_angle(this->count_)};
-        return ExpectedAngle{count_to_angle(static_cast<Count>(__HAL_TIM_GetCounter(this->timer_)))};
+        return ExpectedAngle{count_to_angle(static_cast<Count>((int16_t)__HAL_TIM_GetCounter(this->timer_)))};
     }
 
     ExpectedSpeed Encoder::get_angular_speed(float const dt) noexcept
