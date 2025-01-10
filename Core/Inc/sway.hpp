@@ -18,8 +18,7 @@ namespace InvertedSway {
         using Value = std::float_t;
         using Direction = L298N::Direction;
         using Kalman = Filters::Kalman<Value>;
-
-        using Regulator = Regulators::Regulator<Value>;
+        using Regulator = Regulators::PID<Value>;
 
         Sway() = delete;
 

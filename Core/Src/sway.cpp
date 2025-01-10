@@ -55,7 +55,7 @@ namespace InvertedSway {
 
     Value Sway::get_measured_angle(Value const dt) noexcept
     {
-        return this->mpu_dmp_.get_pitch() + 0.05f;
+        return this->mpu_dmp_.get_pitch();
     }
 
     Value Sway::get_error_angle(Value const input_angle, Value const dt) noexcept
@@ -65,22 +65,7 @@ namespace InvertedSway {
 
     Value Sway::get_control_angle(Value const error_angle, Value const dt) noexcept
     {
-#if defined(REGULATOR_PTR)
-        if (this->regulator_ != nullptr) {
-            return std::invoke(*this->regulator_, error_angle, dt);
-        }
-#elif defined(REGULATOR_VARIANT)
-        if (!this->regulator_.valueless_by_exception()) {
-            return std::visit([error_angle, dt]<typename Regulator>(
-                                  Regulator&& regulator) { return std::invoke(regulator, error_angle, dt); },
-                              this->regulator_);
-        }
-#elif defined(REGULATOR_LAMBDA)
-        if (this->regulator_) {
-            return std::invoke(this->regulator_, error_angle, dt);
-        }
-#endif
-        std::unreachable();
+        return std::invoke(this->regulator_, error_angle, dt);
     }
 
     void Sway::set_angle(Value const control_angle) noexcept
@@ -121,5 +106,4 @@ namespace InvertedSway {
         this->l298n_.set_fast_stop(L298N::Channel::CHANNEL1);
         this->l298n_.set_compare_min(L298N::Channel::CHANNEL1);
     }
-
 }; // namespace InvertedSway

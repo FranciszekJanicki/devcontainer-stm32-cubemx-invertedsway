@@ -87,8 +87,8 @@ namespace Utility {
     {
         Words<2 * NUM_DWORDS> words{};
         for (std::size_t i = 0; i < words.size(); ++i) {
-            words[2 * i] = static_cast<Word>(words[i] >> 16);
-            words[2 * i + 1] = static_cast<Word>(words[i]);
+            words[2 * i] = static_cast<Word>(dwords[i] >> 16);
+            words[2 * i + 1] = static_cast<Word>(dwords[i]);
         }
         return words;
     }

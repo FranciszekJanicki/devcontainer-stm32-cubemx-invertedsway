@@ -11,14 +11,14 @@ namespace InvertedSway {
 
         template <Linalg::Arithmetic Value>
         struct Kalman {
-            constexpr Value operator()(Value const gyro, Value const accel, Value const dt) noexcept
+            [[nodiscard]] inline Value operator()(Value const gyro, Value const accel, Value const dt) noexcept
             {
                 this->predict(gyro, dt);
                 this->update(accel);
                 return this->k_angle;
             }
 
-            constexpr void predict(Value const gyro, Value const dt) noexcept
+            inline void predict(Value const gyro, Value const dt) noexcept
             {
                 this->k_angle += dt * (gyro - this->k_bias);
 
@@ -32,7 +32,7 @@ namespace InvertedSway {
                 this->K[1] = this->P[1][0] * S;
             }
 
-            constexpr void update(Value const accel) noexcept
+            inline void update(Value const accel) noexcept
             {
                 Value const dy{accel - this->k_angle};
                 this->k_angle += K[0] * dy;

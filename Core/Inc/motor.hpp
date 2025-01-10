@@ -33,8 +33,8 @@ namespace InvertedSway {
 
         static const char* error_to_string(const Error error) noexcept;
 
-        static constexpr Voltage MAX_VOLTAGE_V{6};
-        static constexpr Voltage MIN_VOLTAGE_V{0};
+        static constexpr Voltage MAX_VOLTAGE_V{6.0F};
+        static constexpr Voltage MIN_VOLTAGE_V{0.0F};
 
         static constexpr Raw COUNTER_PERIOD{39999};
         static constexpr Raw MAX_RAW{COUNTER_PERIOD};
