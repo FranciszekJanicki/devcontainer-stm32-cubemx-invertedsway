@@ -48,7 +48,6 @@ namespace InvertedSway {
         static constexpr auto DMP_MEMORY_CHUNK_SIZE{16UL};
         static constexpr auto FIFO_DEFAULT_TIMEOUT{11000};
         static constexpr auto FIFO_MAX_COUNT{1024UL};
-        static constexpr auto PI{MPU6050::PI};
 
         QuaternionRaw get_quaternion_raw() const noexcept;
         QuaternionScaled get_quaternion_scaled() const noexcept;

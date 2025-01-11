@@ -63,30 +63,30 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
 )
 
-target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC
+target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
     -std=c++23
-    # -fconcepts
-    # -Wall
-    # -Wextra
-    # -Wconversion
-    # -Wshadow
-    # -Wpedantic
-    # -Wnarrowing
-    # -Wimplicit
-    # -Waddress
-    # -Wnon-virtual-dtor
-    # -pedantic
-    # -Wpessimizing-move
-    # -Wsign-conversion
-    # -Wmisleading-indentation
-    # -Wduplicated-cond
-    # -Wduplicated-branches
-    # -Wlogical-op
-    # -Wregister
-    # -Wnull-dereference
-    # -Wuseless-cast
-    # -Wdouble-promotion
-    # -Wformat=2
-    # -Wimplicit-fallthrough
-    # -Wcast-align
+    -fconcepts
+    -Wall
+    -Wextra
+    -Wconversion
+    -Wshadow
+    -Wpedantic
+    -Wnarrowing
+    -Wimplicit
+    -Waddress
+    -Wnon-virtual-dtor
+    -pedantic
+    -Wpessimizing-move
+    -Wsign-conversion
+    -Wmisleading-indentation
+    -Wduplicated-cond
+    -Wduplicated-branches
+    -Wlogical-op
+    -Wregister
+    -Wnull-dereference
+    -Wuseless-cast
+    -Wdouble-promotion
+    -Wformat=2
+    -Wimplicit-fallthrough
+    -Wcast-align
 )

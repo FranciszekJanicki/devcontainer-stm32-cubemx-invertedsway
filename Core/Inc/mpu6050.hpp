@@ -190,10 +190,9 @@ namespace InvertedSway {
         static std::uint8_t slave_num_to_control(std::uint8_t const num) noexcept;
         static std::uint8_t slave_num_to_output_byte(std::uint8_t const num) noexcept;
 
-        static constexpr Scaled PI{3.1415f};
-        static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_EN_HZ{1000};
-        static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_DIS_HZ{8000};
-        static constexpr std::uint32_t ACCEL_OUTPUT_RATE_HZ{1000};
+        static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_EN_HZ{1000U};
+        static constexpr std::uint32_t GYRO_OUTPUT_RATE_DLPF_DIS_HZ{8000U};
+        static constexpr std::uint32_t ACCEL_OUTPUT_RATE_HZ{1000U};
 
         bool is_valid_device_id() const noexcept;
 

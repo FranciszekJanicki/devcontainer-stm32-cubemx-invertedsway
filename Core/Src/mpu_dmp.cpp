@@ -39,7 +39,7 @@ namespace InvertedSway {
     {
         auto const gravity{quaternion_to_gravity(quaternion)};
         auto const pitch{std::atan2(gravity.x, sqrt(gravity.y * gravity.y + gravity.z * gravity.z))};
-        return (gravity.z < 0) ? (pitch > 0 ? PI - pitch : -PI - pitch) : pitch;
+        return (gravity.z < 0) ? (pitch > 0 ? 3.1416F - pitch : -3.1416F - pitch) : pitch;
     }
 
     Scaled MPU_DMP::quaternion_to_yaw(QuaternionScaled const& quaternion) noexcept

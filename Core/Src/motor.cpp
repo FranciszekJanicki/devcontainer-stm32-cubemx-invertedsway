@@ -27,39 +27,43 @@ namespace InvertedSway {
 
     void Motor::set_voltage(Voltage const voltage) const noexcept
     {
-        return this->pwm_device_.set_compare_voltage(voltage);
+        if (this->initialized_) {
+            this->pwm_device_.set_compare_voltage(voltage);
+        }
     }
 
     void Motor::set_voltage_max() const noexcept
     {
-        this->pwm_device_.set_compare_max();
+        if (this->initialized_) {
+            this->pwm_device_.set_compare_max();
+        }
     }
 
     void Motor::set_voltage_min() const noexcept
     {
-        this->pwm_device_.set_compare_min();
+        if (this->initialized_) {
+            this->pwm_device_.set_compare_min();
+        }
     }
 
     void Motor::set_direction(Direction const direction) const noexcept
     {
-        if (!this->initialized_) {
-            return;
-        }
-
-        if (direction == Direction::SOFT_STOP) {
-            HAL_GPIO_WritePin(this->gpio_, this->pin_in1_, GPIO_PinState::GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(this->gpio_, this->pin_in2_, GPIO_PinState::GPIO_PIN_RESET);
-            this->set_voltage_max();
-        } else if (direction == Direction::FAST_STOP) {
-            HAL_GPIO_WritePin(this->gpio_, this->pin_in1_, GPIO_PinState::GPIO_PIN_SET);
-            HAL_GPIO_WritePin(this->gpio_, this->pin_in2_, GPIO_PinState::GPIO_PIN_SET);
-            this->set_voltage_min();
-        } else if (direction == Direction::FORWARD) {
-            HAL_GPIO_WritePin(this->gpio_, this->pin_in1_, GPIO_PinState::GPIO_PIN_SET);
-            HAL_GPIO_WritePin(this->gpio_, this->pin_in2_, GPIO_PinState::GPIO_PIN_RESET);
-        } else if (direction == Direction::BACKWARD) {
-            HAL_GPIO_WritePin(this->gpio_, this->pin_in1_, GPIO_PinState::GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(this->gpio_, this->pin_in2_, GPIO_PinState::GPIO_PIN_SET);
+        if (this->initialized_) {
+            if (direction == Direction::SOFT_STOP) {
+                HAL_GPIO_WritePin(this->gpio_, this->pin_in1_, GPIO_PinState::GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(this->gpio_, this->pin_in2_, GPIO_PinState::GPIO_PIN_RESET);
+                this->set_voltage_max();
+            } else if (direction == Direction::FAST_STOP) {
+                HAL_GPIO_WritePin(this->gpio_, this->pin_in1_, GPIO_PinState::GPIO_PIN_SET);
+                HAL_GPIO_WritePin(this->gpio_, this->pin_in2_, GPIO_PinState::GPIO_PIN_SET);
+                this->set_voltage_min();
+            } else if (direction == Direction::FORWARD) {
+                HAL_GPIO_WritePin(this->gpio_, this->pin_in1_, GPIO_PinState::GPIO_PIN_SET);
+                HAL_GPIO_WritePin(this->gpio_, this->pin_in2_, GPIO_PinState::GPIO_PIN_RESET);
+            } else if (direction == Direction::BACKWARD) {
+                HAL_GPIO_WritePin(this->gpio_, this->pin_in1_, GPIO_PinState::GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(this->gpio_, this->pin_in2_, GPIO_PinState::GPIO_PIN_SET);
+            }
         }
     }
 

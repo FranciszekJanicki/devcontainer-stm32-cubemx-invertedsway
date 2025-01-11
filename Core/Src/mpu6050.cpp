@@ -47,15 +47,15 @@ namespace InvertedSway {
     {
         switch (accel_range) {
             case AccelRange::ACCEL_FS_2:
-                return 16384.0f;
+                return 16384.0F;
             case AccelRange::ACCEL_FS_4:
-                return 8192.0f;
+                return 8192.0F;
             case AccelRange::ACCEL_FS_8:
-                return 4096.0f;
+                return 4096.0F;
             case AccelRange::ACCEL_FS_16:
-                return 2048.0f;
+                return 2048.0F;
             default:
-                return 0.0f;
+                return 0.0F;
         }
     }
 
@@ -75,7 +75,7 @@ namespace InvertedSway {
 
     Scaled MPU6050::accel_to_roll(AccelScaled const& accel_scaled) noexcept
     {
-        return std::atan2(accel_scaled.y, accel_scaled.z) * 180.0F / PI;
+        return std::atan2(accel_scaled.y, accel_scaled.z) * 180.0F / 3.1416F;
     }
 
     Scaled MPU6050::accel_to_pitch(AccelScaled const& accel_scaled) noexcept
@@ -83,7 +83,7 @@ namespace InvertedSway {
         return -(std::atan2(accel_scaled.x,
                             std::sqrt(accel_scaled.y * accel_scaled.y + accel_scaled.z * accel_scaled.z)) *
                  180.0F) /
-               PI;
+               3.1416F;
     }
 
     Scaled MPU6050::accel_to_yaw(AccelScaled const& accel_scaled) noexcept
@@ -111,105 +111,66 @@ namespace InvertedSway {
 
     Scaled MPU6050::get_temperature_celsius() const noexcept
     {
-        if (!this->initialized_) {
-            std::unreachable();
-        }
-        return static_cast<Scaled>(this->get_temperature_raw()) / 340.0f + 36.53f;
+        return static_cast<Scaled>(this->get_temperature_raw()) / 340.0F + 36.53F;
     }
 
     Scaled MPU6050::get_acceleration_x_scaled() const noexcept
     {
-        if (!this->initialized_) {
-            std::unreachable();
-        }
         return static_cast<Scaled>(this->get_acceleration_x_raw()) / this->accel_scale_;
     }
 
     Scaled MPU6050::get_acceleration_y_scaled() const noexcept
     {
-        if (!this->initialized_) {
-            std::unreachable();
-        }
         return static_cast<Scaled>(this->get_acceleration_y_raw()) / this->accel_scale_;
     }
 
     Scaled MPU6050::get_acceleration_z_scaled() const noexcept
     {
-        if (!this->initialized_) {
-            std::unreachable();
-        }
         return static_cast<Scaled>(this->get_acceleration_z_raw()) / this->accel_scale_;
     }
 
     AccelScaled MPU6050::get_acceleration_scaled() const noexcept
     {
-        if (!this->initialized_) {
-            std::unreachable();
-        }
         return static_cast<AccelScaled>(this->get_acceleration_raw()) / this->accel_scale_;
     }
 
     Scaled MPU6050::get_rotation_x_scaled() const noexcept
     {
-        if (!this->initialized_) {
-            std::unreachable();
-        }
         return static_cast<Scaled>(this->get_rotation_x_raw()) / this->gyro_scale_;
     }
 
     Scaled MPU6050::get_rotation_y_scaled() const noexcept
     {
-        if (!this->initialized_) {
-            std::unreachable();
-        }
         return static_cast<Scaled>(this->get_rotation_y_raw()) / this->gyro_scale_;
     }
 
     Scaled MPU6050::get_rotation_z_scaled() const noexcept
     {
-        if (!this->initialized_) {
-            std::unreachable();
-        }
         return static_cast<Scaled>(this->get_rotation_z_raw()) / this->gyro_scale_;
     }
 
     GyroScaled MPU6050::get_rotation_scaled() const noexcept
     {
-        if (!this->initialized_) {
-            std::unreachable();
-        }
         return static_cast<GyroScaled>(this->get_rotation_raw()) / this->gyro_scale_;
     }
 
     RollPitchYaw MPU6050::get_roll_pitch_yaw() const noexcept
     {
-        if (!this->initialized_) {
-            std::unreachable();
-        }
         return accel_to_roll_pitch_yaw(this->get_acceleration_scaled());
     }
 
     Scaled MPU6050::get_roll() const noexcept
     {
-        if (!this->initialized_) {
-            std::unreachable();
-        }
         return accel_to_roll(this->get_acceleration_scaled());
     }
 
     Scaled MPU6050::get_pitch() const noexcept
     {
-        if (!this->initialized_) {
-            std::unreachable();
-        }
         return accel_to_pitch(this->get_acceleration_scaled());
     }
 
     Scaled MPU6050::get_yaw() const noexcept
     {
-        if (!this->initialized_) {
-            std::unreachable();
-        }
         return accel_to_yaw(this->get_acceleration_scaled());
     }
 
@@ -225,11 +186,11 @@ namespace InvertedSway {
                              DHPF const dhpf) noexcept
     {
         if (this->is_valid_device_id()) {
-            this->device_wake_up();
-            HAL_Delay(200);
-            this->initialize_base(gyro_range, accel_range);
-            this->initialize_advanced(sampling_rate, dlpf, dhpf);
-            this->initialize_interrupt();
+            // this->device_wake_up();
+            // HAL_Delay(200);
+            // this->initialize_base(gyro_range, accel_range);
+            // this->initialize_advanced(sampling_rate, dlpf, dhpf);
+            // this->initialize_interrupt();
             this->initialized_ = true;
         }
     }
