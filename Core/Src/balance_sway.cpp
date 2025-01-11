@@ -33,9 +33,9 @@ void balance_sway()
     using Kalman = Filters::Kalman<float>;
     using Regulator = Regulators::PID<float>;
 
-    auto const sampling_rate_hz{200U};
-    auto const sampling_time{1.0F / static_cast<float>(sampling_rate_hz)};
-    auto input_angle{-0.04F};
+    constexpr auto SAMPLING_RATE{200U};
+    constexpr auto SAMPLING_TIME{1.0F / static_cast<float>(SAMPLING_RATE)};
+    constexpr auto INPUT_ANGLE{-0.04F};
 
     MX_GPIO_Init();
     MX_USART2_UART_Init();
@@ -50,10 +50,10 @@ void balance_sway()
 
     L298N l298n{std::move(motor_channels)};
 
-    I2CDevice i2c_mpu_device{.i2c_bus = &hi2c1, .device_address = std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
+    I2CDevice i2c_device{.i2c_bus = &hi2c1, .device_address = std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
-    MPU6050 mpu6050{i2c_mpu_device,
-                    sampling_rate_hz,
+    MPU6050 mpu6050{i2c_device,
+                    SAMPLING_RATE,
                     MPU6050::GyroRange::GYRO_FS_2000,
                     MPU6050::AccelRange::ACCEL_FS_2,
                     MPU6050::DLPF::BW_42,
@@ -69,14 +69,9 @@ void balance_sway()
 
     Sway sway{std::move(mpu_dmp), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
 
-    auto prev_val = 0.0F;
-    PID<float> regulator_encoder{.kp = 1.0F, .ki = 0.0F, .kd = 0.0F, .windup = 1.0F};
-
     while (true) {
         if (sampling_timer_elapsed) {
-            // auto angle_error = encoder_angle - encoder.get_angle().value();
-            // auto balance_angle = regulator_encoder(angle_error, sampling_time);
-            sway(input_angle, sampling_time);
+            sway(INPUT_ANGLE, SAMPLING_TIME);
             sampling_timer_elapsed = false;
         }
     }
