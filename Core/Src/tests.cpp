@@ -24,14 +24,14 @@ namespace {
 
     bool sampling_timer_elapsed{false};
 
-    void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-    {
-        if (GPIO_Pin == MPU6050_INTR_Pin) {
-            sampling_timer_elapsed = true;
-        }
-    }
+};
 
-} // namespace
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == MPU6050_INTR_Pin) {
+        sampling_timer_elapsed = true;
+    }
+}
 
 namespace Tests {
 
@@ -41,13 +41,12 @@ namespace Tests {
         MX_USART2_UART_Init();
         MX_TIM4_Init();
 
-        PWMDevice pwm_device{.timer = &htim4,
-                             .timer_channel = TIM_CHANNEL_1,
-                             .counter_period = 39999U,
-                             .min_voltage = 0.0F,
-                             .max_voltage = 6.0F};
+        PWMDevice pwm_device{&htim4, TIM_CHANNEL_1, 39999U, 0.0F, 6.0F};
 
-        Motor motor{pwm_device, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
+        Motor motor{.pwm_device = std::move(pwm_device),
+                    .gpio = L298N_IN1_GPIO_Port,
+                    .pin_left = L298N_IN1_Pin,
+                    .pin_right = L298N_IN3_Pin};
 
         while (true) {
             for (auto const voltage : {0.0F, 3.0F, 6.0F, 3.0F, 0.0F, -3.0F, -6.0F, -3.0F}) {
@@ -71,13 +70,12 @@ namespace Tests {
         MX_USART2_UART_Init();
         MX_TIM4_Init();
 
-        PWMDevice pwm_device{.timer = &htim4,
-                             .timer_channel = TIM_CHANNEL_1,
-                             .counter_period = 39999U,
-                             .min_voltage = 0.0F,
-                             .max_voltage = 6.0F};
+        PWMDevice pwm_device{&htim4, TIM_CHANNEL_1, 39999U, 0.0F, 6.0F};
 
-        Motor motor{pwm_device, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
+        Motor motor{.pwm_device = std::move(pwm_device),
+                    .gpio = L298N_IN1_GPIO_Port,
+                    .pin_left = L298N_IN1_Pin,
+                    .pin_right = L298N_IN3_Pin};
 
         float const voltage_start_threshold{1.0F};
 
@@ -115,13 +113,12 @@ namespace Tests {
 
         Regulator regulator{.kp = 1.0F, .ki = 0.0F, .kd = 0.0F, .windup = 0.0F};
 
-        PWMDevice pwm_device{.timer = &htim4,
-                             .timer_channel = TIM_CHANNEL_1,
-                             .counter_period = 39999U,
-                             .min_voltage = 0.0F,
-                             .max_voltage = 6.0F};
+        PWMDevice pwm_device{&htim4, TIM_CHANNEL_1, 39999U, 0.0F, 6.0F};
 
-        Motor motor{pwm_device, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
+        Motor motor{.pwm_device = std::move(pwm_device),
+                    .gpio = L298N_IN1_GPIO_Port,
+                    .pin_left = L298N_IN1_Pin,
+                    .pin_right = L298N_IN3_Pin};
 
         Encoder encoder{&htim3, 360U, 1U, 65535U};
 
@@ -145,9 +142,9 @@ namespace Tests {
         MX_USART2_UART_Init();
         MX_I2C1_Init();
 
-        I2CDevice i2c_device{.i2c_bus = &hi2c1, .device_address = std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
+        I2CDevice i2c_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
-        MPU6050 mpu6050{i2c_device,
+        MPU6050 mpu6050{std::move(i2c_device),
                         200U,
                         MPU6050::GyroRange::GYRO_FS_2000,
                         MPU6050::AccelRange::ACCEL_FS_2,
@@ -171,9 +168,9 @@ namespace Tests {
         MX_USART2_UART_Init();
         MX_I2C1_Init();
 
-        I2CDevice i2c_device{.i2c_bus = &hi2c1, .device_address = std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
+        I2CDevice i2c_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
-        MPU6050 mpu6050{i2c_device,
+        MPU6050 mpu6050{std::move(i2c_device),
                         200U,
                         MPU6050::GyroRange::GYRO_FS_2000,
                         MPU6050::AccelRange::ACCEL_FS_2,
@@ -199,9 +196,9 @@ namespace Tests {
         MX_USART2_UART_Init();
         MX_I2C1_Init();
 
-        I2CDevice i2c_device{.i2c_bus = &hi2c1, .device_address = std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
+        I2CDevice i2c_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
-        MPU6050 mpu6050{i2c_device,
+        MPU6050 mpu6050{std::move(i2c_device),
                         200U,
                         MPU6050::GyroRange::GYRO_FS_250,
                         MPU6050::AccelRange::ACCEL_FS_2,
@@ -232,13 +229,12 @@ namespace Tests {
 
         Encoder encoder{&htim3, 360U, 1U, 65535U};
 
-        PWMDevice pwm_device{.timer = &htim4,
-                             .timer_channel = TIM_CHANNEL_1,
-                             .counter_period = 39999U,
-                             .min_voltage = 0.0F,
-                             .max_voltage = 6.0F};
+        PWMDevice pwm_device{&htim4, TIM_CHANNEL_1, 39999U, 0.0F, 6.0F};
 
-        Motor motor{pwm_device, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
+        Motor motor{.pwm_device = std::move(pwm_device),
+                    .gpio = L298N_IN1_GPIO_Port,
+                    .pin_left = L298N_IN1_Pin,
+                    .pin_right = L298N_IN3_Pin};
 
         while (true) {
             float const angle = encoder.get_angle().value();

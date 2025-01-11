@@ -28,14 +28,14 @@ using IntClear = MPU6050::IntClear;
 
 namespace InvertedSway::BitFields {
 
-    MPU6050::MPU6050(I2CDevice const i2c_device,
+    MPU6050::MPU6050(I2CDevice&& i2c_device,
                      std::uint32_t const sampling_rate,
                      GyroRange const gyro_range,
                      AccelRange const accel_range,
                      DLPF const dlpf,
                      DHPF const dhpf,
                      ExtSync const ext_sync) noexcept :
-        i2c_device_{i2c_device},
+        i2c_device_{std::forward<I2CDevice>(i2c_device)},
         gyro_scale_{gyro_range_to_scale(gyro_range)},
         accel_scale_{accel_range_to_scale(accel_range)}
     {
@@ -235,7 +235,7 @@ namespace InvertedSway::BitFields {
 
     bool MPU6050::is_valid_device_id() const noexcept
     {
-        return this->get_device_id() == this->i2c_device_.device_address;
+        return this->get_device_id() == this->i2c_device_.device_address();
     }
 
     void MPU6050::set_smplrt_div(std::uint8_t const sampling_rate, DLPF const dlpf) const noexcept

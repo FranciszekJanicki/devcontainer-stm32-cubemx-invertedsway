@@ -20,7 +20,6 @@ namespace InvertedSway {
         using DMP_Packet = std::array<std::uint8_t, 42UL>;
 
         MPU_DMP() noexcept = default;
-
         MPU_DMP(MPU6050&& mpu6050) noexcept;
 
         MPU_DMP(MPU_DMP const& other) noexcept = delete;

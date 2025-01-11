@@ -34,10 +34,6 @@ namespace InvertedSway {
         void operator()(Value const input_speed, Value const dt) noexcept;
 
     private:
-        static Value speed_to_voltage(Value const speed) noexcept;
-        static Value clamp_speed(Value const speed) noexcept;
-        static Direction speed_to_direction(Value const speed) noexcept;
-
         void set_voltage(Value const control_speed) const noexcept;
         void set_speed(Value const control_speed) const noexcept;
         void set_direction(Value const control_speed) const noexcept;

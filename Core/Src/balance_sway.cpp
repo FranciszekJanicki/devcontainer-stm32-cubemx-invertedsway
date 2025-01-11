@@ -20,12 +20,12 @@ namespace {
 
 };
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-    if (GPIO_Pin == MPU6050_INTR_Pin) {
-        sampling_timer_elapsed = true;
-    }
-}
+// void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+// {
+//     if (GPIO_Pin == MPU6050_INTR_Pin) {
+//         sampling_timer_elapsed = true;
+//     }
+// }
 
 void balance_sway()
 {
@@ -44,13 +44,12 @@ void balance_sway()
     MX_TIM3_Init();
     MX_TIM4_Init();
 
-    PWMDevice pwm_device{.timer = &htim4,
-                         .timer_channel = TIM_CHANNEL_1,
-                         .counter_period = 39999U,
-                         .min_voltage = 0.0F,
-                         .max_voltage = 6.0F};
+    PWMDevice pwm_device{&htim4, TIM_CHANNEL_1, 39999U, 0.0F, 6.0F};
 
-    Motor motor1{pwm_device, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
+    Motor motor1{.pwm_device = std::move(pwm_device),
+                 .gpio = L298N_IN1_GPIO_Port,
+                 .pin_left = L298N_IN1_Pin,
+                 .pin_right = L298N_IN3_Pin};
 
     Motor motor2{};
 
@@ -58,9 +57,9 @@ void balance_sway()
         .motor_channels = {L298N::MotorChannel{.channel = L298N::Channel::CHANNEL1, .motor = std::move(motor1)},
                            L298N::MotorChannel{.channel = L298N::Channel::CHANNEL2, .motor = std::move(motor2)}}};
 
-    I2CDevice i2c_device{.i2c_bus = &hi2c1, .device_address = std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
+    I2CDevice i2c_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
-    MPU6050 mpu6050{i2c_device,
+    MPU6050 mpu6050{std::move(i2c_device),
                     SAMPLING_RATE,
                     MPU6050::GyroRange::GYRO_FS_2000,
                     MPU6050::AccelRange::ACCEL_FS_2,

@@ -148,7 +148,7 @@ namespace InvertedSway::BitFields {
 
         MPU6050() noexcept = default;
 
-        MPU6050(I2CDevice const i2c_device,
+        MPU6050(I2CDevice&& i2c_device,
                 std::uint32_t const sampling_rate,
                 GyroRange const gyro_range,
                 AccelRange const accel_range,

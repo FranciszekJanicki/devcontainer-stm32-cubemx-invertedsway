@@ -12,6 +12,21 @@ namespace InvertedSway {
         using Voltage = float;
         using Raw = std::uint32_t;
 
+        PWMDevice() noexcept = default;
+        PWMDevice(TimerHandle const timer,
+                  std::uint32_t const timer_channel,
+                  Raw const counter_period,
+                  Voltage const min_voltage,
+                  Voltage const max_voltage) noexcept;
+
+        PWMDevice(PWMDevice const& other) noexcept = delete;
+        PWMDevice(PWMDevice&& other) noexcept = default;
+
+        PWMDevice& operator=(PWMDevice const& other) noexcept = delete;
+        PWMDevice& operator=(PWMDevice&& other) noexcept = default;
+
+        ~PWMDevice() noexcept;
+
         void set_compare_raw(Raw const raw) const noexcept;
         void set_compare_voltage(Voltage const voltage) const noexcept;
         void set_compare_max() const noexcept;
@@ -23,14 +38,14 @@ namespace InvertedSway {
         Raw voltage_to_raw(Voltage const voltage) const noexcept;
         Voltage raw_to_voltage(Raw const raw) const noexcept;
 
-        TimerHandle timer{nullptr};
-        std::uint32_t timer_channel{};
+        bool initialized_{false};
 
-        Raw counter_period{};
-        Voltage min_voltage{};
-        Voltage max_voltage{};
+        TimerHandle timer_{nullptr};
+        std::uint32_t timer_channel_{};
 
-        bool initialized{false};
+        Raw counter_period_{};
+        Voltage min_voltage_{};
+        Voltage max_voltage_{};
     };
 
 }; // namespace InvertedSway

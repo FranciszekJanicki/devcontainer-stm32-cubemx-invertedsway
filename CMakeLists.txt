@@ -49,7 +49,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Src/stm32l4xx_hal_msp.c"
     "Core/Src/balance_sway.cpp"
     "Core/Src/mpu_dmp.cpp"
-    "Core/Inc/i2c_device.hpp"
+    "Core/Src/i2c_device.cpp"
     "Core/Inc/utility.hpp"
     "Core/Src/mpu6050_bitfields.cpp"
     "Core/Src/pwm_device.cpp"

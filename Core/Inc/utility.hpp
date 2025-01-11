@@ -28,8 +28,8 @@ namespace Utility {
     {
         static_assert(NUM_BITS % 8 == 0);
         Bytes<NUM_BITS / 8> bytes{};
-        for (std::size_t i = 0; i < bytes.size(); ++i) {
-            for (std::size_t j = 0; j < 8; ++j) {
+        for (std::size_t i{}; i < bytes.size(); ++i) {
+            for (std::size_t j{}; j < 8; ++j) {
                 if (bits[i * 8 + j]) {
                     bytes[i] |= (1 << j);
                 }
@@ -42,8 +42,8 @@ namespace Utility {
     [[nodiscard]] inline Bits<8 * NUM_BYTES> bytes_to_bits(Bytes<NUM_BYTES> const& bytes) noexcept
     {
         Bits<8 * NUM_BYTES> bits{};
-        for (std::size_t i = 0; i < bytes.size(); ++i) {
-            for (std::size_t j = 0; j < 8; ++j) {
+        for (std::size_t i{}; i < bytes.size(); ++i) {
+            for (std::size_t j{}; j < 8; ++j) {
                 bits[i * 8 + j] = (bytes[i] & (1 << j)) != 0;
             }
         }
@@ -55,7 +55,7 @@ namespace Utility {
     {
         static_assert(NUM_BYTES % 2 == 0);
         Words<NUM_BYTES / 2> words{};
-        for (std::size_t i = 0; i < words.size(); ++i) {
+        for (std::size_t i{}; i < words.size(); ++i) {
             words[i] = static_cast<Word>(bytes[2 * i] << 8) | static_cast<Word>(bytes[2 * i + 1]);
         }
         return words;
@@ -65,7 +65,7 @@ namespace Utility {
     [[nodiscard]] inline Bytes<2 * NUM_WORDS> words_to_bytes(Words<NUM_WORDS> const& words) noexcept
     {
         Bytes<2 * NUM_WORDS> bytes{};
-        for (std::size_t i = 0; i < words.size(); ++i) {
+        for (std::size_t i{}; i < words.size(); ++i) {
             bytes[2 * i] = static_cast<Byte>(words[i] >> 8);
             bytes[2 * i + 1] = static_cast<Byte>(words[i]);
         }
@@ -78,7 +78,7 @@ namespace Utility {
         static_assert(NUM_WORDS % 2 == 0);
 
         DWords<NUM_WORDS / 2> dwords{};
-        for (std::size_t i = 0; i < dwords.size(); ++i) {
+        for (std::size_t i{}; i < dwords.size(); ++i) {
             dwords[i] = static_cast<DWord>(words[2 * i] << 16) | static_cast<DWord>(words[2 * i + 1]);
         }
         return dwords;
@@ -88,7 +88,7 @@ namespace Utility {
     [[nodiscard]] inline Words<2 * NUM_DWORDS> dwords_to_words(DWords<NUM_DWORDS> const& dwords) noexcept
     {
         Words<2 * NUM_DWORDS> words{};
-        for (std::size_t i = 0; i < words.size(); ++i) {
+        for (std::size_t i{}; i < words.size(); ++i) {
             words[2 * i] = static_cast<Word>(dwords[i] >> 16);
             words[2 * i + 1] = static_cast<Word>(dwords[i]);
         }

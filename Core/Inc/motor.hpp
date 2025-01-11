@@ -21,20 +21,6 @@ namespace InvertedSway {
         using Raw = PWMDevice::Raw;
         using Voltage = PWMDevice::Voltage;
 
-        Motor() noexcept = default;
-        Motor(PWMDevice const& pwm_device,
-              GPIOHandle const gpio,
-              std::uint16_t const pin_in1,
-              std::uint16_t const pin_in2) noexcept;
-
-        Motor(Motor const& motor) = delete;
-        Motor(Motor&& motor) noexcept = default;
-
-        Motor& operator=(Motor const& motor) = delete;
-        Motor& operator=(Motor&& motor) noexcept = default;
-
-        ~Motor() noexcept;
-
         void set_voltage(Voltage const voltage) const noexcept;
         void set_voltage_max() const noexcept;
         void set_voltage_min() const noexcept;
@@ -45,17 +31,11 @@ namespace InvertedSway {
         void set_soft_stop() const noexcept;
         void set_fast_stop() const noexcept;
 
-    private:
-        void initialize() noexcept;
-        void deinitialize() noexcept;
+        PWMDevice pwm_device{};
 
-        bool initialized_{false};
-
-        PWMDevice pwm_device_{};
-
-        GPIOHandle gpio_{nullptr};
-        std::uint16_t pin_in1_{};
-        std::uint16_t pin_in2_{};
+        GPIOHandle gpio{nullptr};
+        std::uint16_t pin_left{};
+        std::uint16_t pin_right{};
     };
 
 }; // namespace InvertedSway
