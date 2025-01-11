@@ -99,7 +99,7 @@ namespace InvertedSway {
         template <std::size_t WRITE_SIZE>
         void write_bytes(std::uint8_t const reg_address, Bytes<WRITE_SIZE> const& write_data) const noexcept
         {
-            if (!this->initialized_) {
+            if (this->initialized_) {
                 Bytes<WRITE_SIZE> write{write_data};
                 HAL_I2C_Mem_Write(this->i2c_bus_,
                                   this->device_address_ << 1,

@@ -13,7 +13,7 @@ namespace InvertedSway {
     void I2CDevice::initialize() noexcept
     {
         if (this->i2c_bus_ != nullptr) {
-            if (HAL_I2C_IsDeviceReady(this->i2c_bus_, this->device_address_ << 1, I2C_SCAN_RETRIES, I2C_TIMEOUT) !=
+            if (HAL_I2C_IsDeviceReady(this->i2c_bus_, this->device_address_ << 1, I2C_SCAN_RETRIES, I2C_TIMEOUT) ==
                 HAL_OK) {
                 this->initialized_ = true;
             }

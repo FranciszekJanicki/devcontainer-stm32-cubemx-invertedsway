@@ -176,7 +176,32 @@ namespace InvertedSway {
 
     bool MPU6050::is_valid_device_id() const noexcept
     {
-        return this->get_device_id() == this->i2c_device_.device_address();
+        if (this->get_device_id() == this->i2c_device_.device_address()) {
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+            printf("VAALID\n\r");
+        }
     }
 
     void MPU6050::initialize(std::uint32_t const sampling_rate,
@@ -186,11 +211,11 @@ namespace InvertedSway {
                              DHPF const dhpf) noexcept
     {
         if (this->is_valid_device_id()) {
-            // this->device_wake_up();
-            // HAL_Delay(200);
-            // this->initialize_base(gyro_range, accel_range);
-            // this->initialize_advanced(sampling_rate, dlpf, dhpf);
-            // this->initialize_interrupt();
+            this->device_wake_up();
+            HAL_Delay(200);
+            this->initialize_base(gyro_range, accel_range);
+            this->initialize_advanced(sampling_rate, dlpf, dhpf);
+            this->initialize_interrupt();
             this->initialized_ = true;
         }
     }

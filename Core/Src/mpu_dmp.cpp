@@ -38,7 +38,7 @@ namespace InvertedSway {
     Scaled MPU_DMP::quaternion_to_pitch(QuaternionScaled const& quaternion) noexcept
     {
         auto const gravity{quaternion_to_gravity(quaternion)};
-        auto const pitch{std::atan2(gravity.x, sqrt(gravity.y * gravity.y + gravity.z * gravity.z))};
+        auto const pitch{std::atan2(gravity.x, std::sqrt(gravity.y * gravity.y + gravity.z * gravity.z))};
         return (gravity.z < 0) ? (pitch > 0 ? 3.1416F - pitch : -3.1416F - pitch) : pitch;
     }
 
@@ -70,7 +70,7 @@ namespace InvertedSway {
     void MPU_DMP::initialize_dmp() const noexcept
     {
         this->mpu6050_.device_wake_up();
-        HAL_Delay(200);
+        HAL_Delay(500);
         this->mpu6050_.set_sleep_enabled(false);
         this->set_memory_bank(0x10, true, true);
         this->set_memory_start_address(0x06);
