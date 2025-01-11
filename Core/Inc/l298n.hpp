@@ -26,50 +26,26 @@ namespace InvertedSway {
 
         using Raw = Motor::Raw;
         using Voltage = Motor::Voltage;
-        using Error = Motor::Error;
-        using ExpectedRaw = Motor::ExpectedRaw;
-        using ExpectedVoltage = Motor::ExpectedVoltage;
         using Direction = Motor::Direction;
-        using Unexpected = Motor::Unexpected;
         using MotorChannels = std::array<MotorChannel, 2>;
 
-        L298N() noexcept = default;
+        void reset() const noexcept;
 
-        L298N(MotorChannels&& motor_channels) noexcept;
+        void set_voltage(Channel const channel, Voltage const voltage) const noexcept;
+        void set_voltage_max(Channel const channel) const noexcept;
+        void set_voltage_min(Channel const channel) const noexcept;
 
-        L298N(L298N const& other) noexcept = delete;
-        L298N(L298N&& other) noexcept = default;
+        void set_direction(Channel const channel, Direction const direction) const noexcept;
+        void set_forward(Channel const channel) const noexcept;
+        void set_backward(Channel const channel) const noexcept;
+        void set_soft_stop(Channel const channel) const noexcept;
+        void set_fast_stop(Channel const channel) const noexcept;
 
-        L298N& operator=(L298N const& other) noexcept = delete;
-        L298N& operator=(L298N&& other) noexcept = default;
-
-        ~L298N() noexcept;
-
-        MotorChannels&& motor_channels() && noexcept;
-        void motor_channels(MotorChannels&& motors) noexcept;
-
-        [[nodiscard]] Error set_compare_raw(Channel const channel, Raw const raw) const noexcept;
-        [[nodiscard]] Error set_compare_voltage(Channel const channel, Voltage const voltage) const noexcept;
-
-        [[nodiscard]] ExpectedRaw get_compare_raw(Channel const channel) const noexcept;
-        [[nodiscard]] ExpectedVoltage get_compare_voltage(Channel const channel) const noexcept;
-
-        [[nodiscard]] Error set_direction(Channel const channel, Direction const direction) const noexcept;
-        [[nodiscard]] Error set_forward(Channel const channel) const noexcept;
-        [[nodiscard]] Error set_backward(Channel const channel) const noexcept;
-        [[nodiscard]] Error set_soft_stop(Channel const channel) const noexcept;
-        [[nodiscard]] Error set_fast_stop(Channel const channel) const noexcept;
-        [[nodiscard]] Error set_compare_max(Channel const channel) const noexcept;
-        [[nodiscard]] Error set_compare_min(Channel const channel) const noexcept;
+        MotorChannels motor_channels{};
 
     private:
-        void initialize() noexcept;
-        void deinitialize() noexcept;
-
         const Motor& get_motor(Channel const channel) const noexcept;
         Motor& get_motor(Channel const channel) noexcept;
-
-        MotorChannels motor_channels_{};
     };
 
 }; // namespace InvertedSway

@@ -14,33 +14,16 @@ using Regulator = MotorDriver::Regulator;
 
 namespace InvertedSway {
 
-    Value MotorDriver::clamp_speed(Value const speed) noexcept
-    {
-        return std::clamp(speed, MIN_SPEED_RPM, MAX_SPEED_RPM);
-    }
-
-    Value MotorDriver::speed_to_voltage(Value const speed) noexcept
-    {
-        return (clamp_speed(speed) - MIN_SPEED_RPM) * (MAX_VOLTAGE_V - MIN_VOLTAGE_V) /
-                   (MAX_SPEED_RPM - MIN_SPEED_RPM) +
-               MIN_VOLTAGE_V;
-    }
-
-    Direction MotorDriver::speed_to_direction(Value const speed) noexcept
-    {
-        if (speed > 0.0f) {
-            return Direction::FORWARD;
-        } else if (speed < 0.0f) {
-            return Direction::BACKWARD;
-        } else {
-            return Direction::SOFT_STOP;
-        }
-    }
-
-    MotorDriver::MotorDriver(Regulator&& regulator, Motor&& motor, Encoder&& encoder) noexcept :
+    MotorDriver::MotorDriver(Regulator&& regulator,
+                             Motor&& motor,
+                             Encoder&& encoder,
+                             SpeedToVoltage const speed_to_voltage,
+                             SpeedToDirection const speed_to_direction) noexcept :
         regulator_{std::forward<Regulator>(regulator)},
         motor_{std::forward<Motor>(motor)},
-        encoder_{std::forward<Encoder>(encoder)}
+        encoder_{std::forward<Encoder>(encoder)},
+        speed_to_voltage_{speed_to_voltage},
+        speed_to_direction_{speed_to_direction}
     {
         this->initialize();
     }
@@ -63,40 +46,22 @@ namespace InvertedSway {
 
     void MotorDriver::set_direction(Value const control_speed) const noexcept
     {
-        this->motor_.set_direction(speed_to_direction(control_speed));
+        this->motor_.set_direction(std::invoke(this->speed_to_direction_, control_speed));
     }
 
     void MotorDriver::set_voltage(Value const control_speed) const noexcept
     {
-        this->motor_.set_compare_voltage(speed_to_voltage(std::abs(control_speed)));
+        this->motor_.set_compare_voltage(std::invoke(this->speed_to_voltage_, std::abs(control_speed)));
     }
 
     Value MotorDriver::get_measured_speed(Value const dt) noexcept
     {
-        if (auto speed{this->encoder_.get_angular_speed(dt)}; speed.has_value()) {
-            return speed.value();
-        }
-        std::unreachable();
+        return this->encoder_.get_angular_speed(dt);
     }
 
     Value MotorDriver::get_control_speed(Value const error_speed, Value const dt) noexcept
     {
-#if defined(REGULATOR_PTR)
-        if (this->regulator_ != nullptr) {
-            return std::invoke(*this->regulator_, error_speed, dt);
-        }
-#elif defined(REGULATOR_VARIANT)
-        if (!this->regulator_.valueless_by_exception()) {
-            return std::visit([error_speed, dt]<typename Regulator>(
-                                  Regulator&& regulator) { return std::invoke(regulator, error_speed, dt); },
-                              this->regulator_);
-        }
-#elif defined(REGULATOR_LAMBDA)
-        if (this->regulator_) {
-            return std::invoke(this->regulator_, error_speed, dt);
-        }
-#endif
-        std::unreachable();
+        return std::invoke(this->regulator_, error_speed, dt);
     }
 
     Value MotorDriver::get_error_speed(Value const input_speed, Value const dt) noexcept
@@ -107,13 +72,13 @@ namespace InvertedSway {
     void MotorDriver::initialize() const noexcept
     {
         this->motor_.set_fast_stop();
-        this->motor_.set_compare_min();
+        this->motor_.set_voltage_min();
     }
 
     void MotorDriver::deinitialize() const noexcept
     {
         this->motor_.set_fast_stop();
-        this->motor_.set_compare_min();
+        this->motor_.set_voltage_min();
     }
 
 }; // namespace InvertedSway

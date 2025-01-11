@@ -7,6 +7,7 @@
 #include "l298n.hpp"
 #include "main.h"
 #include "mpu6050.hpp"
+#include "pwm_device.hpp"
 #include "regulators.hpp"
 #include "sway.hpp"
 #include "tim.h"
@@ -43,12 +44,19 @@ void balance_sway()
     MX_TIM3_Init();
     MX_TIM4_Init();
 
-    L298N::MotorChannels motor_channels{
-        L298N::MotorChannel{.channel = L298N::Channel::CHANNEL1,
-                            .motor = Motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin}},
-        L298N::MotorChannel{.channel = L298N::Channel::CHANNEL2}};
+    PWMDevice pwm_device{.timer = &htim4,
+                         .timer_channel = TIM_CHANNEL_1,
+                         .counter_period = 39999U,
+                         .min_voltage = 0.0F,
+                         .max_voltage = 6.0F};
 
-    L298N l298n{std::move(motor_channels)};
+    Motor motor1{pwm_device, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
+
+    Motor motor2{};
+
+    L298N l298n{
+        .motor_channels = {L298N::MotorChannel{.channel = L298N::Channel::CHANNEL1, .motor = std::move(motor1)},
+                           L298N::MotorChannel{.channel = L298N::Channel::CHANNEL2, .motor = std::move(motor2)}}};
 
     I2CDevice i2c_device{.i2c_bus = &hi2c1, .device_address = std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
@@ -65,7 +73,7 @@ void balance_sway()
 
     Regulator regulator{.kp = 400.0F, .ki = 500.0F, .kd = 10.0F, .windup = 6.0F};
 
-    Encoder encoder{&htim3};
+    Encoder encoder{&htim3, 360U, 1U, 65535U};
 
     Sway sway{std::move(mpu_dmp), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
 

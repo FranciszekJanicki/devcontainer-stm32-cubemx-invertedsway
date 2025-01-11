@@ -26,7 +26,7 @@ namespace InvertedSway {
 
     Direction Sway::angle_to_direction(Value const angle) noexcept
     {
-        if (angle < 0.0f) {
+        if (angle < 0.0F) {
             return Direction::FORWARD;
         } else {
             return Direction::BACKWARD;
@@ -82,7 +82,7 @@ namespace InvertedSway {
 
     void Sway::set_voltage(Value const control_angle) const noexcept
     {
-        this->l298n_.set_compare_voltage(L298N::Channel::CHANNEL1, angle_to_voltage(std::abs(control_angle)));
+        this->l298n_.set_voltage(L298N::Channel::CHANNEL1, angle_to_voltage(std::abs(control_angle)));
     }
 
     void Sway::try_motor_boost(Value const control_angle) noexcept
@@ -90,20 +90,19 @@ namespace InvertedSway {
         auto const control_voltage{angle_to_voltage(std::abs(control_angle))};
         if (std::exchange(this->last_control_voltage_, control_voltage) < MOTOR_START_THRESHOLD_V &&
             control_voltage >= MOTOR_START_THRESHOLD_V) {
-            this->set_voltage(MAX_CONTROL_SIGNAL_V);
+            this->l298n_.set_voltage_max(L298N::Channel::CHANNEL1);
             HAL_Delay(10);
         }
     }
 
     void Sway::initialize() noexcept
     {
-        this->l298n_.set_fast_stop(L298N::Channel::CHANNEL1);
-        this->l298n_.set_compare_min(L298N::Channel::CHANNEL1);
+        this->l298n_.reset();
     }
 
     void Sway::deinitialize() noexcept
     {
-        this->l298n_.set_fast_stop(L298N::Channel::CHANNEL1);
-        this->l298n_.set_compare_min(L298N::Channel::CHANNEL1);
+        this->l298n_.reset();
     }
+
 }; // namespace InvertedSway

@@ -1,6 +1,8 @@
 #ifndef UTILITY_HPP
 #define UTILITY_HPP
 
+#include "arithmetic.hpp"
+#include "common.hpp"
 #include <array>
 #include <bitset>
 #include <cstdint>
@@ -22,7 +24,7 @@ namespace Utility {
     using DWords = std::array<DWord, SIZE>;
 
     template <std::size_t NUM_BITS>
-    Bytes<NUM_BITS / 8> bits_to_bytes(Bits<NUM_BITS> const& bits) noexcept
+    [[nodiscard]] inline Bytes<NUM_BITS / 8> bits_to_bytes(Bits<NUM_BITS> const& bits) noexcept
     {
         static_assert(NUM_BITS % 8 == 0);
         Bytes<NUM_BITS / 8> bytes{};
@@ -37,7 +39,7 @@ namespace Utility {
     }
 
     template <std::size_t NUM_BYTES>
-    Bits<8 * NUM_BYTES> bytes_to_bits(Bytes<NUM_BYTES> const& bytes) noexcept
+    [[nodiscard]] inline Bits<8 * NUM_BYTES> bytes_to_bits(Bytes<NUM_BYTES> const& bytes) noexcept
     {
         Bits<8 * NUM_BYTES> bits{};
         for (std::size_t i = 0; i < bytes.size(); ++i) {
@@ -49,7 +51,7 @@ namespace Utility {
     }
 
     template <std::size_t NUM_BYTES>
-    Words<NUM_BYTES / 2> bytes_to_words(Bytes<NUM_BYTES> const& bytes) noexcept
+    [[nodiscard]] inline Words<NUM_BYTES / 2> bytes_to_words(Bytes<NUM_BYTES> const& bytes) noexcept
     {
         static_assert(NUM_BYTES % 2 == 0);
         Words<NUM_BYTES / 2> words{};
@@ -60,7 +62,7 @@ namespace Utility {
     }
 
     template <std::size_t NUM_WORDS>
-    Bytes<2 * NUM_WORDS> words_to_bytes(Words<NUM_WORDS> const& words) noexcept
+    [[nodiscard]] inline Bytes<2 * NUM_WORDS> words_to_bytes(Words<NUM_WORDS> const& words) noexcept
     {
         Bytes<2 * NUM_WORDS> bytes{};
         for (std::size_t i = 0; i < words.size(); ++i) {
@@ -71,7 +73,7 @@ namespace Utility {
     }
 
     template <std::size_t NUM_WORDS>
-    DWords<NUM_WORDS / 2> words_to_dwords(Words<NUM_WORDS> const& words) noexcept
+    [[nodiscard]] inline DWords<NUM_WORDS / 2> words_to_dwords(Words<NUM_WORDS> const& words) noexcept
     {
         static_assert(NUM_WORDS % 2 == 0);
 
@@ -83,7 +85,7 @@ namespace Utility {
     }
 
     template <std::size_t NUM_DWORDS>
-    Words<2 * NUM_DWORDS> dwords_to_words(DWords<NUM_DWORDS> const& dwords) noexcept
+    [[nodiscard]] inline Words<2 * NUM_DWORDS> dwords_to_words(DWords<NUM_DWORDS> const& dwords) noexcept
     {
         Words<2 * NUM_DWORDS> words{};
         for (std::size_t i = 0; i < words.size(); ++i) {
@@ -94,39 +96,51 @@ namespace Utility {
     }
 
     template <std::size_t NUM_WORDS>
-    Bits<16 * NUM_WORDS> words_to_bits(Words<NUM_WORDS> const& words) noexcept
+    [[nodiscard]] inline Bits<16 * NUM_WORDS> words_to_bits(Words<NUM_WORDS> const& words) noexcept
     {
         return bytes_to_bits(words_to_bytes(words));
     }
 
     template <std::size_t NUM_DWORDS>
-    Bits<32 * NUM_DWORDS> dwords_to_bits(DWords<NUM_DWORDS> const& dwords) noexcept
+    [[nodiscard]] inline Bits<32 * NUM_DWORDS> dwords_to_bits(DWords<NUM_DWORDS> const& dwords) noexcept
     {
         return words_to_bits(dwords_to_words(dwords));
     }
 
     template <std::size_t NUM_DWORDS>
-    Bytes<4 * NUM_DWORDS> dwords_to_bytes(DWords<NUM_DWORDS> const& dwords) noexcept
+    [[nodiscard]] inline Bytes<4 * NUM_DWORDS> dwords_to_bytes(DWords<NUM_DWORDS> const& dwords) noexcept
     {
         return words_to_bytes(dwords_to_words(dwords));
     }
 
     template <std::size_t NUM_BITS>
-    Words<NUM_BITS / 16> bits_to_words(Bits<NUM_BITS> const& bits) noexcept
+    [[nodiscard]] inline Words<NUM_BITS / 16> bits_to_words(Bits<NUM_BITS> const& bits) noexcept
     {
         return bytes_to_words(bits_to_bytes(bits));
     }
 
     template <std::size_t NUM_BITS>
-    DWords<NUM_BITS / 32> bits_to_dwords(Bits<NUM_BITS> const& bits) noexcept
+    [[nodiscard]] inline DWords<NUM_BITS / 32> bits_to_dwords(Bits<NUM_BITS> const& bits) noexcept
     {
         return words_to_dwords(bits_to_words(bits));
     }
 
     template <std::size_t NUM_BYTES>
-    DWords<NUM_BYTES / 4> bytes_to_dwords(Bytes<NUM_BYTES> const& bytes) noexcept
+    [[nodiscard]] inline DWords<NUM_BYTES / 4> bytes_to_dwords(Bytes<NUM_BYTES> const& bytes) noexcept
     {
         return words_to_dwords(bytes_to_words(bytes));
+    }
+
+    template <Linalg::Arithmetic Value>
+    [[nodiscard]] inline Value degrees_to_radians(Value const degrees) noexcept
+    {
+        return degrees * 3.1416F / 180.0F;
+    }
+
+    template <Linalg::Arithmetic Value>
+    [[nodiscard]] inline Value radians_to_degrees(Value const radians) noexcept
+    {
+        return radians * 180.0F / 3.1416F;
     }
 
 }; // namespace Utility

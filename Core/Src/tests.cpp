@@ -19,17 +19,19 @@
 #include <utility>
 
 using namespace InvertedSway;
-using namespace Filters;
-using namespace Regulators;
 
-static bool sampling_timer_elapsed{false};
+namespace {
 
-// void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-// {
-//     if (GPIO_Pin == MPU6050_INTR_Pin) {
-//         sampling_timer_elapsed = true;
-//     }
-// }
+    bool sampling_timer_elapsed{false};
+
+    void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+    {
+        if (GPIO_Pin == MPU6050_INTR_Pin) {
+            sampling_timer_elapsed = true;
+        }
+    }
+
+} // namespace
 
 namespace Tests {
 
@@ -39,19 +41,25 @@ namespace Tests {
         MX_USART2_UART_Init();
         MX_TIM4_Init();
 
-        Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
+        PWMDevice pwm_device{.timer = &htim4,
+                             .timer_channel = TIM_CHANNEL_1,
+                             .counter_period = 39999U,
+                             .min_voltage = 0.0F,
+                             .max_voltage = 6.0F};
+
+        Motor motor{pwm_device, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
 
         while (true) {
-            for (auto const voltage : {0.0f, 3.0f, 6.0f, 3.0f, 0.0f, -3.0f, -6.0f, -3.0f}) {
-                if (voltage > 0.0f) {
+            for (auto const voltage : {0.0F, 3.0F, 6.0F, 3.0F, 0.0F, -3.0F, -6.0F, -3.0F}) {
+                if (voltage > 0.0F) {
                     motor.set_forward();
-                } else if (voltage < 0.0f) {
+                } else if (voltage < 0.0F) {
                     motor.set_backward();
                 } else {
                     motor.set_fast_stop();
                 }
 
-                motor.set_compare_voltage(std::abs(voltage));
+                motor.set_voltage(std::abs(voltage));
                 HAL_Delay(1000);
             }
         }
@@ -63,26 +71,32 @@ namespace Tests {
         MX_USART2_UART_Init();
         MX_TIM4_Init();
 
-        Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
+        PWMDevice pwm_device{.timer = &htim4,
+                             .timer_channel = TIM_CHANNEL_1,
+                             .counter_period = 39999U,
+                             .min_voltage = 0.0F,
+                             .max_voltage = 6.0F};
 
-        float const voltage_start_threshold{1.0f};
+        Motor motor{pwm_device, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
+
+        float const voltage_start_threshold{1.0F};
 
         while (true) {
-            auto last_voltage{0.0f};
-            for (auto const voltage : {0.0f, 3.0f, 6.0f, 3.0f, 0.0f, -3.0f, -6.0f, -3.0f}) {
-                if (voltage > 0.0f) {
+            auto last_voltage{0.0F};
+            for (auto const voltage : {0.0F, 3.0F, 6.0F, 3.0F, 0.0F, -3.0F, -6.0F, -3.0F}) {
+                if (voltage > 0.0F) {
                     motor.set_forward();
-                } else if (voltage < 0.0f) {
+                } else if (voltage < 0.0F) {
                     motor.set_backward();
                 } else {
                     motor.set_fast_stop();
                 }
 
                 if (std::abs(voltage) >= voltage_start_threshold && std::abs(last_voltage) < voltage_start_threshold) {
-                    motor.set_compare_max();
+                    motor.set_voltage_max();
                     HAL_Delay(10);
                 }
-                motor.set_compare_voltage(std::abs(voltage));
+                motor.set_voltage(std::abs(voltage));
 
                 last_voltage = voltage;
                 HAL_Delay(1000);
@@ -92,32 +106,34 @@ namespace Tests {
 
     void MOTOR_DRIVER_TEST() noexcept
     {
+        using Regulator = Regulators::PID<float>;
+
         MX_GPIO_Init();
         MX_USART2_UART_Init();
         MX_TIM3_Init();
         MX_TIM4_Init();
 
-        auto regulator{make_regulator<Algorithm::PID>(0.0f, 0.0f, 0.0f, 0.0f)};
+        Regulator regulator{.kp = 1.0F, .ki = 0.0F, .kd = 0.0F, .windup = 0.0F};
 
-        Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
+        PWMDevice pwm_device{.timer = &htim4,
+                             .timer_channel = TIM_CHANNEL_1,
+                             .counter_period = 39999U,
+                             .min_voltage = 0.0F,
+                             .max_voltage = 6.0F};
 
-        Encoder encoder{&htim3};
+        Motor motor{pwm_device, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
 
-        MotorDriver motor_driver{std::move(regulator), std::move(motor), std::move(encoder)};
+        Encoder encoder{&htim3, 360U, 1U, 65535U};
 
-        constexpr auto MAX_SPEED{MotorDriver::MAX_SPEED_RPM};
-        constexpr auto MIN_SPEED{MotorDriver::MIN_SPEED_RPM};
+        MotorDriver motor_driver{std::move(regulator),
+                                 std::move(motor),
+                                 std::move(encoder),
+                                 [](float const speed) noexcept { return 0.0F; },
+                                 [](float const speed) noexcept { return Motor::Direction::SOFT_STOP; }};
 
         while (true) {
-            for (auto const speed : {MIN_SPEED,
-                                     MAX_SPEED / 2,
-                                     MAX_SPEED,
-                                     MAX_SPEED / 2,
-                                     MIN_SPEED,
-                                     -MAX_SPEED / 2,
-                                     -MAX_SPEED,
-                                     -MAX_SPEED / 2}) {
-                motor_driver(speed, 1);
+            for (auto const speed : {0.0F, 50.0F, 100.0F, 50.0F, 0.0F, -50.0F, -100.0F, -50.0F}) {
+                motor_driver(speed, 1.0F);
                 HAL_Delay(1000);
             }
         }
@@ -129,7 +145,7 @@ namespace Tests {
         MX_USART2_UART_Init();
         MX_I2C1_Init();
 
-        I2CDevice i2c_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
+        I2CDevice i2c_device{.i2c_bus = &hi2c1, .device_address = std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
         MPU6050 mpu6050{i2c_device,
                         200U,
@@ -155,9 +171,9 @@ namespace Tests {
         MX_USART2_UART_Init();
         MX_I2C1_Init();
 
-        I2CDevice i2c_mpu_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
+        I2CDevice i2c_device{.i2c_bus = &hi2c1, .device_address = std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
-        MPU6050 mpu6050{i2c_mpu_device,
+        MPU6050 mpu6050{i2c_device,
                         200U,
                         MPU6050::GyroRange::GYRO_FS_2000,
                         MPU6050::AccelRange::ACCEL_FS_2,
@@ -177,22 +193,24 @@ namespace Tests {
 
     void KALMAN_TEST() noexcept
     {
+        using Kalman = Filters::Kalman<float>;
+
         MX_GPIO_Init();
         MX_USART2_UART_Init();
         MX_I2C1_Init();
 
-        I2CDevice i2c_mpu_device{&hi2c1, std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
+        I2CDevice i2c_device{.i2c_bus = &hi2c1, .device_address = std::to_underlying(MPU6050::DevAddress::AD0_LOW)};
 
-        MPU6050 mpu6050{i2c_mpu_device,
-                        8000U,
+        MPU6050 mpu6050{i2c_device,
+                        200U,
                         MPU6050::GyroRange::GYRO_FS_250,
                         MPU6050::AccelRange::ACCEL_FS_2,
                         MPU6050::DLPF::BW_256,
                         MPU6050::DHPF::DHPF_RESET};
 
-        auto kalman{make_kalman(0.0f, 0.0f, 0.1f, 0.3f, 0.03f)};
+        Kalman kalman{.k_angle = 0.0F, .k_bias = 0.0F, .Q_angle = 0.1F, .Q_bias = 0.3F, .R = 0.03F};
 
-        auto const sampling_time{1.0f / 8000.0f};
+        auto const sampling_time{1.0F / 200.0F};
 
         while (true) {
             if (sampling_timer_elapsed) {
@@ -212,15 +230,22 @@ namespace Tests {
         MX_TIM3_Init();
         MX_TIM4_Init();
 
-        Encoder encoder{&htim3};
-        Motor motor{&htim4, TIM_CHANNEL_1, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
+        Encoder encoder{&htim3, 360U, 1U, 65535U};
+
+        PWMDevice pwm_device{.timer = &htim4,
+                             .timer_channel = TIM_CHANNEL_1,
+                             .counter_period = 39999U,
+                             .min_voltage = 0.0F,
+                             .max_voltage = 6.0F};
+
+        Motor motor{pwm_device, L298N_IN1_GPIO_Port, L298N_IN1_Pin, L298N_IN3_Pin};
 
         while (true) {
             float const angle = encoder.get_angle().value();
 
-            if (angle >= 350.0f) {
+            if (angle >= 350.0F) {
                 motor.set_backward();
-            } else if (angle <= 10.0f) {
+            } else if (angle <= 10.0F) {
                 motor.set_forward();
             }
 

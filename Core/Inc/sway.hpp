@@ -38,13 +38,11 @@ namespace InvertedSway {
         static Value angle_to_voltage(Value const angle) noexcept;
         static Direction angle_to_direction(Value const angle) noexcept;
 
-        static constexpr Value MOTOR_RESISTANCE{10.0f};
-        static constexpr Value EARTH_ACCELERATION{9.81f};
-        static constexpr Value SWAY_MASS_KG{0.1f};
-        static constexpr Value MOTOR_VELOCITY_CONSTANT{1.0f};
-        static constexpr Value MOTOR_START_THRESHOLD_V{2.0f};
-        static constexpr Value MIN_CONTROL_SIGNAL_V{Motor::MIN_VOLTAGE_V};
-        static constexpr Value MAX_CONTROL_SIGNAL_V{Motor::MAX_VOLTAGE_V};
+        static constexpr Value MOTOR_RESISTANCE{10.0F};
+        static constexpr Value EARTH_ACCELERATION{9.81F};
+        static constexpr Value SWAY_MASS_KG{0.1F};
+        static constexpr Value MOTOR_VELOCITY_CONSTANT{1.0F};
+        static constexpr Value MOTOR_START_THRESHOLD_V{2.0F};
 
         Value get_measured_angle(Value const dt) noexcept;
         Value get_control_angle(Value const error_angle, Value const dt) noexcept;

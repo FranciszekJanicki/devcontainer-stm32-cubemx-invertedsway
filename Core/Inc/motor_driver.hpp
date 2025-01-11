@@ -12,17 +12,16 @@ namespace InvertedSway {
     public:
         using Value = Motor::Voltage;
         using Direction = Motor::Direction;
-        using Regulator = Regulators::Regulator<Value>;
-
-        static constexpr Value MAX_VOLTAGE_V{Motor::MAX_VOLTAGE_V};
-        static constexpr Value MIN_VOLTAGE_V{Motor::MIN_VOLTAGE_V};
-
-        static constexpr Value MIN_SPEED_RPM{0};
-        static constexpr Value MAX_SPEED_RPM{1000};
+        using Regulator = Regulators::PID<Value>;
+        using SpeedToVoltage = Value (*)(Value) noexcept;
+        using SpeedToDirection = Direction (*)(Value) noexcept;
 
         MotorDriver() noexcept = default;
-
-        MotorDriver(Regulator&& regulator, Motor&& motor, Encoder&& encoder) noexcept;
+        MotorDriver(Regulator&& regulator,
+                    Motor&& motor,
+                    Encoder&& encoder,
+                    SpeedToVoltage const speed_to_voltage,
+                    SpeedToDirection const speed_to_direction) noexcept;
 
         MotorDriver(MotorDriver const& other) noexcept = delete;
         MotorDriver(MotorDriver&& other) noexcept = default;
@@ -53,6 +52,9 @@ namespace InvertedSway {
         Regulator regulator_{};
         Motor motor_{};
         Encoder encoder_{};
+
+        SpeedToVoltage speed_to_voltage_{nullptr};
+        SpeedToDirection speed_to_direction_{nullptr};
     };
 
 }; // namespace InvertedSway

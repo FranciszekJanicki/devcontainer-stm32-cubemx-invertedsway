@@ -6,30 +6,24 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <expected>
+#include <optional>
 #include <utility>
 
 namespace InvertedSway {
 
     struct Encoder {
     public:
-        enum struct Error {
-            OK,
-            FAIL,
-            INIT,
-            DEINIT,
-        };
-
-        using Count = std::int32_t;
+        using Count = std::uint32_t;
         using Angle = std::float_t;
         using Speed = std::float_t;
-        using ExpectedAngle = std::expected<Angle, Error>;
-        using ExpectedSpeed = std::expected<Speed, Error>;
-        using Unexpected = std::unexpected<Error>;
+        using OptionalAngle = std::optional<Angle>;
+        using OptionalSpeed = std::optional<Speed>;
 
         Encoder() noexcept = default;
-
-        Encoder(TimerHandle const timer) noexcept;
+        Encoder(TimerHandle const timer,
+                Count const pulses_per_360,
+                Count const counts_per_pulse,
+                Count const counter_period) noexcept;
 
         Encoder(Encoder const& other) noexcept = delete;
         Encoder(Encoder&& other) noexcept = default;
@@ -39,27 +33,25 @@ namespace InvertedSway {
 
         ~Encoder() noexcept;
 
-        [[nodiscard]] ExpectedAngle get_angle() noexcept;
-        [[nodiscard]] ExpectedSpeed get_angular_speed(float const dt) noexcept;
+        [[nodiscard]] OptionalAngle get_angle() noexcept;
+        [[nodiscard]] OptionalSpeed get_angular_speed(float const dt) noexcept;
 
     private:
-        static Angle count_to_angle(Count const count) noexcept;
-        static Angle get_angle_difference(Count const count, Count const last_count) noexcept;
+        Angle count_to_angle(Count const count) const noexcept;
+        Angle count_to_angle_diff(Count const count_diff) const noexcept;
 
         void initialize() noexcept;
         void deinitialize() noexcept;
 
-        static constexpr Count COUNTS_PER_PULSE{1};
-        static constexpr Count PULSES_PER_REVOLUTION{52};
-        static constexpr Count COUNTS_PER_REVOLUTION{PULSES_PER_REVOLUTION * COUNTS_PER_PULSE};
-        static constexpr Count COUNTER_PERIOD{65535};
+        bool initialized_{false};
 
         TimerHandle timer_{nullptr};
 
         Count last_count_{};
         Count count_{};
 
-        bool initialized_{false};
+        Count counts_per_360_{};
+        Count counter_period_{};
     };
 
 }; // namespace InvertedSway
