@@ -20,12 +20,12 @@ namespace {
 
 };
 
-// void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-// {
-//     if (GPIO_Pin == MPU6050_INTR_Pin) {
-//         sampling_timer_elapsed = true;
-//     }
-// }
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == MPU6050_INTR_Pin) {
+        sampling_timer_elapsed = true;
+    }
+}
 
 void balance_sway()
 {
