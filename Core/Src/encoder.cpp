@@ -11,28 +11,36 @@ using OptionalSpeed = Encoder::OptionalSpeed;
 
 namespace InvertedSway {
 
-    OptionalAngle Encoder::get_angle() noexcept
+    OptionalAngle Encoder::get_angle_degrees() const noexcept
     {
         return this->cnt_device.get_count().transform(
-            [this](Count const count) { return degrees_to_radians(this->count_to_angle(count)); });
-        // return OptionalAngle{degrees_to_radians(static_cast<Angle>(__HAL_TIM_GetCounter(this->timer_)))};
+            [this](Count const count) { return this->count_to_degrees(count); });
     }
 
-    OptionalSpeed Encoder::get_angular_speed(float const dt) noexcept
+    OptionalAngle Encoder::get_angle_radians() const noexcept
     {
-        return this->cnt_device.get_count_difference().transform([this, dt](Count const count_diff) {
-            return degrees_to_radians(this->count_to_angle_diff(count_diff)) / dt;
-        });
+        return this->get_angle_degrees().transform(&degrees_to_radians<Angle>);
     }
 
-    Angle Encoder::count_to_angle(Count const count) const noexcept
+    OptionalSpeed Encoder::get_speed_degrees(float const dt) const noexcept
+    {
+        return this->cnt_device.get_count_difference().transform(
+            [this, dt](Count const count_diff) { return this->count_to_degree_diff(count_diff) / dt; });
+    }
+
+    OptionalSpeed Encoder::get_speed_radians(float const dt) const noexcept
+    {
+        return this->get_speed_degrees(dt).transform(&degrees_to_radians<Speed>);
+    }
+
+    Angle Encoder::count_to_degrees(Count const count) const noexcept
     {
         return count * 360.0F / (this->pulses_per_360 * this->counts_per_pulse);
     }
 
-    Angle Encoder::count_to_angle_diff(Count const count_diff) const noexcept
+    Angle Encoder::count_to_degree_diff(Count const count_diff) const noexcept
     {
-        return std::fmod(this->count_to_angle(count_diff) + 360.0F, 360.0F);
+        return std::fmod(this->count_to_degrees(count_diff) + 360.0F, 360.0F);
     }
 
 }; // namespace InvertedSway

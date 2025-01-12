@@ -24,18 +24,14 @@ namespace InvertedSway {
         if (!this->initialized_) {
             return OptionalCount{std::nullopt};
         }
-        this->count_ = (this->get_current_count() + this->count_ - std::exchange(this->prev_count_, this->count_)) %
-                       this->counter_period_;
+        this->count_ = this->get_current_count() % this->counter_period_;
         return OptionalCount{this->count_};
     }
 
     OptionalCount CNTDevice::get_count_difference() const noexcept
     {
-        if (!this->initialized_) {
-            return OptionalCount{std::nullopt};
-        }
-        this->count_ = (this->get_current_count() + this->count_ - this->prev_count_) % this->counter_period_;
-        return OptionalCount{this->count_ - std::exchange(this->prev_count_, this->count_)};
+        auto prev_count{this->count_};
+        return this->get_count().transform([prev_count](Count const count) { return count - prev_count; });
     }
 
     void CNTDevice::initialize() noexcept

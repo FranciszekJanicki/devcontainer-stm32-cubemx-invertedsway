@@ -56,7 +56,7 @@ namespace InvertedSway {
 
     Value MotorDriver::get_measured_speed(Value const dt) noexcept
     {
-        return this->encoder_.get_angular_speed(dt);
+        return this->encoder_.get_speed_degrees(dt);
     }
 
     Value MotorDriver::get_control_speed(Value const error_speed, Value const dt) noexcept

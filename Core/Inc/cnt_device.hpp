@@ -40,7 +40,6 @@ namespace InvertedSway {
         Count counter_period_{};
 
         Count mutable count_{};
-        Count mutable prev_count_{};
     };
 
 }; // namespace InvertedSway

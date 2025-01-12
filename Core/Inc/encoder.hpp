@@ -18,8 +18,10 @@ namespace InvertedSway {
         using OptionalAngle = std::optional<Angle>;
         using OptionalSpeed = std::optional<Speed>;
 
-        [[nodiscard]] OptionalAngle get_angle() noexcept;
-        [[nodiscard]] OptionalSpeed get_angular_speed(float const dt) noexcept;
+        [[nodiscard]] OptionalAngle get_angle_degrees() const noexcept;
+        [[nodiscard]] OptionalAngle get_angle_radians() const noexcept;
+        [[nodiscard]] OptionalSpeed get_speed_degrees(float const dt) const noexcept;
+        [[nodiscard]] OptionalSpeed get_speed_radians(float const dt) const noexcept;
 
         CNTDevice cnt_device{};
 
@@ -27,8 +29,8 @@ namespace InvertedSway {
         Count pulses_per_360{};
 
     private:
-        Angle count_to_angle(Count const count) const noexcept;
-        Angle count_to_angle_diff(Count const count_diff) const noexcept;
+        Angle count_to_degrees(Count const count) const noexcept;
+        Angle count_to_degree_diff(Count const count_diff) const noexcept;
     };
 
 }; // namespace InvertedSway

@@ -242,7 +242,7 @@ namespace Tests {
                     .pin_right = L298N_IN3_Pin};
 
         while (true) {
-            float const angle = encoder.get_angle().value();
+            float const angle = encoder.get_angle_degrees().value();
 
             if (angle >= 350.0F) {
                 motor.set_backward();
