@@ -1,4 +1,5 @@
 #include "tests.hpp"
+#include "cnt_device.hpp"
 #include "encoder.hpp"
 #include "filters.hpp"
 #include "gpio.h"
@@ -120,7 +121,9 @@ namespace Tests {
                     .pin_left = L298N_IN1_Pin,
                     .pin_right = L298N_IN3_Pin};
 
-        Encoder encoder{&htim3, 360U, 1U, 65535U};
+        CNTDevice cnt_device(&htim3, 65535U);
+
+        Encoder encoder{.cnt_device = std::move(cnt_device), .counts_per_pulse = 1U, .pulses_per_360 = 52U};
 
         MotorDriver motor_driver{std::move(regulator),
                                  std::move(motor),
@@ -227,7 +230,9 @@ namespace Tests {
         MX_TIM3_Init();
         MX_TIM4_Init();
 
-        Encoder encoder{&htim3, 360U, 1U, 65535U};
+        CNTDevice cnt_device(&htim3, 65535U);
+
+        Encoder encoder{.cnt_device = std::move(cnt_device), .counts_per_pulse = 1U, .pulses_per_360 = 52U};
 
         PWMDevice pwm_device{&htim4, TIM_CHANNEL_1, 39999U, 0.0F, 6.0F};
 

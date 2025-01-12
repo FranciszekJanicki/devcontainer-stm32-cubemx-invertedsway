@@ -21,14 +21,13 @@ namespace InvertedSway {
         using Regulator = Regulators::PID<Value>;
 
         Sway() = delete;
-
         Sway(MPU_DMP&& mpu_dmp, L298N&& l298n, Kalman&& kalman, Regulator&& regulator, Encoder&& encoder) noexcept;
 
         Sway(Sway const& other) = delete;
-        Sway(Sway&& other) noexcept = default;
+        Sway(Sway&& other) noexcept = delete;
 
         Sway& operator=(Sway const& other) = delete;
-        Sway& operator=(Sway&& other) noexcept = default;
+        Sway& operator=(Sway&& other) noexcept = delete;
 
         ~Sway() noexcept;
 

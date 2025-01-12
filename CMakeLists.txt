@@ -54,6 +54,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Inc/utility.hpp"
     "Core/Src/mpu6050_bitfields.cpp"
     "Core/Src/pwm_device.cpp"
+    "Core/Src/cnt_device.cpp"
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE

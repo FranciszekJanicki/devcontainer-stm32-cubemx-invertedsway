@@ -32,6 +32,7 @@ namespace InvertedSway {
         void set_compare_max() const noexcept;
         void set_compare_min() const noexcept;
 
+    private:
         void initialize() noexcept;
         void deinitialize() noexcept;
 

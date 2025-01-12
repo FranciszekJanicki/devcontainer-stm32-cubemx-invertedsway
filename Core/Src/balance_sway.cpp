@@ -72,7 +72,9 @@ void balance_sway()
 
     Regulator regulator{.kp = 400.0F, .ki = 500.0F, .kd = 10.0F, .windup = 6.0F};
 
-    Encoder encoder{&htim3, 360U, 1U, 65535U};
+    CNTDevice cnt_device(&htim3, 65535U);
+
+    Encoder encoder{.cnt_device = std::move(cnt_device), .counts_per_pulse = 1U, .pulses_per_360 = 52U};
 
     Sway sway{std::move(mpu_dmp), std::move(l298n), std::move(kalman), std::move(regulator), std::move(encoder)};
 

@@ -6,12 +6,6 @@
 #include "stm32l4xx_hal_i2c.h"
 #include "stm32l4xx_hal_tim.h"
 #include "stm32l4xx_hal_uart.h"
-#include "usart.h"
-#include <array>
-#include <bit>
-#include <cstdint>
-#include <cstdio>
-#include <cstring>
 
 namespace InvertedSway {
 
