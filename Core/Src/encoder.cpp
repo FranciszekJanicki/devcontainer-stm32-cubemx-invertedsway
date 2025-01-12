@@ -27,15 +27,19 @@ namespace InvertedSway {
 
     void Encoder::initialize() noexcept
     {
-        if (HAL_TIM_Encoder_Start(this->timer_, TIM_CHANNEL_ALL) == HAL_OK) {
-            this->initialized_ = true;
+        if (this->timer_ != nullptr) {
+            if (HAL_TIM_Encoder_Start(this->timer_, TIM_CHANNEL_ALL) == HAL_OK) {
+                this->initialized_ = true;
+            }
         }
     }
 
     void Encoder::deinitialize() noexcept
     {
-        if (HAL_TIM_Encoder_Stop(this->timer_, TIM_CHANNEL_ALL) == HAL_OK) {
-            this->initialized_ = false;
+        if (this->timer_ != nullptr) {
+            if (HAL_TIM_Encoder_Stop(this->timer_, TIM_CHANNEL_ALL) == HAL_OK) {
+                this->initialized_ = false;
+            }
         }
     }
 

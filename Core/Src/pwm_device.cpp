@@ -54,16 +54,18 @@ namespace InvertedSway {
     void PWMDevice::initialize() noexcept
     {
         if (this->timer_ != nullptr) {
-            HAL_TIM_PWM_Start(this->timer_, this->timer_channel_);
-            this->initialized_ = true;
+            if (HAL_TIM_PWM_Start(this->timer_, this->timer_channel_) == HAL_OK) {
+                this->initialized_ = true;
+            }
         }
     }
 
     void PWMDevice::deinitialize() noexcept
     {
         if (this->timer_ != nullptr) {
-            HAL_TIM_PWM_Stop(this->timer_, this->timer_channel_);
-            this->initialized_ = false;
+            if (HAL_TIM_PWM_Stop(this->timer_, this->timer_channel_) == HAL_OK) {
+                this->initialized_ = false;
+            }
         }
     }
 
