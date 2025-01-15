@@ -35,7 +35,7 @@ void balance_sway()
 
     constexpr auto SAMPLING_RATE{200U};
     constexpr auto SAMPLING_TIME{1.0F / static_cast<float>(SAMPLING_RATE)};
-    constexpr auto INPUT_ANGLE{-0.04F};
+    constexpr auto INPUT_ANGLE{-0.06F};
 
     MX_GPIO_Init();
     MX_USART2_UART_Init();
@@ -63,7 +63,7 @@ void balance_sway()
 
     Kalman kalman{.k_angle = 0.0F, .k_bias = 0.0F, .Q_angle = 0.1F, .Q_bias = 0.3F, .R = 0.03F};
 
-    Regulator regulator{.kp = 400.0F, .ki = 500.0F, .kd = 10.0F, .windup = 6.0F};
+    Regulator regulator{.kp = 400.0F, .ki = 500.0F, .kd = 10.0F, .windup = 6.0F, .kc = 0.1F};
 
     Encoder encoder{&htim3};
 
